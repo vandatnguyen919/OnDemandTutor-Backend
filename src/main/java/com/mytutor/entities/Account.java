@@ -20,6 +20,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,7 +39,6 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     
-    @Column(name = "full_name")
     private String fullName;
     
     @Column(unique = true, nullable = false)
@@ -47,21 +47,18 @@ public class Account {
     @Column(nullable = false)
     private String password;
     
-    @Column(name = "date_of_birth")
     private Date dateOfBirth;
     
     private Boolean gender;
     
     private String address;
     
-    @Column(name = "phone_number", unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
     
-    @Column(name = "avatar_url")
     private String avatarUrl;
     
-    @Column(name = "created_at")
-    private String createdAt;
+    private Date createdAt;
     
     private String description;
     
@@ -72,5 +69,5 @@ public class Account {
     @JoinTable(name = "Role_Account", 
                 joinColumns = @JoinColumn(name = "account_id"),
                 inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 }
