@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize
                         -> authorize
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/accounts/**").permitAll() //set lai sau
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/v2/api-docs",

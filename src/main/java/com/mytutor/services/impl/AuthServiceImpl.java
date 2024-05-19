@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import com.mytutor.service.AuthService;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +36,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Nguyen Van Dat
  */
 @Service
-public class AuthtServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -84,8 +86,8 @@ public class AuthtServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> registerAsStudent(RegisterDto registerDto) {
-
+    public ResponseEntity<?> register(RegisterDto registerDto) {
+        
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
             return new ResponseEntity<>("This email has been used", HttpStatus.BAD_REQUEST);
         }
@@ -102,7 +104,6 @@ public class AuthtServiceImpl implements AuthService {
 
         account.setCreatedAt(new Date());
         account.setStatus(AccountStatus.ACTIVE);
-
         Role role = roleRepository.findByRoleName("student").get();
         account.setRoles(Collections.singleton(role));
 
@@ -121,5 +122,7 @@ public class AuthtServiceImpl implements AuthService {
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
 
     }
+    
+    
 
 }

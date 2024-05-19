@@ -16,5 +16,6 @@ public interface AuthService {
 
     ResponseEntity<?> login(LoginDto loginDto);
 
-    ResponseEntity<?> registerAsStudent(RegisterDto registerDto);
+    ResponseEntity<?> register(RegisterDto registerDto);
+    
 }

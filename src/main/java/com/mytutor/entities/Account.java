@@ -18,6 +18,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
@@ -49,7 +51,7 @@ public class Account {
     
     private Date dateOfBirth;
     
-    private Boolean gender;
+    private Boolean gender; // male: false, female: true
     
     private String address;
     
@@ -63,11 +65,22 @@ public class Account {
     private String description;
     
     @Enumerated(EnumType.STRING)
-    private AccountStatus status; 
+    private AccountStatus status = AccountStatus.ACTIVE; // Default: active 
     
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "Role_Account", 
                 joinColumns = @JoinColumn(name = "account_id"),
                 inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+    
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Tutor tutor;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Education> educations = new HashSet<>();
+    
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Certificate> certificates = new HashSet<>();
+    
+    
 }
