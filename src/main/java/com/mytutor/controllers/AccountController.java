@@ -7,7 +7,7 @@ package com.mytutor.controllers;
 import com.mytutor.dto.AccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
-import com.mytutor.dto.tutor.TutorDetailsDto;
+import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
 import com.mytutor.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +53,12 @@ public class AccountController {
     @PostMapping("certificates/{accountId}")
     public ResponseEntity<?> editCertificates(@PathVariable Integer accountId, @RequestBody CertificateDto certificateDto) {
         ResponseEntity<?> response = accountService.updateCertificate(accountId, certificateDto);
+        return response;
+    }
+    
+    @PostMapping("tutor-description/{accountId}")
+    public ResponseEntity<?> editTutorDescription(@PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
+        ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
         return response;
     }
 

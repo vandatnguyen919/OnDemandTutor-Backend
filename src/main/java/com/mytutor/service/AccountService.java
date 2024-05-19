@@ -7,6 +7,7 @@ package com.mytutor.service;
 import com.mytutor.dto.AccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
+import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
 
@@ -25,5 +26,7 @@ public interface AccountService {
     
     public ResponseEntity<?> updateEducation(Integer accountId, EducationDto educationDto);
     
-    public ResponseEntity updateCertificate(Integer accountId, CertificateDto certificateDto);
+    public ResponseEntity<?> updateCertificate(Integer accountId, CertificateDto certificateDto);
+    
+    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
 }

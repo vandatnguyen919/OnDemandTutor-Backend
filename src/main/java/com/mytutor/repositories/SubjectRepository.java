@@ -4,15 +4,13 @@
  */
 package com.mytutor.repositories;
 
-import com.mytutor.entities.Tutor;
-import java.util.Optional;
+import com.mytutor.entities.Subject;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  *
  * @author vothimaihoa
  */
-public interface TutorRepository extends JpaRepository<Tutor, Integer>{
-    @Override
-    Optional<Tutor> findById(Integer tutorId);
+public interface SubjectRepository extends JpaRepository<Subject, Integer>{
+    
 }
