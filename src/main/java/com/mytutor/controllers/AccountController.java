@@ -10,9 +10,11 @@ import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
 import com.mytutor.service.AccountService;
+import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -61,5 +63,8 @@ public class AccountController {
         ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
         return response;
     }
+    
+    
+
 
 }

@@ -43,7 +43,7 @@ public class Account {
     
     private String fullName;
     
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
     
     @Column(nullable = false)
@@ -55,7 +55,7 @@ public class Account {
     
     private String address;
     
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String phoneNumber;
     
     private String avatarUrl;

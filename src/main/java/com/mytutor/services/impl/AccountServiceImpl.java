@@ -156,7 +156,7 @@ public class AccountServiceImpl implements AccountService {
 
         Set<Subject> subjects = new HashSet<>();
         for (Subject subject : tutorDescriptionDto.getSubjects()) {
-            Subject existingSubject = subjectRepository.findById(subject.getId())
+            Subject existingSubject = subjectRepository.findBySubjectName(subject.getSubjectName())
                     .orElseGet(() -> subjectRepository.save(subject));
             subjects.add(existingSubject);
         }
@@ -172,5 +172,6 @@ public class AccountServiceImpl implements AccountService {
         Role role = roleRepository.findByRoleName("tutor").orElse(null);
         return !(role == null || !account.getRoles().contains(role));
     }
+
 
 }
