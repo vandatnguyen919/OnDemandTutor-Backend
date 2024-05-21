@@ -4,8 +4,11 @@
  */
 package com.mytutor.service;
 
+import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
+import com.mytutor.entities.Account;
+import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -16,5 +19,10 @@ public interface AuthService {
 
     ResponseEntity<?> login(LoginDto loginDto);
 
-    ResponseEntity<?> registerAsStudent(RegisterDto registerDto);
+    ResponseEntity<?> register(RegisterDto registerDto);
+
+    Optional<Account> findByEmail(String email);
+
+    String loginOAuthGoogle(IdTokenRequestDto requestBody);
+    
 }

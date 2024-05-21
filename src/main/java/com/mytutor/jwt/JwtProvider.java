@@ -4,11 +4,14 @@
  */
 package com.mytutor.jwt;
 
+import com.mytutor.entities.Account;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.crypto.SecretKey;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -22,6 +25,7 @@ public class JwtProvider {
 
     private static final String SECRET_KEY = "secretsecretsecretsecretsecretsecretsecretsecretsecretsecret";
     public static final long JWT_EXPIRATION = 3600000; // 1 hour in milisecond
+    public static final String TIME_ZONE = "Asia/Ho_Chi_Minh";
 
     public String generateToken(UserDetails userDetails) {
 
