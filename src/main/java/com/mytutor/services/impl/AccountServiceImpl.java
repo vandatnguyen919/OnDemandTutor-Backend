@@ -102,39 +102,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<?> updateEducation(Integer accountId, EducationDto educationDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-        }
-
-        Education education = new Education();
-        education.setAccount(account);
-        modelMapper.map(educationDto, education);
-
-        educationRepository.save(education);
-
-        return ResponseEntity.status(HttpStatus.OK).body("Education updated successfully!");
-    }
-
-    @Override
-    public ResponseEntity<?> updateCertificate(Integer accountId, CertificateDto certificateDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-        }
-        Certificate certificate = new Certificate();
-        certificate.setAccount(account);
-        modelMapper.map(certificateDto, certificate);
-
-        certificateRepository.save(certificate);
-
-        return ResponseEntity.status(HttpStatus.OK).body("Certificate updated successfully!");
-    }
-
-    @Override
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
@@ -172,6 +139,5 @@ public class AccountServiceImpl implements AccountService {
         Role role = roleRepository.findByRoleName("tutor").orElse(null);
         return !(role == null || !account.getRoles().contains(role));
     }
-
 
 }

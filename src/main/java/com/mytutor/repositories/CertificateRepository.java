@@ -5,6 +5,7 @@
 package com.mytutor.repositories;
 
 import com.mytutor.entities.Certificate;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
@@ -12,5 +13,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author vothimaihoa
  */
 public interface CertificateRepository extends JpaRepository<Certificate, Integer> {
-    
+
+    List<Certificate> findByTutorId(Integer tutorId);
 }

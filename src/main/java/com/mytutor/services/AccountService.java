@@ -18,15 +18,10 @@ import org.springframework.http.ResponseEntity;
 public interface AccountService {
 
     public Account getAccountById(Integer accountId);
-    
+
     public ResponseEntity<?> changeRole(Integer accountId, String roleName);
 
-    
     public ResponseEntity<?> updateAccountDetails(Integer accountId, AccountDetailsDto accountDetailsDTO);
-    
-    public ResponseEntity<?> updateEducation(Integer accountId, EducationDto educationDto);
-    
-    public ResponseEntity<?> updateCertificate(Integer accountId, CertificateDto certificateDto);
-    
+
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
 }

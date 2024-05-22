@@ -33,28 +33,20 @@ public class Education {
     @JoinColumn(name = "tutor_id")
     private Account account;
 
-    @Column(name = "major_name")
     private String majorName;
 
-    @Column(name = "specialization")
     private String specialization;
 
-    @Column(name = "university_name")
     private String universityName;
 
-    @Column(name = "degree_type")
     private String degreeType;
 
-    @Column(name = "start_year")
     private int startYear;
 
-    @Column(name = "end_year")
     private int endYear;
 
-    @Column(name = "diploma_url")
     private String diplomaUrl;
 
-    @Column(name = "is_verified")
     private boolean isVerified = false;
 }
 

@@ -33,22 +33,16 @@ public class Certificate {
     @JoinColumn(name = "tutor_id")
     private Account account;
 
-    @Column(name = "certificate_name")
     private String certificateName;
 
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "issued_by")
     private String issuedBy;
 
-    @Column(name = "issued_year")
     private int issuedYear;
 
-    @Column(name = "certificate_url")
     private String certificateUrl;
 
-    @Column(name = "is_verified")
     private boolean isVerified = false;
 }
 
