@@ -5,7 +5,8 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.AccountDetailsDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
+import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
@@ -21,8 +22,10 @@ import com.mytutor.repositories.EducationRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.service.AccountService;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.security.Principal;
+import java.util.*;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -82,19 +85,18 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      *
-     * @param accountId
-     * @param accountDetailsDto
      * @return status code OK if updated successfully
      */
     @Override
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, AccountDetailsDto accountDetailsDto) {
+    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
+
 
         if (accountDB == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");
         }
 
-        modelMapper.map(accountDetailsDto, accountDB);
+        modelMapper.map(updateAccountDetailsDto, accountDB);
 
         accountRepository.save(accountDB);
 
@@ -110,10 +112,12 @@ public class AccountServiceImpl implements AccountService {
         }
 
         Education education = new Education();
-        education.setAccount(account);
         modelMapper.map(educationDto, education);
+        education.setAccount(account);
 
         educationRepository.save(education);
+        System.out.println(education.toString());
+        System.out.println(educationRepository.findById(education.getId()));
 
         return ResponseEntity.status(HttpStatus.OK).body("Education updated successfully!");
     }
@@ -173,5 +177,25 @@ public class AccountServiceImpl implements AccountService {
         return !(role == null || !account.getRoles().contains(role));
     }
 
+    @Override
+    public List<ResponseAccountDetailsDto> getAllAccounts() {
+        List<Account> accounts = accountRepository.findAll();
+
+        // Option 2: Using a for loop (alternative)
+        List<ResponseAccountDetailsDto> responseDtos = new ArrayList<>();
+        for (Account account : accounts) {
+            responseDtos.add(modelMapper.map(account, ResponseAccountDetailsDto.class));
+        }
+        return responseDtos;
+    }
+
+    @Override
+    public boolean checkCurrentAccount (Principal principal, Integer accountId) {
+        Account account = accountRepository.findByEmail(principal.getName()).orElse(null);
+        if (account == null) {
+            return false;
+        }
+        return account.getId() == accountId;
+    }
 
 }

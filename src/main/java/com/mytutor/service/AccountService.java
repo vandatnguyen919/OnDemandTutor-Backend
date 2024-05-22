@@ -4,12 +4,16 @@
  */
 package com.mytutor.service;
 
-import com.mytutor.dto.AccountDetailsDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
+import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
+
+import java.security.Principal;
+import java.util.List;
 
 /**
  *
@@ -17,16 +21,20 @@ import org.springframework.http.ResponseEntity;
  */
 public interface AccountService {
 
-    public Account getAccountById(Integer accountId);
+    Account getAccountById(Integer accountId);
     
-    public ResponseEntity<?> changeRole(Integer accountId, String roleName);
+    ResponseEntity<?> changeRole(Integer accountId, String roleName);
 
     
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, AccountDetailsDto accountDetailsDTO);
+    ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
     
-    public ResponseEntity<?> updateEducation(Integer accountId, EducationDto educationDto);
+    ResponseEntity<?> updateEducation(Integer accountId, EducationDto educationDto);
     
-    public ResponseEntity<?> updateCertificate(Integer accountId, CertificateDto certificateDto);
+    ResponseEntity<?> updateCertificate(Integer accountId, CertificateDto certificateDto);
     
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
+    ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
+
+    List<ResponseAccountDetailsDto> getAllAccounts();
+
+    boolean checkCurrentAccount(Principal principal, Integer accountId);
 }

@@ -5,9 +5,7 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.AuthenticationResponseDto;
-import com.mytutor.dto.LoginDto;
-import com.mytutor.dto.RegisterDto;
+import com.mytutor.dto.*;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
 import com.mytutor.jwt.JwtProvider;
@@ -16,7 +14,11 @@ import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.service.AuthService;
 import jakarta.transaction.Transactional;
+
+import java.security.Principal;
 import java.util.Date;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +34,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.mytutor.dto.IdTokenRequestDto;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
@@ -53,6 +55,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Autowired
     private JwtProvider JwtProvider;
@@ -150,6 +155,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public ResponseEntity<?> getAccountInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
+        Account account = findByEmail(principal.getName()).orElse(null);
+        return ResponseEntity.ok().body(modelMapper.map(account, ResponseAccountDetailsDto.class));
+    }
+
+    @Override
     public String loginOAuthGoogle(IdTokenRequestDto requestBody) {
         Account account = verifyIDToken(requestBody.getIdToken());
         System.out.println(requestBody.getIdToken());
@@ -168,9 +179,9 @@ public class AuthServiceImpl implements AuthService {
         Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
         if (existingAccount == null) {
             Role userRole = new Role();
-            userRole.setId(1);
-            userRole.setRoleName("student");
-            account.setRoles(Collections.singleton(userRole));
+            Role role = roleRepository.findByRoleName("student").get();
+            account.setRoles(Collections.singleton(role));
+            account.setPassword("123"); // phải có password vì nếu null sẽ bị exception trong hàm User của CustomerUserDetails trong spring security
             accountRepository.save(account);
             return account;
         }

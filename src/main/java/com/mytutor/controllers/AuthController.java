@@ -4,10 +4,10 @@
  */
 package com.mytutor.controllers;
 
-import static com.mytutor.dto.AccountDetailsDto.convertToDto;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,11 +43,6 @@ public class AuthController {
         return authService.register(registerDto);
     }
 
-//    @PostMapping("login-with-Google")
-//    public ResponseEntity<?> loginGoogle(@RequestBody LoginDto loginDto) {
-//        return authService.login(loginDto);
-//    }
-
     @PostMapping("/login-with-google")
     public ResponseEntity LoginWithGoogleOauth2(@RequestBody IdTokenRequestDto requestBody, HttpServletResponse response) {
         String authToken = authService.loginOAuthGoogle(requestBody);
@@ -62,8 +57,7 @@ public class AuthController {
     }
     
     @GetMapping("/profile")
-    public ResponseEntity getUserInfo(Principal principal) {
-        Account account = authService.findByEmail(principal.getName()).orElse(null);
-        return ResponseEntity.ok().body(convertToDto(account));
+    public ResponseEntity getUserInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
+        return authService.getAccountInfo(principal, responseAccountDetailsDto);
     }
 }
