@@ -23,6 +23,6 @@ public interface AuthService {
 
     Optional<Account> findByEmail(String email);
 
-    String loginOAuthGoogle(IdTokenRequestDto requestBody);
+    ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto requestBody);
     
 }

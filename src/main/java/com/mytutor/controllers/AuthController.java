@@ -33,7 +33,7 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("login-manually")
+    @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
     }
@@ -43,22 +43,9 @@ public class AuthController {
         return authService.register(registerDto);
     }
 
-//    @PostMapping("login-with-Google")
-//    public ResponseEntity<?> loginGoogle(@RequestBody LoginDto loginDto) {
-//        return authService.login(loginDto);
-//    }
-
     @PostMapping("/login-with-google")
-    public ResponseEntity LoginWithGoogleOauth2(@RequestBody IdTokenRequestDto requestBody, HttpServletResponse response) {
-        String authToken = authService.loginOAuthGoogle(requestBody);
-        final ResponseCookie cookie = ResponseCookie.from("AUTH-TOKEN", authToken)
-                .httpOnly(true)
-                .maxAge(7 * 24 * 3600)
-                .path("/")
-                .secure(false)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return ResponseEntity.ok().build();
+    public ResponseEntity loginOAuthGoogle(@RequestBody IdTokenRequestDto idTokenRequestDto) {
+        return authService.loginOAuthGoogle(idTokenRequestDto);
     }
     
     @GetMapping("/profile")
