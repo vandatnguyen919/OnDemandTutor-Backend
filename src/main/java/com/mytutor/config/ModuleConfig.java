@@ -8,15 +8,18 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.security.Principal;
+
 /**
  *
  * @author vothimaihoa
  */
 @Configuration
-public class ModelMapperConfig {
+public class ModuleConfig {
 
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
+
 }
