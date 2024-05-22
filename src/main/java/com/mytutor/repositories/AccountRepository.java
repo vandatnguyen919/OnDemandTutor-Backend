@@ -7,11 +7,13 @@ package com.mytutor.repositories;
 import com.mytutor.entities.Account;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author Nguyen Van Dat
  */
+@Repository
 public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     Optional<Account> findByEmail(String email);
