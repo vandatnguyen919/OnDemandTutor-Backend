@@ -13,6 +13,8 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.services.AccountService;
+
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
 import org.modelmapper.ModelMapper;
@@ -68,16 +70,18 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      *
-     * @param accountId
-     * @param updateAccountDetailsDto
      * @return status code OK if updated successfully
      */
     @Override
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
+    public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
 
         if (accountDB == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");
+        }
+
+        if (!checkCurrentAccount(principal, accountId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
         }
 
         modelMapper.map(updateAccountDetailsDto, accountDB);
@@ -87,5 +91,13 @@ public class AccountServiceImpl implements AccountService {
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
     }
 
+    @Override
+    public boolean checkCurrentAccount (Principal principal, Integer accountId) {
+        Account account = accountRepository.findByEmail(principal.getName()).orElse(null);
+        if (account == null) {
+            return false;
+        }
+        return account.getId() == accountId;
+    }
 
 }

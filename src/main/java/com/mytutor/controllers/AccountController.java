@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 /**
  *
  * @author vothimaihoa
@@ -33,9 +35,11 @@ public class AccountController {
 
     // chi cho phep account do update
     @PutMapping("/{accountId}/update-details")
-    public ResponseEntity<?> updateAccountDetails(@PathVariable Integer accountId, @RequestBody UpdateAccountDetailsDto updateAccountDetails) {
-        ResponseEntity<?> response = accountService.updateAccountDetails(accountId, updateAccountDetails);
-        return response;
+    public ResponseEntity<?> updateAccountDetails(
+            @PathVariable Integer accountId,
+            @RequestBody UpdateAccountDetailsDto updateAccountDetails,
+            Principal principal) {
+        return accountService.updateAccountDetails(principal, accountId, updateAccountDetails);
     }
 
 
