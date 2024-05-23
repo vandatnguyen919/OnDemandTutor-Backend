@@ -40,27 +40,8 @@ public class AccountController {
     
     // chi cho phep account do update
     @PutMapping("update-details/{accountId}")
-    public ResponseEntity<?> updateAccountDetails(@PathVariable Integer accountId, @RequestBody AccountDetailsDto accountDetails) {
+    public ResponseEntity<?> updateAccountDetails(@PathVariable Integer accountId, @RequestBody UpdateAccountDetailsDto accountDetails) {
         ResponseEntity<?> response = accountService.updateAccountDetails(accountId, accountDetails);
-        return response;
-    }
-    
-    // chi cho phep role tutor va la tutor do update
-    @PostMapping("educations/{accountId}")
-    public ResponseEntity<?> editEducations(@PathVariable Integer accountId, @RequestBody EducationDto educationDto) {
-        ResponseEntity<?> response = accountService.updateEducation(accountId, educationDto);
-        return response;
-    }
-    
-    @PostMapping("certificates/{accountId}")
-    public ResponseEntity<?> editCertificates(@PathVariable Integer accountId, @RequestBody CertificateDto certificateDto) {
-        ResponseEntity<?> response = accountService.updateCertificate(accountId, certificateDto);
-        return response;
-    }
-    
-    @PostMapping("tutor-description/{accountId}")
-    public ResponseEntity<?> editTutorDescription(@PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
-        ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
         return response;
     }
     
