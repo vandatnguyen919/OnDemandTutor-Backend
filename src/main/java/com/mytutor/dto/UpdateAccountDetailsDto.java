@@ -14,11 +14,9 @@ import lombok.NoArgsConstructor;
  * @author vothimaihoa
  */
 @Data
-@NoArgsConstructor
 public class UpdateAccountDetailsDto {
     private Date dayOfBirth;
     private Boolean gender; // male: false, female: true
     private String address;
     private String avatarUrl;
-
 }

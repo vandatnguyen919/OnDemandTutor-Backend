@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package com.mytutor.service;
+package com.mytutor.services;
 
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
@@ -13,11 +13,13 @@ import com.mytutor.entities.Account;
 import java.security.Principal;
 import java.util.Optional;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Nguyen Van Dat
  */
+@Service
 public interface AuthService {
 
     ResponseEntity<?> login(LoginDto loginDto);
@@ -26,8 +28,10 @@ public interface AuthService {
 
     Optional<Account> findByEmail(String email);
 
-    String loginOAuthGoogle(IdTokenRequestDto requestBody);
+//    String loginOAuthGoogle(IdTokenRequestDto requestBody);
 
     ResponseEntity<?> getAccountInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto);
 
+    ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto);
+    
 }

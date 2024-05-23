@@ -4,15 +4,20 @@
  */
 package com.mytutor.repositories;
 
+import com.mytutor.entities.Account;
+import com.mytutor.entities.Certificate;
 import com.mytutor.entities.Education;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
 
 /**
  *
  * @author vothimaihoa
  */
-@Repository
 public interface EducationRepository extends JpaRepository<Education, Integer>{
-    
+
+
 }
+
