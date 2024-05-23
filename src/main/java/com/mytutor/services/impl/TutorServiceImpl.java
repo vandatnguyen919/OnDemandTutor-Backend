@@ -94,10 +94,10 @@ public class TutorServiceImpl implements TutorService {
             educationRepository.save(education);
         }
 
-//        List<Education> educations = educationRepository.findByTutorId(tutorId);
-//        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
+        List<Education> educations = educationRepository.findByAccountId(tutorId);
+        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
 
-        return ResponseEntity.status(HttpStatus.OK).body("Added successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
     }
 
     @Override
@@ -112,10 +112,10 @@ public class TutorServiceImpl implements TutorService {
             certificateRepository.save(certificate);
         }
 
-//        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
-//        List<CertificateDto> certificateResponse = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
+        List<Certificate> certificates = certificateRepository.findByAccountId(tutorId);
+        List<CertificateDto> certificateResponse = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
 
-        return ResponseEntity.status(HttpStatus.OK).body("Added successfully!");
+        return ResponseEntity.status(HttpStatus.OK).body(certificateResponse);
 
     }
 
@@ -129,9 +129,13 @@ public class TutorServiceImpl implements TutorService {
             throw new EducationNotFoundException("This education does not belong to this tutor");
         }
 
-        education = modelMapper.map(educationDto, Education.class);
-        education.setAccount(tutor);
-        education.setVerified(false);
+        education.setDegreeType(educationDto.getDegreeType());
+        education.setUniversityName(educationDto.getUniversityName());
+        education.setMajorName(educationDto.getMajorName());
+        education.setSpecialization(educationDto.getSpecialization());
+        education.setStartYear(educationDto.getStartYear());
+        education.setEndYear(educationDto.getEndYear());
+        education.setDiplomaUrl(educationDto.getDiplomaUrl());
 
         educationRepository.save(education);
 
@@ -150,9 +154,11 @@ public class TutorServiceImpl implements TutorService {
             throw new CertificateNotFoundException("This certificate does not belong to this tutor");
         }
 
-        certificate = modelMapper.map(certificateDto, Certificate.class);
-        certificate.setAccount(tutor);
-        certificate.setVerified(false);
+        certificate.setCertificateName(certificateDto.getCertificateName());
+        certificate.setCertificateUrl(certificateDto.getCertificateUrl());
+        certificate.setDescription(certificateDto.getDescription());
+        certificate.setIssuedBy(certificateDto.getIssuedBy());
+        certificate.setIssuedYear(certificateDto.getIssuedYear());
 
         certificateRepository.save(certificate);
 
@@ -217,6 +223,5 @@ public class TutorServiceImpl implements TutorService {
 
         return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
     }
-
 
 }
