@@ -23,7 +23,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,7 +46,7 @@ public class Account {
     @Column(unique = true)
     private String email;
     
-    @Column
+    @Column(nullable = false)
     private String password;
     
     private Date dateOfBirth;
@@ -73,29 +72,11 @@ public class Account {
                 joinColumns = @JoinColumn(name = "account_id"),
                 inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
-    
-//    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private Set<Education> educations = new HashSet<>();
-//
-//    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private Set<Certificate> certificates = new HashSet<>();
-    
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "Tutor_Subject",
                joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
     private Set<Subject> subjects = new HashSet<>();
-
-    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private TutorDetail tutorDetail;
-
-//    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private Set<Timeslot> availableTimeslots = new HashSet<>();
-//
-//    @OneToMany(mappedBy = "tutor")
-//    private List<Appointment> tutorAppointments;
-//
-//    @OneToMany(mappedBy = "student")
-//    private List<Appointment> studentAppointments;
 
 }

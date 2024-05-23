@@ -5,13 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+
 /**
  *
  * @author vothimaihoa
  */
-
 @Data
-@NoArgsConstructor
 public class ResponseAccountDetailsDto {
     private Date dayOfBirth;
     private Boolean gender; // male: false, female: true

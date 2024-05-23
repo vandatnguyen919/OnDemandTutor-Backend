@@ -6,28 +6,22 @@ package com.mytutor.services;
 
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
-import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.List;
 
 /**
  *
  * @author vothimaihoa
  */
-@Service
 public interface AccountService {
 
-    public Account getAccountById(Integer accountId);
+    Account getAccountById(Integer accountId);
 
-    public ResponseEntity<?> changeRole(Integer accountId, String roleName);
+    ResponseEntity<?> changeRole(Integer accountId, String roleName);
 
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto accountDetailsDTO);
+    ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
 
-    public List<ResponseAccountDetailsDto> getAllAccounts();
-
-    public boolean checkCurrentAccount (Principal principal, Integer accountId);
+    boolean checkCurrentAccount(Principal principal, Integer accountId);
 }

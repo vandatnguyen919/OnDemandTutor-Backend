@@ -5,7 +5,6 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
@@ -17,6 +16,8 @@ import java.security.Principal;
 import java.util.*;
 
 import com.mytutor.services.AccountService;
+
+import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
 import org.modelmapper.ModelMapper;
@@ -74,7 +75,8 @@ public class AccountServiceImpl implements AccountService {
      * @return status code OK if updated successfully
      */
     @Override
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
+
+    public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
 
 
@@ -82,28 +84,15 @@ public class AccountServiceImpl implements AccountService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");
         }
 
+        if (!checkCurrentAccount(principal, accountId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
+        }
+
         modelMapper.map(updateAccountDetailsDto, accountDB);
 
         accountRepository.save(accountDB);
 
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
-    }
-
-
-    private boolean checkRoleTutor(Account account) {
-        Role role = roleRepository.findByRoleName("tutor").orElse(null);
-        return !(role == null || !account.getRoles().contains(role));
-    }
-
-    @Override
-    public List<ResponseAccountDetailsDto> getAllAccounts() {
-        List<Account> accounts = accountRepository.findAll();
-
-        List<ResponseAccountDetailsDto> responseDtos = new ArrayList<>();
-        for (Account account : accounts) {
-            responseDtos.add(modelMapper.map(account, ResponseAccountDetailsDto.class));
-        }
-        return responseDtos;
     }
 
     @Override

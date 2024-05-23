@@ -19,5 +19,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, Integer> {
+    List<Certificate> findByAccountId(Integer tutorId);
 
 }

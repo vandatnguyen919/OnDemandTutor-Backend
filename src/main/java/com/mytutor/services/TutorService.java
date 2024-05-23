@@ -11,20 +11,18 @@ import java.util.List;
 
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Nguyen Van Dat
  */
-@Service
 public interface TutorService {
 
-//    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors();
+    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors();
 
-//    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
+    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
 
-//    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId);
+    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId);
 
     public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos);
 
@@ -38,5 +36,6 @@ public interface TutorService {
 
     public ResponseEntity<?> deleteCertificate(Integer tutorId, Integer certificateId);
 
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
+    public ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
+
 }

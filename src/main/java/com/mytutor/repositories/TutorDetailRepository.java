@@ -4,18 +4,18 @@
  */
 package com.mytutor.repositories;
 
-import com.mytutor.entities.Education;
+import com.mytutor.entities.Account;
+import com.mytutor.entities.TutorDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  *
  * @author vothimaihoa
  */
 @Repository
-public interface EducationRepository extends JpaRepository<Education, Long> {
-
-    List<Education> findByAccountId(Integer tutorId);
+public interface TutorDetailRepository extends JpaRepository<TutorDetail, Integer> {
+    TutorDetail findByAccountId(Integer accountId);
 }

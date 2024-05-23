@@ -12,14 +12,7 @@ import com.mytutor.services.TutorService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  *
@@ -31,24 +24,23 @@ public class TutorController {
 
     @Autowired
     TutorService tutorService;
-
-//    // add pagination later
+//
 //    @GetMapping("/")
 //    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
 //        return tutorService.getAllTutors();
 //    }
-//
-//    @GetMapping("/{tutorId}/educations")
-//    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(
-//            @PathVariable Integer tutorId) {
-//        return tutorService.getListOfEducationsByTutorId(tutorId);
-//    }
-//
-//    @GetMapping("/{tutorId}/certificates")
-//    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(
-//            @PathVariable Integer tutorId) {
-//        return tutorService.getListOfCertificatesByTutorId(tutorId);
-//    }
+
+    @GetMapping("/{tutorId}/educations")
+    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(
+            @PathVariable Integer tutorId) {
+        return tutorService.getListOfEducationsByTutorId(tutorId);
+    }
+
+    @GetMapping("/{tutorId}/certificates")
+    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(
+            @PathVariable Integer tutorId) {
+        return tutorService.getListOfCertificatesByTutorId(tutorId);
+    }
 
     @PostMapping("/{tutorId}/educations")
     public ResponseEntity<?> addAllEducations(
@@ -94,10 +86,10 @@ public class TutorController {
         return tutorService.deleteEducation(tutorId, certificateId);
     }
 
-    @PostMapping("/{accountId}/tutor-description")
-    public ResponseEntity<?> editTutorDescription (
-            @PathVariable Integer accountId,
-            @RequestBody TutorDescriptionDto tutorDescriptionDto){
-        return tutorService.updateTutorDescription(accountId, tutorDescriptionDto);
+    @PostMapping("/{tutorId}/tutor-description")
+    public ResponseEntity<?> addTutorDescription(
+            @PathVariable Integer tutorId,
+            @RequestBody TutorDescriptionDto tutorDescriptionDto) {
+        return tutorService.addTutorDescription(tutorId, tutorDescriptionDto);
     }
 }
