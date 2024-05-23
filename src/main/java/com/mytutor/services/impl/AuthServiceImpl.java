@@ -124,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
         account.setEmail(registerDto.getEmail());
         account.setFullName(registerDto.getFullName());
         account.setPhoneNumber(registerDto.getPhoneNumber());
-        account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        account.setPassword(passwordEncoder.encode(registerDto.getPassword())); // tạo password random cho account đăng nhap bang Google
 
         account.setStatus(AccountStatus.ACTIVE);
         Role role = getRole(RoleName.STUDENT);

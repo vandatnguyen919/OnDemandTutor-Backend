@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mytutor.controllers;
 
 import com.mytutor.dto.ResponseAccountDetailsDto;
@@ -86,10 +82,19 @@ public class TutorController {
         return tutorService.deleteEducation(tutorId, certificateId);
     }
 
+    // insert tutor-description
     @PostMapping("/{tutorId}/tutor-description")
     public ResponseEntity<?> addTutorDescription(
             @PathVariable Integer tutorId,
             @RequestBody TutorDescriptionDto tutorDescriptionDto) {
         return tutorService.addTutorDescription(tutorId, tutorDescriptionDto);
     }
+
+    // update tutor-description
+
+    // insert tutor-schedule
+
+    // update tutor-schedule
+
+    // mark a timeslot as booked timeslot
 }
