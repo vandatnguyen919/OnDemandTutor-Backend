@@ -21,5 +21,4 @@ public interface AccountService {
 
     public ResponseEntity<?> updateAccountDetails(Integer accountId, AccountDetailsDto accountDetailsDTO);
 
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
 }

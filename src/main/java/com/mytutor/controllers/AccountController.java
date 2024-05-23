@@ -39,10 +39,10 @@ public class AccountController {
         return response;
     }
 
-    @PostMapping("/{accountId}/tutor-description")
-    public ResponseEntity<?> editTutorDescription(@PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
-        ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
-        return response;
-    }
+//    @PostMapping("/{accountId}/tutor-description")
+//    public ResponseEntity<?> editTutorDescription(@PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
+//        ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
+//        return response;
+//    }
 
 }

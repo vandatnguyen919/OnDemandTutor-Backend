@@ -91,39 +91,7 @@ public class AccountServiceImpl implements AccountService {
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
     }
 
-    @Override
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-        }
-
-        if (account.getTutorDetail() == null) {
-            TutorDetail tutorDetail = new TutorDetail();
-            tutorDetail.setAccount(account);
-            account.setTutorDetail(tutorDetail);
-        }
-
-        account.getTutorDetail().setTeachingPricePerHour(tutorDescriptionDto.getTeachingPricePerHour());
-        account.getTutorDetail().setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
-        account.getTutorDetail().setMeetingLink(tutorDescriptionDto.getMeetingLink());
-        account.getTutorDetail().setVideoIntroductionLink(tutorDescriptionDto.getVideoIntroductionLink());
-
-        Set<Subject> subjects = new HashSet<>();
-        for (Subject subject : tutorDescriptionDto.getSubjects()) {
-            Subject existingSubject = subjectRepository.findBySubjectName(subject.getSubjectName())
-                    .orElseGet(() -> subjectRepository.save(subject));
-            subjects.add(existingSubject);
-        }
-        account.setSubjects(subjects);
-
-        // Save the Account entity, which includes the Tutor details and subjects
-        accountRepository.save(account);
-
-        return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
-    }
 
     private boolean checkRole(Account account) {
         Role role = roleRepository.findByRoleName("tutor").orElse(null);
