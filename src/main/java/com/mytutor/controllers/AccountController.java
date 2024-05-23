@@ -24,25 +24,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/accounts")
 public class AccountController {
 
-//    @Autowired
-//    private AccountService accountService;
-//
-//    @PutMapping("/{accountId}/become-a-tutor")
-//    public ResponseEntity<?> changeRoleToTutor(@PathVariable Integer accountId) {
-//        return accountService.changeRole(accountId, "tutor");
-//    }
-//
-//    // chi cho phep account do update
-//    @PutMapping("/{accountId}/update-details")
-//    public ResponseEntity<?> updateAccountDetails(@PathVariable Integer accountId, @RequestBody AccountDetailsDto accountDetails) {
-//        ResponseEntity<?> response = accountService.updateAccountDetails(accountId, accountDetails);
-//        return response;
-//    }
-//
-//    @PostMapping("/{accountId}/tutor-description")
-//    public ResponseEntity<?> editTutorDescription(@PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
-//        ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
-//        return response;
-//    }
+    @Autowired
+    private AccountService accountService;
+
+    @PutMapping("/{accountId}/become-a-tutor")
+    public ResponseEntity<?> changeRoleToTutor(@PathVariable Integer accountId) {
+        return accountService.changeRole(accountId, "tutor");
+    }
+
+    // chi cho phep account do update
+    @PutMapping("/{accountId}/update-details")
+    public ResponseEntity<?> updateAccountDetails(@PathVariable Integer accountId, @RequestBody AccountDetailsDto accountDetails) {
+        ResponseEntity<?> response = accountService.updateAccountDetails(accountId, accountDetails);
+        return response;
+    }
+
+    @PostMapping("/{accountId}/tutor-description")
+    public ResponseEntity<?> editTutorDescription(@PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
+        ResponseEntity<?> response = accountService.updateTutorDescription(accountId, tutorDescriptionDto);
+        return response;
+    }
 
 }
