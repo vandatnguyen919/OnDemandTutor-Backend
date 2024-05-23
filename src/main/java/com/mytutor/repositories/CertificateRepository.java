@@ -13,6 +13,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author vothimaihoa
  */
 public interface CertificateRepository extends JpaRepository<Certificate, Integer> {
+    List<Certificate> findByAccountId(Integer tutorId);
 
-    List<Certificate> findByTutorId(Integer tutorId);
 }

@@ -4,8 +4,8 @@
  */
 package com.mytutor.services;
 
-import com.mytutor.dto.AccountDetailsDto;
-import com.mytutor.dto.tutor.TutorDescriptionDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
+import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
 
@@ -19,6 +19,6 @@ public interface AccountService {
 
     public ResponseEntity<?> changeRole(Integer accountId, String roleName);
 
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, AccountDetailsDto accountDetailsDTO);
+    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
 
 }

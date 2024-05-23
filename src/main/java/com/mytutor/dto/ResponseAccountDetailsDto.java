@@ -4,7 +4,6 @@
  */
 package com.mytutor.dto;
 
-import com.mytutor.entities.Account;
 import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +14,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class AccountDetailsDto {
+public class ResponseAccountDetailsDto {
 
     private int id;
     private Date dayOfBirth;
@@ -26,10 +25,4 @@ public class AccountDetailsDto {
     private String fullName;
     private String phoneNumber;
 
-    public static final AccountDetailsDto convertToDto(Account account) {
-        return AccountDetailsDto.builder()
-                .email(account.getEmail())
-                .fullName(account.getFullName())
-                .build();
-    }
 }

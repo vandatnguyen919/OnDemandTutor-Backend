@@ -5,7 +5,7 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.RoleName;
-import com.mytutor.dto.AccountDetailsDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
@@ -19,6 +19,8 @@ import com.mytutor.services.TutorService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,23 +51,23 @@ public class TutorServiceImpl implements TutorService {
 
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private TutorDetailRepository tutorDetailRepository;
 
     @Override
-    public ResponseEntity<List<AccountDetailsDto>> getAllTutors() {
-        Role role = roleRepository.findByRoleName(RoleName.TUTOR.name()).get();
-
-        Set<Account> accounts = role.getAccounts();
-
-        List<AccountDetailsDto> tutors = role.getAccounts().stream().map(a -> modelMapper.map(a, AccountDetailsDto.class)).toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(tutors);
+    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
+        List<Account> tutors = accountRepository.findAllAccountsByRole(RoleName.TUTOR.name());  // Assuming RoleName enum exists
+        List<ResponseAccountDetailsDto> tutorDtos = tutors.stream()
+                .map(account -> modelMapper.map(account, ResponseAccountDetailsDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(tutorDtos);
 
     }
-    
+
     @Override
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId) {
 
-        List<Education> educations = educationRepository.findByTutorId(tutorId);
+        List<Education> educations = educationRepository.findByAccountId(tutorId);
         List<EducationDto> educationDtos = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
         return ResponseEntity.status(HttpStatus.OK).body(educationDtos);
     }
@@ -73,7 +75,7 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId) {
 
-        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
+        List<Certificate> certificates = certificateRepository.findByAccountId(tutorId);
         List<CertificateDto> certificateDtos = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
         return ResponseEntity.status(HttpStatus.OK).body(certificateDtos);
     }
@@ -92,10 +94,10 @@ public class TutorServiceImpl implements TutorService {
             educationRepository.save(education);
         }
 
-        List<Education> educations = educationRepository.findByTutorId(tutorId);
-        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
+//        List<Education> educations = educationRepository.findByTutorId(tutorId);
+//        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
 
-        return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
+        return ResponseEntity.status(HttpStatus.OK).body("Added successfully");
     }
 
     @Override
@@ -110,10 +112,10 @@ public class TutorServiceImpl implements TutorService {
             certificateRepository.save(certificate);
         }
 
-        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
-        List<CertificateDto> certificateResponse = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
+//        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
+//        List<CertificateDto> certificateResponse = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
 
-        return ResponseEntity.status(HttpStatus.OK).body(certificateResponse);
+        return ResponseEntity.status(HttpStatus.OK).body("Added successfully!");
 
     }
 
@@ -121,15 +123,12 @@ public class TutorServiceImpl implements TutorService {
     public ResponseEntity<?> updateEducation(Integer tutorId, Integer educationId, EducationDto educationDto) {
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Education education = educationRepository.findById(educationId).orElseThrow(() -> new EducationNotFoundException("Education not found"));
+        Education education = educationRepository.findById(Long.valueOf(educationId)).orElseThrow(() -> new EducationNotFoundException("Education not found"));
 
         if (education.getAccount().getId() != tutor.getId()) {
             throw new EducationNotFoundException("This education does not belong to this tutor");
         }
 
-//        if (!checkRole(account)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-//        }
         education = modelMapper.map(educationDto, Education.class);
         education.setAccount(tutor);
         education.setVerified(false);
@@ -151,9 +150,6 @@ public class TutorServiceImpl implements TutorService {
             throw new CertificateNotFoundException("This certificate does not belong to this tutor");
         }
 
-//        if (!checkRole(account)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-//        }
         certificate = modelMapper.map(certificateDto, Certificate.class);
         certificate.setAccount(tutor);
         certificate.setVerified(false);
@@ -169,7 +165,7 @@ public class TutorServiceImpl implements TutorService {
     public ResponseEntity<?> deleteEducation(Integer tutorId, Integer educationId) {
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Education education = educationRepository.findById(educationId).orElseThrow(() -> new EducationNotFoundException("Education not found"));
+        Education education = educationRepository.findById(Long.valueOf(educationId)).orElseThrow(() -> new EducationNotFoundException("Education not found"));
 
         if (education.getAccount().getId() != tutor.getId()) {
             throw new EducationNotFoundException("This education does not belong to this tutor");
@@ -196,24 +192,18 @@ public class TutorServiceImpl implements TutorService {
     }
 
     @Override
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
+    public ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
+        // neu accountid da nam trong danh sach thi return luon
+        if (tutorDetailRepository.findByAccountId(accountId) != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
         }
+        TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
-        if (account.getTutorDetail() == null) {
-            TutorDetail tutorDetail = new TutorDetail();
-            tutorDetail.setAccount(account);
-            account.setTutorDetail(tutorDetail);
-        }
-
-        account.getTutorDetail().setTeachingPricePerHour(tutorDescriptionDto.getTeachingPricePerHour());
-        account.getTutorDetail().setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
-        account.getTutorDetail().setMeetingLink(tutorDescriptionDto.getMeetingLink());
-        account.getTutorDetail().setVideoIntroductionLink(tutorDescriptionDto.getVideoIntroductionLink());
+        tutorDetail.setAccount(account);
+        tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
         for (Subject subject : tutorDescriptionDto.getSubjects()) {
@@ -223,15 +213,10 @@ public class TutorServiceImpl implements TutorService {
         }
         account.setSubjects(subjects);
 
-        // Save the Account entity, which includes the Tutor details and subjects
         accountRepository.save(account);
 
         return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
     }
 
-    private boolean checkRole(Account account) {
-        Role role = roleRepository.findByRoleName("tutor").orElse(null);
-        return !(role == null || !account.getRoles().contains(role));
-    }
 
 }
