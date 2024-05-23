@@ -44,7 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/login-with-google")
-    public ResponseEntity LoginWithGoogleOauth2(@RequestBody IdTokenRequestDto requestBody, HttpServletResponse response) {
+    public ResponseEntity<?> LoginWithGoogleOauth2(@RequestBody IdTokenRequestDto requestBody, HttpServletResponse response) {
         String authToken = authService.loginOAuthGoogle(requestBody);
         final ResponseCookie cookie = ResponseCookie.from("AUTH-TOKEN", authToken)
                 .httpOnly(true)
@@ -57,7 +57,7 @@ public class AuthController {
     }
     
     @GetMapping("/profile")
-    public ResponseEntity getUserInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
+    public ResponseEntity<?> getUserInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
         return authService.getAccountInfo(principal, responseAccountDetailsDto);
     }
 }

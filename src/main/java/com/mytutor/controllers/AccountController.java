@@ -48,6 +48,8 @@ public class AccountController {
     }
     
     // chi cho phep role tutor va la tutor do update
+    // tutor only
+    // change name to add new education
     @PostMapping("educations/{accountId}")
     public ResponseEntity<?> editEducations(Principal principal, @PathVariable Integer accountId, @RequestBody EducationDto educationDto) {
         if (!accountService.checkCurrentAccount(principal, accountId)) {
@@ -55,7 +57,8 @@ public class AccountController {
         }
         return accountService.updateEducation(accountId, educationDto);
     }
-    
+
+    // tutor only
     @PostMapping("certificates/{accountId}")
     public ResponseEntity<?> editCertificates(Principal principal, @PathVariable Integer accountId, @RequestBody CertificateDto certificateDto) {
         if (!accountService.checkCurrentAccount(principal, accountId)) {
@@ -63,7 +66,8 @@ public class AccountController {
         }
         return accountService.updateCertificate(accountId, certificateDto);
     }
-    
+
+    // tutor only
     @PostMapping("tutor-description/{accountId}")
     public ResponseEntity<?> editTutorDescription(Principal principal, @PathVariable Integer accountId, @RequestBody TutorDescriptionDto tutorDescriptionDto) {
         if (!accountService.checkCurrentAccount(principal, accountId)) {
@@ -73,12 +77,16 @@ public class AccountController {
     }
 
     // only allow admin and moderator
+    // add pagination
     @GetMapping("get-all")
     public List<ResponseAccountDetailsDto> getAllAccount() {
         return accountService.getAllAccounts();
     }
     
-    
+//    @PostMapping("")
+//    public ResponseEntity<?> addSchedule (Principal principal) {
+//
+//    }
 
 
 }
