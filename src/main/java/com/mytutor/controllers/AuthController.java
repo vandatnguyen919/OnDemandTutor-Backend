@@ -47,6 +47,6 @@ public class AuthController {
     @GetMapping("/profile")
     public ResponseEntity getUserInfo(Principal principal) {
         Account account = authService.findByEmail(principal.getName()).orElse(null);
-        return ResponseEntity.ok().body(principal);
+        return ResponseEntity.ok().body(account);
     }
 }

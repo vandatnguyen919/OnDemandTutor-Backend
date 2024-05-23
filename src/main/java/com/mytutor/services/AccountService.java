@@ -9,16 +9,19 @@ import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
 
+import java.security.Principal;
+
 /**
  *
  * @author vothimaihoa
  */
 public interface AccountService {
 
-    public Account getAccountById(Integer accountId);
+    Account getAccountById(Integer accountId);
 
-    public ResponseEntity<?> changeRole(Integer accountId, String roleName);
+    ResponseEntity<?> changeRole(Integer accountId, String roleName);
 
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
+    ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
 
+    boolean checkCurrentAccount(Principal principal, Integer accountId);
 }
