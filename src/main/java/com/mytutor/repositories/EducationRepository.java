@@ -7,12 +7,14 @@ package com.mytutor.repositories;
 import com.mytutor.entities.Education;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author vothimaihoa
  */
+@Repository
 public interface EducationRepository extends JpaRepository<Education, Integer> {
 
-    List<Education> findByTutorId(Integer tutorId);
+//    List<Education> findByTutorId(int tutorId);
 }

@@ -6,12 +6,8 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.AccountDetailsDto;
-import com.mytutor.dto.tutor.CertificateDto;
-import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Certificate;
-import com.mytutor.entities.Education;
 import com.mytutor.entities.Role;
 import com.mytutor.entities.Subject;
 import com.mytutor.entities.TutorDetail;
@@ -20,7 +16,7 @@ import com.mytutor.repositories.CertificateRepository;
 import com.mytutor.repositories.EducationRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.repositories.SubjectRepository;
-import com.mytutor.service.AccountService;
+import com.mytutor.services.AccountService;
 import java.util.HashSet;
 import java.util.Set;
 import org.modelmapper.ModelMapper;
@@ -44,13 +40,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private EducationRepository educationRepository;
-
-    @Autowired
-    private CertificateRepository certificateRepository;
-
+    
     @Autowired
     private SubjectRepository subjectRepository;
 

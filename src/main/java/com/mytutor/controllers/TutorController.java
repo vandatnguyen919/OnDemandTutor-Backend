@@ -4,6 +4,7 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.dto.AccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.services.TutorService;
@@ -30,6 +31,11 @@ public class TutorController {
     @Autowired
     TutorService tutorService;
 
+    @GetMapping("/") 
+    public ResponseEntity<List<AccountDetailsDto>> getAllTutors() {
+        return tutorService.getAllTutors();
+    } 
+
     @GetMapping("/{tutorId}/educations")
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(
             @PathVariable Integer tutorId) {
@@ -46,14 +52,14 @@ public class TutorController {
     public ResponseEntity<?> addAllEducations(
             @PathVariable Integer tutorId,
             @RequestBody List<EducationDto> educationDtos) {
-        return tutorService.addEducations(tutorId, educationDtos);
+        return tutorService.addAllEducations(tutorId, educationDtos);
     }
 
     @PostMapping("/{tutorId}/certificates")
     public ResponseEntity<?> addAllCertificates(
             @PathVariable Integer tutorId,
             @RequestBody List<CertificateDto> certificateDtos) {
-        return tutorService.addCertificates(tutorId, certificateDtos);
+        return tutorService.addAllCertificates(tutorId, certificateDtos);
     }
 
     @PutMapping("/{tutorId}/educations/{educationId}")
@@ -78,8 +84,8 @@ public class TutorController {
             @PathVariable Integer educationId) {
         return tutorService.deleteEducation(tutorId, educationId);
     }
-    
-    @DeleteMapping("/{tutorId}/educations/{certificateId}")
+
+    @DeleteMapping("/{tutorId}/certificates/{certificateId}")
     public ResponseEntity<?> deleteCertificate(
             @PathVariable Integer tutorId,
             @PathVariable Integer certificateId) {

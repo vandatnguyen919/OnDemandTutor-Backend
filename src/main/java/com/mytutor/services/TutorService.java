@@ -4,6 +4,7 @@
  */
 package com.mytutor.services;
 
+import com.mytutor.dto.AccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import java.util.List;
@@ -15,13 +16,15 @@ import org.springframework.http.ResponseEntity;
  */
 public interface TutorService {
 
+    public ResponseEntity<List<AccountDetailsDto>> getAllTutors();
+    
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
 
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId);
 
-    public ResponseEntity<?> addEducations(Integer tutorId, List<EducationDto> educationDtos);
+    public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos);
 
-    public ResponseEntity<?> addCertificates(Integer tutorId, List<CertificateDto> certificateDtos);
+    public ResponseEntity<?> addAllCertificates(Integer tutorId, List<CertificateDto> certificateDtos);
 
     public ResponseEntity<?> updateEducation(Integer tutorId, Integer educationId, EducationDto educationDto);
 

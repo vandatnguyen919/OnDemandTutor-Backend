@@ -4,32 +4,42 @@
  */
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.RoleName;
+import com.mytutor.dto.AccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Certificate;
 import com.mytutor.entities.Education;
+import com.mytutor.entities.Role;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.CertificateNotFoundException;
 import com.mytutor.exceptions.EducationNotFoundException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.CertificateRepository;
 import com.mytutor.repositories.EducationRepository;
+import com.mytutor.repositories.RoleRepository;
 import com.mytutor.services.TutorService;
 import java.util.List;
+import java.util.Set;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Nguyen Van Dat
  */
+@Service
 public class TutorServiceImpl implements TutorService {
 
     @Autowired
     AccountRepository accountRepository;
+    
+    @Autowired
+    RoleRepository roleRepository;
 
     @Autowired
     EducationRepository educationRepository;
@@ -41,57 +51,73 @@ public class TutorServiceImpl implements TutorService {
     private ModelMapper modelMapper;
 
     @Override
+    public ResponseEntity<List<AccountDetailsDto>> getAllTutors() {
+        Role role = roleRepository.findByRoleName(RoleName.TUTOR.name()).get();
+        
+        Set<Account> accounts = role.getAccounts();
+        
+        List<AccountDetailsDto> tutors = role.getAccounts().stream().map(a -> modelMapper.map(a, AccountDetailsDto.class)).toList();
+        
+        return ResponseEntity.status(HttpStatus.OK).body(tutors);
+    }
+    
+    @Override
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId) {
 
-        List<Education> educations = educationRepository.findByTutorId(tutorId);
-        List<EducationDto> educationDtos = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
-        return ResponseEntity.status(HttpStatus.OK).body(educationDtos);
+//        List<Education> educations = educationRepository.findByTutorId(tutorId);
+//        List<EducationDto> educationDtos = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
+//        return ResponseEntity.status(HttpStatus.OK).body(educationDtos);
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId) {
 
-        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
-        List<CertificateDto> certificateDtos = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
-        return ResponseEntity.status(HttpStatus.OK).body(certificateDtos);
+//        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
+//        List<CertificateDto> certificateDtos = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
+//        return ResponseEntity.status(HttpStatus.OK).body(certificateDtos);
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public ResponseEntity<?> addEducations(Integer tutorId, List<EducationDto> educationDtos) {
+    public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos) {
 
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
-
-        for (EducationDto educationDto : educationDtos) {
-
-            Education education = modelMapper.map(educationDto, Education.class);
-            education.setAccount(tutor);
-            education.setVerified(false);
-
-            educationRepository.save(education);
-        }
-
-        List<Education> educations = educationRepository.findByTutorId(tutorId);
-        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
+//        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+//
+//        for (EducationDto educationDto : educationDtos) {
+//
+//            Education education = modelMapper.map(educationDto, Education.class);
+//            education.setAccount(tutor);
+//            education.setVerified(false);
+//
+//            educationRepository.save(education);
+//        }
+//
+//        List<Education> educations = educationRepository.findByTutorId(tutorId);
+//        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public ResponseEntity<?> addCertificates(Integer tutorId, List<CertificateDto> certificateDtos) {
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+    public ResponseEntity<?> addAllCertificates(Integer tutorId, List<CertificateDto> certificateDtos) {
+//        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+//
+//        for (CertificateDto certificateDto : certificateDtos) {
+//            Certificate certificate = modelMapper.map(certificateDto, Certificate.class);
+//            certificate.setAccount(tutor);
+//            certificate.setVerified(false);
+//
+//            certificateRepository.save(certificate);
+//        }
+//
+//        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
+//        List<CertificateDto> certificateResponse = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(certificateResponse);
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
 
-        for (CertificateDto certificateDto : certificateDtos) {
-            Certificate certificate = modelMapper.map(certificateDto, Certificate.class);
-            certificate.setAccount(tutor);
-            certificate.setVerified(false);
-
-            certificateRepository.save(certificate);
-        }
-
-        List<Certificate> certificates = certificateRepository.findByTutorId(tutorId);
-        List<CertificateDto> certificateResponse = certificates.stream().map(c -> modelMapper.map(c, CertificateDto.class)).toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(certificateResponse);
     }
 
     @Override

@@ -4,17 +4,13 @@
  */
 package com.mytutor.controllers;
 
-import static com.mytutor.dto.AccountDetailsDto.convertToDto;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
 import com.mytutor.entities.Account;
 import com.mytutor.service.AuthService;
-import jakarta.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -35,8 +35,6 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.mytutor.constants.RoleName;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.utils.PasswordGenerator;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 
 import java.util.Collections;
 import java.util.Optional;

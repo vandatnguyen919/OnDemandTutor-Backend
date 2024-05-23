@@ -16,6 +16,8 @@ import lombok.Data;
 @Data
 @Builder
 public class AccountDetailsDto {
+
+    private int id;
     private Date dayOfBirth;
     private Boolean gender; // male: false, female: true
     private String address;
@@ -23,7 +25,7 @@ public class AccountDetailsDto {
     private String email;
     private String fullName;
     private String phoneNumber;
-    
+
     public static final AccountDetailsDto convertToDto(Account account) {
         return AccountDetailsDto.builder()
                 .email(account.getEmail())

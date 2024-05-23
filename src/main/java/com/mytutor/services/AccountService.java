@@ -2,11 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package com.mytutor.service;
+package com.mytutor.services;
 
 import com.mytutor.dto.AccountDetailsDto;
-import com.mytutor.dto.tutor.CertificateDto;
-import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
