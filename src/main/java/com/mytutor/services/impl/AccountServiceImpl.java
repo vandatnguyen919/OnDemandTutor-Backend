@@ -12,9 +12,6 @@ import com.mytutor.entities.Role;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 
-import java.security.Principal;
-import java.util.*;
-
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
@@ -75,10 +72,8 @@ public class AccountServiceImpl implements AccountService {
      * @return status code OK if updated successfully
      */
     @Override
-
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-
 
         if (accountDB == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");

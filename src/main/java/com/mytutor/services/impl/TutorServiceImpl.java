@@ -59,7 +59,7 @@ public class TutorServiceImpl implements TutorService {
     public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
         List<Account> tutors = accountRepository.findAllAccountsByRole(RoleName.TUTOR.name());  // Assuming RoleName enum exists
         List<ResponseAccountDetailsDto> tutorDtos = tutors.stream()
-                .map(account -> modelMapper.map(account, ResponseAccountDetailsDto.class))
+                .map(account -> ResponseAccountDetailsDto.mapToDto(account))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(tutorDtos);
 

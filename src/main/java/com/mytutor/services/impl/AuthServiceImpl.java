@@ -5,7 +5,9 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.*;
+import com.mytutor.dto.AuthenticationResponseDto;
+import com.mytutor.dto.LoginDto;
+import com.mytutor.dto.RegisterDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
 import com.mytutor.jwt.JwtProvider;
@@ -24,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-
 import com.mytutor.constants.RoleName;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.utils.PasswordGenerator;
@@ -151,12 +151,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> getAccountInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
-        Account account = findByEmail(principal.getName()).orElse(null);
-        return ResponseEntity.ok().body(modelMapper.map(account, ResponseAccountDetailsDto.class));
-    }
-
-    @Override
     public ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto) {
         Account account = parseIdToken(idTokenRequestDto.getIdToken());
         if (account == null) {
@@ -229,18 +223,4 @@ public class AuthServiceImpl implements AuthService {
         }
         return role;
     }
-
-    @Override
-    public Account getCurrentAccount() {
-        Account account = null;
-        SecurityContext context = SecurityContextHolder.getContext();
-        Authentication auth = context.getAuthentication();
-        try {
-            account = (Account) auth.getPrincipal();
-        } catch (Exception e) {
-
-        }
-        return account;
-    }
 }
-

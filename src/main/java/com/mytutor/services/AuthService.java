@@ -10,6 +10,7 @@ import com.mytutor.dto.RegisterDto;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.entities.Account;
 
+
 import java.security.Principal;
 import java.util.Optional;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +29,5 @@ public interface AuthService {
 
     Optional<Account> findByEmail(String email);
 
-    ResponseEntity<?> getAccountInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto);
-
-    Account getCurrentAccount();
-
     ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto);
-    
 }
