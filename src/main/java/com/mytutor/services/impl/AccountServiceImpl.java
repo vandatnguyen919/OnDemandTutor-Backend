@@ -5,7 +5,6 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;

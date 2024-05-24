@@ -23,6 +23,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,7 +47,7 @@ public class Account {
     @Column(unique = true)
     private String email;
     
-    @Column(nullable = false)
+    @Column
     private String password;
     
     private Date dateOfBirth;
@@ -78,5 +79,5 @@ public class Account {
                joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
     private Set<Subject> subjects = new HashSet<>();
-
+    
 }

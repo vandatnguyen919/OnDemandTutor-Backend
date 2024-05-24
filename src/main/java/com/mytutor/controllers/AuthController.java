@@ -8,7 +8,7 @@ import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
 import com.mytutor.entities.Account;
-import com.mytutor.service.AuthService;
+import com.mytutor.services.AuthService;
 import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

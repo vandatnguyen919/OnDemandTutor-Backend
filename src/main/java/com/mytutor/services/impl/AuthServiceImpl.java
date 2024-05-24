@@ -14,7 +14,7 @@ import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
-import com.mytutor.service.AuthService;
+import com.mytutor.services.AuthService;
 import jakarta.transaction.Transactional;
 import java.util.Date;
 import org.springframework.http.HttpStatus;

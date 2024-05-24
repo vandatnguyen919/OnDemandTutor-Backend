@@ -4,7 +4,6 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,4 @@ public class AccountController {
             Principal principal) {
         return accountService.updateAccountDetails(principal, accountId, updateAccountDetails);
     }
-
-
-
 }
