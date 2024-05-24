@@ -5,50 +5,46 @@
 package com.mytutor.entities;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.Date;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  *
- * @author vothimaihoa
+ * @author Nguyen Van Dat
  */
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
-@ToString
-@Table(name = "Education")
-public class Education {
+public class Question {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tutor_id")
+    private String content;
+
+    private Date createdAt;
+
+    private Date modifiedAt;
+
+    private String questionUrl;
+
+    private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
+
+    @ManyToOne
+    @JoinColumn(name = "student_id")
     private Account account;
-
-    private String majorName;
-
-    private String specialization;
-
-    private String universityName;
-
-    private String degreeType;
-
-    private int startYear;
-
-    private int endYear;
-
-    private String diplomaUrl;
-
-    private boolean isVerified = false;
 }
-
-
