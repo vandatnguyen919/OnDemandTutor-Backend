@@ -9,20 +9,23 @@ import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
+import com.mytutor.dto.tutor.TutorInfoDto;
+import com.mytutor.dto.tutor.TutorResponseDto;
 import com.mytutor.entities.*;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.CertificateNotFoundException;
 import com.mytutor.exceptions.EducationNotFoundException;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -36,9 +39,6 @@ public class TutorServiceImpl implements TutorService {
 
     @Autowired
     AccountRepository accountRepository;
-    
-    @Autowired
-    RoleRepository roleRepository;
 
     @Autowired
     EducationRepository educationRepository;
@@ -55,13 +55,27 @@ public class TutorServiceImpl implements TutorService {
     private TutorDetailRepository tutorDetailRepository;
 
     @Override
-    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
-        List<Account> tutors = accountRepository.findAllAccountsByRole(RoleName.TUTOR.name());  // Assuming RoleName enum exists
-        List<ResponseAccountDetailsDto> tutorDtos = tutors.stream()
-                .map(account -> ResponseAccountDetailsDto.mapToDto(account))
+    public ResponseEntity<TutorResponseDto> getAllTutors(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Account> tutors = accountRepository.findAllAccountsByRole(RoleName.TUTOR.name(), pageable);
+        List<Account> listOfTutors = tutors.getContent();
+        
+        List<TutorInfoDto> content = listOfTutors.stream()
+                .map(a -> {
+                    TutorDetail td = tutorDetailRepository.findByAccountId(a.getId()).orElse(new TutorDetail());
+                    return TutorInfoDto.mapToDto(a, td);
+                        })
                 .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.OK).body(tutorDtos);
-
+        
+        TutorResponseDto tutorResponseDto = new TutorResponseDto();
+        tutorResponseDto.setContent(content);
+        tutorResponseDto.setPageNo(tutors.getNumber());
+        tutorResponseDto.setPageSize(tutors.getSize());
+        tutorResponseDto.setTotalElements(tutors.getTotalElements());
+        tutorResponseDto.setTotalPages(tutors.getTotalPages());
+        tutorResponseDto.setLast(tutors.isLast());        
+        
+        return ResponseEntity.status(HttpStatus.OK).body(tutorResponseDto);
     }
 
     @Override
@@ -199,11 +213,10 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         // neu accountid da nam trong danh sach thi return luon
-        if (tutorDetailRepository.findByAccountId(accountId) != null) {
+        if (tutorDetailRepository.findByAccountId(accountId).orElse(null) != null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);

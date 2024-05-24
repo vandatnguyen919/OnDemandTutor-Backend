@@ -12,6 +12,9 @@ import lombok.Data;
  */
 @Data
 public class CertificateDto {
+    
+    private int id;
+    
     private String certificateName;
 
     private String description;

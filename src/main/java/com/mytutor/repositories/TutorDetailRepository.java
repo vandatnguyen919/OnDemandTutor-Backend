@@ -4,12 +4,11 @@
  */
 package com.mytutor.repositories;
 
-import com.mytutor.entities.Account;
 import com.mytutor.entities.TutorDetail;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
 
 /**
  *
@@ -17,5 +16,5 @@ import java.util.Optional;
  */
 @Repository
 public interface TutorDetailRepository extends JpaRepository<TutorDetail, Integer> {
-    TutorDetail findByAccountId(Integer accountId);
+    Optional<TutorDetail> findByAccountId(Integer accountId);
 }
