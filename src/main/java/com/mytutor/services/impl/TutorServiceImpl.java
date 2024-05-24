@@ -225,9 +225,9 @@ public class TutorServiceImpl implements TutorService {
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
-        for (Subject subject : tutorDescriptionDto.getSubjects()) {
-            Subject existingSubject = subjectRepository.findBySubjectName(subject.getSubjectName())
-                    .orElseGet(() -> subjectRepository.save(subject));
+        for (String subject : tutorDescriptionDto.getSubjects()) {
+            Subject existingSubject = subjectRepository.findBySubjectName(subject)
+                    .orElseGet();
             subjects.add(existingSubject);
         }
         account.setSubjects(subjects);
