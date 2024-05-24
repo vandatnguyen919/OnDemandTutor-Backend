@@ -44,7 +44,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize
                         -> authorize
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/accounts/**").permitAll() //set lai sau
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/v2/api-docs",
@@ -56,7 +55,8 @@ public class SecurityConfig {
                                 "/configuration/security",
                                 "/swagger-ui/**",
                                 "/webjars/**",
-                                "/swagger-ui.html").permitAll())
+                                "/swagger-ui.html").permitAll()
+                        .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -74,7 +74,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(

@@ -5,27 +5,17 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
-import com.mytutor.dto.tutor.CertificateDto;
-import com.mytutor.dto.tutor.EducationDto;
-import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Certificate;
-import com.mytutor.entities.Education;
 import com.mytutor.entities.Role;
-import com.mytutor.entities.Subject;
-import com.mytutor.entities.TutorDetail;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.CertificateRepository;
-import com.mytutor.repositories.EducationRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.repositories.SubjectRepository;
-import com.mytutor.service.AccountService;
+import com.mytutor.services.AccountService;
 
 import java.security.Principal;
-import java.util.*;
-
+import java.util.HashSet;
+import java.util.Set;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,13 +37,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private EducationRepository educationRepository;
-
-    @Autowired
-    private CertificateRepository certificateRepository;
-
+    
     @Autowired
     private SubjectRepository subjectRepository;
 
@@ -88,12 +72,15 @@ public class AccountServiceImpl implements AccountService {
      * @return status code OK if updated successfully
      */
     @Override
-    public ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
+    public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-
 
         if (accountDB == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");
+        }
+
+        if (!checkCurrentAccount(principal, accountId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
         }
 
         modelMapper.map(updateAccountDetailsDto, accountDB);
@@ -101,92 +88,6 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(accountDB);
 
         return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
-    }
-
-    @Override
-    public ResponseEntity<?> updateEducation(Integer accountId, EducationDto educationDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-        }
-
-        Education education = new Education();
-        modelMapper.map(educationDto, education);
-        education.setAccount(account);
-
-        educationRepository.save(education);
-        System.out.println(education.toString());
-        System.out.println(educationRepository.findById(education.getId()));
-
-        return ResponseEntity.status(HttpStatus.OK).body("Education updated successfully!");
-    }
-
-    @Override
-    public ResponseEntity<?> updateCertificate(Integer accountId, CertificateDto certificateDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-        }
-        Certificate certificate = new Certificate();
-        certificate.setAccount(account);
-        modelMapper.map(certificateDto, certificate);
-
-        certificateRepository.save(certificate);
-
-        return ResponseEntity.status(HttpStatus.OK).body("Certificate updated successfully!");
-    }
-
-    @Override
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-
-        if (!checkRole(account)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Account is not a tutor");
-        }
-
-        if (account.getTutorDetail() == null) {
-            TutorDetail tutorDetail = new TutorDetail();
-            tutorDetail.setAccount(account);
-            account.setTutorDetail(tutorDetail);
-        }
-
-        account.getTutorDetail().setTeachingPricePerHour(tutorDescriptionDto.getTeachingPricePerHour());
-        account.getTutorDetail().setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
-        account.getTutorDetail().setMeetingLink(tutorDescriptionDto.getMeetingLink());
-        account.getTutorDetail().setVideoIntroductionLink(tutorDescriptionDto.getVideoIntroductionLink());
-
-        Set<Subject> subjects = new HashSet<>();
-        for (Subject subject : tutorDescriptionDto.getSubjects()) {
-            Subject existingSubject = subjectRepository.findBySubjectName(subject.getSubjectName())
-                    .orElseGet(() -> subjectRepository.save(subject));
-            subjects.add(existingSubject);
-        }
-        account.setSubjects(subjects);
-
-        // Save the Account entity, which includes the Tutor details and subjects
-        accountRepository.save(account);
-
-        return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
-    }
-
-    private boolean checkRole(Account account) {
-        Role role = roleRepository.findByRoleName("tutor").orElse(null);
-        return !(role == null || !account.getRoles().contains(role));
-    }
-
-    @Override
-    public List<ResponseAccountDetailsDto> getAllAccounts() {
-        List<Account> accounts = accountRepository.findAll();
-
-        // Option 2: Using a for loop (alternative)
-        List<ResponseAccountDetailsDto> responseDtos = new ArrayList<>();
-        for (Account account : accounts) {
-            responseDtos.add(modelMapper.map(account, ResponseAccountDetailsDto.class));
-        }
-        return responseDtos;
     }
 
     @Override

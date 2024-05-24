@@ -4,7 +4,6 @@
  */
 package com.mytutor.dto.tutor;
 
-import com.mytutor.entities.Role;
 import com.mytutor.entities.Subject;
 import java.util.HashSet;
 import java.util.Set;

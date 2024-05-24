@@ -12,6 +12,9 @@ import lombok.Data;
  */
 @Data
 public class EducationDto {
+    
+    private String id;
+    
     private String majorName;
     
     private String specialization;
@@ -25,7 +28,6 @@ public class EducationDto {
     private int endYear;
     
     private String diplomaUrl;
-    
-    private int tutorId;
-    
+        
+    private boolean isVerified;
 }

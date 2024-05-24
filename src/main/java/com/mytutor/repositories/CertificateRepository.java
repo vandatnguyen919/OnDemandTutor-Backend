@@ -5,6 +5,7 @@
 package com.mytutor.repositories;
 
 import com.mytutor.entities.Certificate;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, Integer> {
-    
+    List<Certificate> findByAccountId(Integer tutorId);
+
 }
