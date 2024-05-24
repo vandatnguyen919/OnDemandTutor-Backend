@@ -95,8 +95,19 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public ResponseEntity<?> updateSchedule(Integer tutorId, List<InputTimeslotDto> tutorScheduleDto) {
-        return null;
+    public ResponseEntity<?> updateTimeslotStatus(Integer tutorId, Integer timeslotId, Boolean status) {
+        Timeslot timeslot = timeslotRepository.findById(timeslotId).orElseThrow(
+                () -> new RuntimeException("Timeslot not found!"));
+        if (timeslot.getAccount().getId() != tutorId) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("You cannot update status of this timeslot!");
+        }
+        timeslot.setOccupied(status);
+        timeslotRepository.save(timeslot);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(modelMapper.map(timeslot, ResponseTimeslotDto.class));
     }
+
+    // remove timeslot (only allow for not occupied timeslots)
 
 }

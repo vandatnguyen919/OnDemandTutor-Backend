@@ -14,5 +14,5 @@ import java.util.List;
 public interface ScheduleService {
     ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputTimeslotDto> tutorScheduleDto);
     ResponseEntity<?> getSchedulesByTutorId(Integer tutorId);
-    ResponseEntity<?> updateSchedule(Integer tutorId, List<InputTimeslotDto> tutorScheduleDto);
+    ResponseEntity<?> updateTimeslotStatus(Integer tutorId, Integer timeslotId, Boolean status);
 }
