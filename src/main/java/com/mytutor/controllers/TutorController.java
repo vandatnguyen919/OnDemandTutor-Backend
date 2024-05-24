@@ -3,11 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mytutor.controllers;
-
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
+import com.mytutor.dto.tutor.TutorResponseDto;
 import com.mytutor.services.TutorService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +24,11 @@ public class TutorController {
     @Autowired
     TutorService tutorService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
-        return tutorService.getAllTutors();
+    @GetMapping("")
+    public ResponseEntity<TutorResponseDto> getAllTutors(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        return tutorService.getAllTutors(pageNo, pageSize);
     }
 
     @GetMapping("/{tutorId}/educations")

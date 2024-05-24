@@ -4,12 +4,12 @@
  */
 package com.mytutor.services;
 
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import java.util.List;
 
 import com.mytutor.dto.tutor.TutorDescriptionDto;
+import com.mytutor.dto.tutor.TutorResponseDto;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
  */
 public interface TutorService {
 
-    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors();
+    public ResponseEntity<TutorResponseDto> getAllTutors(int pageNo, int pageSize);
 
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
 
