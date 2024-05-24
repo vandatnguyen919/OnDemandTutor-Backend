@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Time;
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  *
@@ -34,13 +34,17 @@ public class Timeslot {
     @Column(name="end_time")
     private Time endTime;
 
+    @Column(name="day_of_week")
+    Integer dayOfWeek;
+
     @Column(name="schedule_date")
-    private Date date;
+    private LocalDate scheduleDate;
 
     @Column(name="is_occupied")
-    boolean isOccupied = false;
+    private boolean isOccupied = false;
 
     @Column(name="appointment_id")
-    int appointmentId;
+    private Integer appointmentId;
+
 
 }

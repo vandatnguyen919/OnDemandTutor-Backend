@@ -79,5 +79,5 @@ public class Account {
                joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
     private Set<Subject> subjects = new HashSet<>();
-    
+
 }
