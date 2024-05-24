@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Time;
 import java.util.Date;
 
 /**
@@ -28,10 +29,10 @@ public class Timeslot {
     private Account account;
 
     @Column(name="start_time")
-    private Date startTime;
+    private Time startTime;
 
     @Column(name="end_time")
-    private Date endTime;
+    private Time endTime;
 
     @Column(name="schedule_date")
     private Date date;
