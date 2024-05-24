@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 public class TutorDetail {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name = "teaching_price_per_hour")

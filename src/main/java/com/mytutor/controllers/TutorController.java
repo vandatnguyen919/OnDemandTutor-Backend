@@ -1,12 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mytutor.controllers;
-import com.mytutor.dto.tutor.CertificateDto;
-import com.mytutor.dto.tutor.EducationDto;
-import com.mytutor.dto.tutor.TutorDescriptionDto;
-import com.mytutor.dto.tutor.TutorResponseDto;
+import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.tutor.*;
 import com.mytutor.services.TutorService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +19,7 @@ public class TutorController {
     TutorService tutorService;
 
     @GetMapping("")
-    public ResponseEntity<TutorResponseDto> getAllTutors(
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
         return tutorService.getAllTutors(pageNo, pageSize);
@@ -87,10 +81,27 @@ public class TutorController {
         return tutorService.deleteEducation(tutorId, certificateId);
     }
 
+    // insert tutor-description
     @PostMapping("/{tutorId}/tutor-description")
     public ResponseEntity<?> addTutorDescription(
             @PathVariable Integer tutorId,
             @RequestBody TutorDescriptionDto tutorDescriptionDto) {
         return tutorService.addTutorDescription(tutorId, tutorDescriptionDto);
     }
+
+    // update tutor-description
+    @PutMapping("/{tutorId}/tutor-description")
+    public ResponseEntity<?> updateTutorDescription(
+            @PathVariable Integer tutorId,
+            @RequestBody TutorDescriptionDto tutorDescriptionDto) {
+        return tutorService.updateTutorDescription(tutorId, tutorDescriptionDto);
+    }
+
+    // get tutor-description
+    @GetMapping("/{tutorId}/tutor-description")
+    public ResponseEntity<?> getTutorById(
+            @PathVariable Integer tutorId) {
+        return tutorService.getTutorDescriptionById(tutorId);
+    }
+
 }

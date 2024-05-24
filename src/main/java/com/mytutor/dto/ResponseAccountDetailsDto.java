@@ -6,14 +6,19 @@ package com.mytutor.dto;
 
 import com.mytutor.entities.Account;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author vothimaihoa
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ResponseAccountDetailsDto {
 
@@ -25,7 +30,7 @@ public class ResponseAccountDetailsDto {
     private String email;
     private String fullName;
     private String phoneNumber;
-    
+
     public static ResponseAccountDetailsDto mapToDto(Account account) {
         if (account == null) {
             return null;
