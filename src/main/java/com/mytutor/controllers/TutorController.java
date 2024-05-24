@@ -24,11 +24,11 @@ public class TutorController {
 
     @Autowired
     TutorService tutorService;
-//
-//    @GetMapping("/")
-//    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
-//        return tutorService.getAllTutors();
-//    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<ResponseAccountDetailsDto>> getAllTutors() {
+        return tutorService.getAllTutors();
+    }
 
     @GetMapping("/{tutorId}/educations")
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(

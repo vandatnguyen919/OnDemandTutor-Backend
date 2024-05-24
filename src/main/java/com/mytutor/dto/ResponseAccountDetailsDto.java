@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto;
 
+import com.mytutor.entities.Account;
 import java.util.Date;
 import lombok.Builder;
 import lombok.Data;
@@ -17,12 +18,29 @@ import lombok.Data;
 public class ResponseAccountDetailsDto {
 
     private int id;
-    private Date dayOfBirth;
+    private Date dateOfBirth;
     private Boolean gender; // male: false, female: true
     private String address;
     private String avatarUrl;
     private String email;
     private String fullName;
     private String phoneNumber;
+    
+    public static ResponseAccountDetailsDto mapToDto(Account account) {
+        if (account == null) {
+            return null;
+        }
+
+        return ResponseAccountDetailsDto.builder()
+                .id(account.getId())
+                .dateOfBirth(account.getDateOfBirth())
+                .gender(account.getGender())
+                .address(account.getAddress())
+                .avatarUrl(account.getAvatarUrl())
+                .email(account.getEmail())
+                .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
+                .build();
+    }
 
 }
