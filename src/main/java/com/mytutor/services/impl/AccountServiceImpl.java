@@ -5,12 +5,13 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
-import com.mytutor.repositories.SubjectRepository;
+
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
@@ -38,8 +39,7 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private ModelMapper modelMapper;
     
-    @Autowired
-    private SubjectRepository subjectRepository;
+
 
     @Autowired
     public AccountServiceImpl(ModelMapper modelMapper) {

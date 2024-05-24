@@ -5,18 +5,21 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.AuthenticationResponseDto;
-import com.mytutor.dto.LoginDto;
-import com.mytutor.dto.RegisterDto;
+import com.mytutor.dto.*;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
+import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
 import jakarta.transaction.Transactional;
+
+import java.security.Principal;
 import java.util.Date;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,7 +36,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.mytutor.constants.RoleName;
-import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
@@ -52,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Autowired
     private JwtProvider JwtProvider;
@@ -118,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
         account.setEmail(registerDto.getEmail());
         account.setFullName(registerDto.getFullName());
         account.setPhoneNumber(registerDto.getPhoneNumber());
-        account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        account.setPassword(passwordEncoder.encode(registerDto.getPassword())); // tạo password random cho account đăng nhap bang Google
 
         account.setStatus(AccountStatus.ACTIVE);
         Role role = getRole(RoleName.STUDENT);
@@ -139,8 +144,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Optional<Account> findByEmail(String email) {
-        return accountRepository.findByEmail(email);
+    public ResponseEntity<?> findByEmail(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        ResponseAccountDetailsDto dto =  modelMapper.map(account, ResponseAccountDetailsDto.class);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Override

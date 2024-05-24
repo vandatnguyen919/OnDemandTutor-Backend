@@ -7,6 +7,7 @@ package com.mytutor.controllers;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.services.AuthService;
 import java.security.Principal;
@@ -29,24 +30,23 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
     }
 
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
         return authService.register(registerDto);
     }
 
     @PostMapping("/login-with-google")
-    public ResponseEntity loginOAuthGoogle(@RequestBody IdTokenRequestDto idTokenRequestDto) {
+    public ResponseEntity<?> loginOAuthGoogle(@RequestBody IdTokenRequestDto idTokenRequestDto) {
         return authService.loginOAuthGoogle(idTokenRequestDto);
     }
     
     @GetMapping("/profile")
-    public ResponseEntity getUserInfo(Principal principal) {
-        Account account = authService.findByEmail(principal.getName()).orElse(null);
-        return ResponseEntity.ok().body(account);
+    public ResponseEntity<?> getUserInfo(Principal principal) {
+        return authService.findByEmail(principal.getName());
     }
 }
