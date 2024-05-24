@@ -14,7 +14,7 @@ import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
-import com.mytutor.service.AuthService;
+import com.mytutor.services.AuthService;
 import jakarta.transaction.Transactional;
 import java.util.Date;
 import org.springframework.http.HttpStatus;
@@ -32,10 +32,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.mytutor.constants.RoleName;
 import com.mytutor.dto.IdTokenRequestDto;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
+import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -94,9 +93,7 @@ public class AuthServiceImpl implements AuthService {
             long expirationTime = JwtProvider.JWT_EXPIRATION;
 
             // Response ACCESS TOKEN and EXPIRATION TIME
-            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
-            authenticationResponseDto.setAccessToken(token);
-            authenticationResponseDto.setExpirationTime(expirationTime);
+            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
 
             return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
         } catch (AuthenticationException e) {
@@ -123,10 +120,10 @@ public class AuthServiceImpl implements AuthService {
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
 
-        account.setCreatedAt(new Date());
         account.setStatus(AccountStatus.ACTIVE);
-        Role role = roleRepository.findByRoleName("student").get();
+        Role role = getRole(RoleName.STUDENT);
         account.setRoles(Collections.singleton(role));
+        account.setCreatedAt(new Date());
 
         accountRepository.save(account);
 
@@ -136,12 +133,9 @@ public class AuthServiceImpl implements AuthService {
         long expirationTime = JwtProvider.JWT_EXPIRATION;
 
         // Response ACCESS TOKEN and EXPIRATION TIME
-        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
-        authenticationResponseDto.setAccessToken(token);
-        authenticationResponseDto.setExpirationTime(expirationTime);
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
 
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
-
     }
 
     @Override
@@ -150,57 +144,76 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String loginOAuthGoogle(IdTokenRequestDto requestBody) {
-        Account account = verifyIDToken(requestBody.getIdToken());
-        System.out.println(requestBody.getIdToken());
-        System.out.println(account.getEmail());
+    public ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto) {
+        Account account = parseIdToken(idTokenRequestDto.getIdToken());
         if (account == null) {
-            throw new IllegalArgumentException();
+            return new ResponseEntity<>("id token is invalid", HttpStatus.BAD_REQUEST);
         }
+        // Check user has already logged in before or new user
         account = createOrUpdateUser(account);
+
+        // Generate JWT after authentication succeed
         UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
         String token = JwtProvider.generateToken(userDetails);
-        return token;
+        long expirationTime = JwtProvider.JWT_EXPIRATION;
+
+        // Response ACCESS TOKEN and EXPIRATION TIME
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+        
+        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
     @Transactional
     public Account createOrUpdateUser(Account account) {
         Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
+        
+        // User first time login with google in the application
         if (existingAccount == null) {
-            Role userRole = new Role();
-            userRole.setId(1);
-            userRole.setRoleName("student");
-            account.setRoles(Collections.singleton(userRole));
+            Role role = getRole(RoleName.STUDENT);
+            account.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
+            account.setRoles(Collections.singleton(role));
+            account.setCreatedAt(new Date());
+            // Store user info in the database
             accountRepository.save(account);
             return account;
         }
-//        existingAccount.setFullName(account.getFullName());
-//        existingAccount.setPhoneNumber(account.getPhoneNumber());
-//        existingAccount.setAvatarUrl(account.getAvatarUrl());
+        // Otherwise, update user info in the database
+        existingAccount.setFullName(account.getFullName());
+        existingAccount.setAvatarUrl(account.getAvatarUrl());
         accountRepository.save(existingAccount);
         return existingAccount;
     }
 
-    private Account verifyIDToken(String idToken) {
+    private Account parseIdToken(String idToken) {
         try {
+            // Verify token id
             GoogleIdToken idTokenObj = verifier.verify(idToken);
-            if (idTokenObj == null) {
-                return null;
-            }
+            
+            // Extract user info payload from id token
             GoogleIdToken.Payload payload = idTokenObj.getPayload();
             String email = (String) payload.get("email");
-            String fullName = (String) payload.get("full_name");
-            String phoneNumber = (String) payload.get("phone_number");
-            String avatarUrl = (String) payload.get("avatar_url");
+            String fullName = (String) payload.get("name");
+            String avatarUrl = (String) payload.get("picture");
             Account account = new Account();
             account.setEmail(email);
             account.setFullName(fullName);
-            account.setPhoneNumber(phoneNumber);
             account.setAvatarUrl(avatarUrl);
             return account;
-        } catch (GeneralSecurityException | IOException e) {
+        } catch (Exception e) {
             return null;
         }
     }
 
+    private Role getRole(RoleName roleName) {
+        // Get a role from the database
+        Role role = roleRepository.findByRoleName(roleName.name()).orElse(null);
+        // Create a new role if it is not in the database
+        if (role == null) {
+            role = new Role();
+            role.setRoleName(roleName.name());
+            roleRepository.save(role);
+            role = roleRepository.findByRoleName(roleName.name()).get();
+        }
+        return role;
+    }
 }

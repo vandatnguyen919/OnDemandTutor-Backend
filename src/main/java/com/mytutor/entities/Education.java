@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  *
@@ -23,38 +24,31 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @Data
+@ToString
 @Table(name = "Education")
 public class Education {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tutor_id")
     private Account account;
 
-    @Column(name = "major_name")
     private String majorName;
 
-    @Column(name = "specialization")
     private String specialization;
 
-    @Column(name = "university_name")
     private String universityName;
 
-    @Column(name = "degree_type")
     private String degreeType;
 
-    @Column(name = "start_year")
     private int startYear;
 
-    @Column(name = "end_year")
     private int endYear;
 
-    @Column(name = "diploma_url")
     private String diplomaUrl;
 
-    @Column(name = "is_verified")
     private boolean isVerified = false;
 }
 

@@ -15,8 +15,10 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class AccountDetailsDto {
-    private Date dayOfBirth;
+public class ResponseAccountDetailsDto {
+
+    private int id;
+    private Date dateOfBirth;
     private Boolean gender; // male: false, female: true
     private String address;
     private String avatarUrl;
@@ -24,10 +26,21 @@ public class AccountDetailsDto {
     private String fullName;
     private String phoneNumber;
     
-    public static final AccountDetailsDto convertToDto(Account account) {
-        return AccountDetailsDto.builder()
+    public static ResponseAccountDetailsDto mapToDto(Account account) {
+        if (account == null) {
+            return null;
+        }
+
+        return ResponseAccountDetailsDto.builder()
+                .id(account.getId())
+                .dateOfBirth(account.getDateOfBirth())
+                .gender(account.getGender())
+                .address(account.getAddress())
+                .avatarUrl(account.getAvatarUrl())
                 .email(account.getEmail())
                 .fullName(account.getFullName())
+                .phoneNumber(account.getPhoneNumber())
                 .build();
     }
+
 }

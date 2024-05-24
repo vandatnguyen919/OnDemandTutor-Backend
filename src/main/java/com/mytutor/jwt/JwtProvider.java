@@ -5,6 +5,7 @@
 package com.mytutor.jwt;
 
 import com.mytutor.entities.Account;
+import com.mytutor.repositories.AccountRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -24,17 +26,28 @@ import org.springframework.stereotype.Component;
 public class JwtProvider {
 
     private static final String SECRET_KEY = "secretsecretsecretsecretsecretsecretsecretsecretsecretsecret";
-    public static final long JWT_EXPIRATION = 3600000; // 1 hour in milisecond
+    public static final long JWT_EXPIRATION = 2 * 7 * 24 * 60 * 60 * 1000L; // 2 weeks in milisecond
     public static final String TIME_ZONE = "Asia/Ho_Chi_Minh";
+    
+    @Autowired
+    AccountRepository accountRepository;
 
     public String generateToken(UserDetails userDetails) {
 
         Date currentDate = new Date();
         Date expirationDate = new Date(currentDate.getTime() + JWT_EXPIRATION);
+        
+        Account account = accountRepository.findByEmail(userDetails.getUsername()).get();
+        
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", account.getId());
+        claims.put("email", account.getEmail());
+        claims.put("fullName", account.getFullName());
+        claims.put("authorities", userDetails.getAuthorities());
 
         String token = Jwts.builder()
                 .subject(userDetails.getUsername())
-                .claim("authorities", userDetails.getAuthorities())
+                .claims(claims)
                 .issuedAt(currentDate)
                 .expiration(expirationDate)
                 .signWith(getSecretKey(), Jwts.SIG.HS256)
