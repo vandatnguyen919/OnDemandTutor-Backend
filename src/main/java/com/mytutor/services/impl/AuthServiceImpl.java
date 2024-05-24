@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,6 +228,19 @@ public class AuthServiceImpl implements AuthService {
             role = roleRepository.findByRoleName(roleName.name()).get();
         }
         return role;
+    }
+
+    @Override
+    public Account getCurrentAccount() {
+        Account account = null;
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication auth = context.getAuthentication();
+        try {
+            account = (Account) auth.getPrincipal();
+        } catch (Exception e) {
+
+        }
+        return account;
     }
 }
 

@@ -13,6 +13,7 @@ import com.mytutor.entities.*;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.CertificateNotFoundException;
 import com.mytutor.exceptions.EducationNotFoundException;
+import com.mytutor.exceptions.SubjectNotfoundException;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
 
@@ -200,7 +201,7 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         // neu accountid da nam trong danh sach thi return luon
         if (tutorDetailRepository.findByAccountId(accountId) != null) {
@@ -212,16 +213,59 @@ public class TutorServiceImpl implements TutorService {
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
-        for (Subject subject : tutorDescriptionDto.getSubjects()) {
-            Subject existingSubject = subjectRepository.findBySubjectName(subject.getSubjectName())
-                    .orElseGet(() -> subjectRepository.save(subject));
-            subjects.add(existingSubject);
+        for (String subjectName : tutorDescriptionDto.getSubjects()) {
+            Subject subject = subjectRepository.findBySubjectName(subjectName)
+                    .orElseThrow(() -> new SubjectNotfoundException("Subject not found!"));
+            subjects.add(subject);
         }
         account.setSubjects(subjects);
 
         accountRepository.save(account);
 
+        return ResponseEntity.status(HttpStatus.OK).body("Tutor description added successfully!");
+    }
+
+    @Override
+    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
+        TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(accountId);
+
+        String background = tutorDescriptionDto.getBackgroundDescription();
+        if (background != null) // toi uu sau, xay dung mot ham chi set khi truong thong tin khac null
+            tutorDetail.setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
+
+        String meetingLink = tutorDescriptionDto.getMeetingLink();
+        if (meetingLink != null)
+            tutorDetail.setMeetingLink(meetingLink);
+
+        Double price = tutorDescriptionDto.getTeachingPricePerHour();
+        if (price != null)
+            tutorDetail.setTeachingPricePerHour(price);
+
+        String video = tutorDescriptionDto.getVideoIntroductionLink();
+        if (video != null)
+            tutorDetail.setVideoIntroductionLink(video);
+
+        Set<Subject> subjects = new HashSet<>();
+        if (!tutorDescriptionDto.getSubjects().isEmpty()) {
+            for (String subjectName : tutorDescriptionDto.getSubjects()) {
+                Subject subject = subjectRepository.findBySubjectName(subjectName)
+                        .orElseThrow(() -> new SubjectNotfoundException("Subject not found!"));
+                subjects.add(subject);
+            }
+        }
+        tutorDetail.getAccount().setSubjects(subjects);
+
+        tutorDetailRepository.save(tutorDetail);
+
         return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
     }
+
+    @Override
+    public ResponseEntity<?> getTutorDescriptionById(Integer accountId) {
+        TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(accountId);
+        TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutorDetail, TutorDescriptionDto.class);
+        return ResponseEntity.status(HttpStatus.OK).body(tutorDescriptionDto);
+    }
+
 
 }

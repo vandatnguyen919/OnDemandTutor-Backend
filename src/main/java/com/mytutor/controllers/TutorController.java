@@ -91,6 +91,19 @@ public class TutorController {
     }
 
     // update tutor-description
+    @PutMapping("/{tutorId}/tutor-description")
+    public ResponseEntity<?> updateTutorDescription(
+            @PathVariable Integer tutorId,
+            @RequestBody TutorDescriptionDto tutorDescriptionDto) {
+        return tutorService.updateTutorDescription(tutorId, tutorDescriptionDto);
+    }
+
+    // get tutor-description
+    @GetMapping("/{tutorId}/tutor-description")
+    public ResponseEntity<?> getTutorById(
+            @PathVariable Integer tutorId) {
+        return tutorService.getTutorDescriptionById(tutorId);
+    }
 
     // insert tutor-schedule
 

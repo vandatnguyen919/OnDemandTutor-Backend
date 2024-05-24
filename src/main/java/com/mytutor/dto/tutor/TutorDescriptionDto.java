@@ -24,6 +24,6 @@ public class TutorDescriptionDto {
     
     private String videoIntroductionLink;
 
-    private Set<Subject> subjects = new HashSet<>();
+    private Set<String> subjects = new HashSet<>();
 
 }

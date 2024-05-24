@@ -29,12 +29,12 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
     }
 
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
         return authService.register(registerDto);
     }

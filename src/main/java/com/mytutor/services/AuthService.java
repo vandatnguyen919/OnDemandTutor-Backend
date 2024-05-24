@@ -28,9 +28,9 @@ public interface AuthService {
 
     Optional<Account> findByEmail(String email);
 
-//    String loginOAuthGoogle(IdTokenRequestDto requestBody);
-
     ResponseEntity<?> getAccountInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto);
+
+    Account getCurrentAccount();
 
     ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto);
     

@@ -38,4 +38,7 @@ public interface TutorService {
 
     public ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
 
+    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
+
+    public ResponseEntity<?> getTutorDescriptionById(Integer accountId);
 }
