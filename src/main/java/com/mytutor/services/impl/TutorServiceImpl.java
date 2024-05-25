@@ -52,6 +52,7 @@ public class TutorServiceImpl implements TutorService {
 
     @Autowired
     private ModelMapper modelMapper;
+    
     @Autowired
     private TutorDetailRepository tutorDetailRepository;
 
