@@ -125,22 +125,22 @@ public class AuthServiceImpl implements AuthService {
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword())); // tạo password random cho account đăng nhap bang Google
 
-        account.setStatus(AccountStatus.ACTIVE);
+        account.setStatus(AccountStatus.PROCESSING);
         Role role = getRole(RoleName.STUDENT);
         account.setRoles(Collections.singleton(role));
         account.setCreatedAt(new Date());
 
         accountRepository.save(account);
 
-        // Generate JWT after authentication succeed
-        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
-        String token = JwtProvider.generateToken(userDetails);
-        long expirationTime = JwtProvider.JWT_EXPIRATION;
+//        // Generate JWT after authentication succeed
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
+//        String token = JwtProvider.generateToken(userDetails);
+//        long expirationTime = JwtProvider.JWT_EXPIRATION;
+//
+//        // Response ACCESS TOKEN and EXPIRATION TIME
+//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
 
-        // Response ACCESS TOKEN and EXPIRATION TIME
-        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-
-        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
+        return new ResponseEntity<>("Register success! Please enter OTP code to complete registration", HttpStatus.OK);
     }
 
     @Override
@@ -181,6 +181,7 @@ public class AuthServiceImpl implements AuthService {
             account.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
             account.setRoles(Collections.singleton(role));
             account.setCreatedAt(new Date());
+            account.setStatus(AccountStatus.ACTIVE);
             // Store user info in the database
             accountRepository.save(account);
             return account;

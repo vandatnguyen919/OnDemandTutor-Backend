@@ -2,9 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package com.mytutor.security;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
 import com.mytutor.repositories.AccountRepository;
@@ -34,9 +34,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email not found"));
-        UserDetails user;
-        user = new User(account.getEmail(), account.getPassword(), mapRolesToAuthorities(account.getRoles()));
-        return user;
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new UsernameNotFoundException("This acount can not be trusted");
+        }
+        return new User(account.getEmail(), account.getPassword(), mapRolesToAuthorities(account.getRoles()));
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(Set<Role> roles) {
