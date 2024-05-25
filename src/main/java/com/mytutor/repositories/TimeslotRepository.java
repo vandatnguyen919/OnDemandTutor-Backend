@@ -23,7 +23,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
 
     @Query("SELECT t FROM Timeslot t " +
             "WHERE t.account.id = :tutorId " +
-            "AND t.scheduleDate >= :currentDate AND t.scheduleDate <= :endDate " +
+            "AND t.scheduleDate > :currentDate AND t.scheduleDate <= :endDate " +
             "ORDER BY t.scheduleDate, t.startTime ASC")
     List<Timeslot> findByTutorIdOrderedByScheduleDate(@Param("tutorId") Integer tutorId,
                                                       @Param("currentDate") LocalDate currentDate,

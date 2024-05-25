@@ -32,7 +32,22 @@ public class ScheduleController {
     @GetMapping("/{tutorId}")
     public ResponseEntity<?> getNext7DaysSchedulesOfATutor(
             @PathVariable Integer tutorId) {
-        return scheduleService.getNext7DaysSchedulesOfByTutorId(tutorId);
+        return scheduleService.getNext7DaysSchedulesByTutorId(tutorId);
+    }
+
+    @DeleteMapping("/tutors/{tutorId}/delete-timeslot/{timeslotId}")
+    public ResponseEntity<?> deleteSchedule(
+            @PathVariable Integer tutorId,
+            @PathVariable Integer timeslotId) {
+        return scheduleService.removeTimeslot(tutorId, timeslotId);
+    }
+
+    @PutMapping("/tutors/{tutorId}/update-schedule/{timeslotId}")
+    public ResponseEntity<?> updateSchedule(
+            @PathVariable Integer tutorId,
+            @PathVariable Integer timeslotId,
+            @RequestParam boolean status) {
+        return scheduleService.updateTimeslotStatus(tutorId, timeslotId, status);
     }
 
 }
