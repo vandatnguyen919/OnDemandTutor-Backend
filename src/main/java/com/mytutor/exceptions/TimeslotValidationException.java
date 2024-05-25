@@ -7,6 +7,7 @@ package com.mytutor.exceptions;
 public class TimeslotValidationException extends RuntimeException {
 
     public TimeslotValidationException(String message) {
+
         super(message);
     }
 }

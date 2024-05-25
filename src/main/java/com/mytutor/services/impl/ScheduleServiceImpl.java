@@ -126,28 +126,6 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .body(result);
     }
 
-//    public ResponseEntity<TutorResponseDto> getAllTutors(int pageNo, int pageSize) {
-//        Pageable pageable = PageRequest.of(pageNo, pageSize);
-//        Page<Account> tutors = accountRepository.findAllAccountsByRole(RoleName.TUTOR.name(), pageable);
-//        List<Account> listOfTutors = tutors.getContent();
-//
-//        List<TutorInfoDto> content = listOfTutors.stream()
-//                .map(a -> {
-//                    TutorDetail td = tutorDetailRepository.findByAccountId(a.getId()).orElse(new TutorDetail());
-//                    return TutorInfoDto.mapToDto(a, td);
-//                })
-//                .collect(Collectors.toList());
-//
-//        TutorResponseDto tutorResponseDto = new TutorResponseDto();
-//        tutorResponseDto.setContent(content);
-//        tutorResponseDto.setPageNo(tutors.getNumber());
-//        tutorResponseDto.setPageSize(tutors.getSize());
-//        tutorResponseDto.setTotalElements(tutors.getTotalElements());
-//        tutorResponseDto.setTotalPages(tutors.getTotalPages());
-//        tutorResponseDto.setLast(tutors.isLast());
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(tutorResponseDto);
-//    }
 
 
 

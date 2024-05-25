@@ -14,7 +14,7 @@ import com.mytutor.entities.*;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.CertificateNotFoundException;
 import com.mytutor.exceptions.EducationNotFoundException;
-import com.mytutor.exceptions.SubjectNotfoundException;
+import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
 import java.util.HashSet;
@@ -65,7 +65,7 @@ public class TutorServiceImpl implements TutorService {
                 .map(a -> {
                     TutorDetail td = tutorDetailRepository.findByAccountId(a.getId()).orElse(new TutorDetail());
                     return TutorInfoDto.mapToDto(a, td);
-                        })
+                })
                 .collect(Collectors.toList());
 
         PaginationDto<TutorInfoDto> tutorResponseDto = new PaginationDto<>();
@@ -77,6 +77,17 @@ public class TutorServiceImpl implements TutorService {
         tutorResponseDto.setLast(tutors.isLast());
 
         return ResponseEntity.status(HttpStatus.OK).body(tutorResponseDto);
+    }
+
+    @Override
+    public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
+        Account tutor = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(tutorId).orElse(new TutorDetail());
+        TutorInfoDto dto = TutorInfoDto.mapToDto(tutor, tutorDetail);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
     @Override
@@ -98,7 +109,8 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos) {
 
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(tutorId).orElseThrow(
+                () -> new AccountNotFoundException("Account not found"));
 
         for (EducationDto educationDto : educationDtos) {
 
@@ -110,14 +122,16 @@ public class TutorServiceImpl implements TutorService {
         }
 
         List<Education> educations = educationRepository.findByAccountId(tutorId);
-        List<EducationDto> educationResponse = educations.stream().map(e -> modelMapper.map(e, EducationDto.class)).toList();
+        List<EducationDto> educationResponse = educations.stream()
+                .map(e -> modelMapper.map(e, EducationDto.class)).toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
     }
 
     @Override
     public ResponseEntity<?> addAllCertificates(Integer tutorId, List<CertificateDto> certificateDtos) {
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         for (CertificateDto certificateDto : certificateDtos) {
             Certificate certificate = modelMapper.map(certificateDto, Certificate.class);
@@ -136,7 +150,8 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> updateEducation(Integer tutorId, Integer educationId, EducationDto educationDto) {
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(tutorId).orElseThrow(
+                () -> new AccountNotFoundException("Account not found"));
 
         Education education = educationRepository.findById(Long.valueOf(educationId)).orElseThrow(() -> new EducationNotFoundException("Education not found"));
 
@@ -161,9 +176,11 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> updateCertificate(Integer tutorId, Integer certificateId, CertificateDto certificateDto) {
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Certificate certificate = certificateRepository.findById(certificateId).orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
+        Certificate certificate = certificateRepository.findById(certificateId)
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
 
         if (certificate.getAccount().getId() != tutor.getId()) {
             throw new CertificateNotFoundException("This certificate does not belong to this tutor");
@@ -184,9 +201,11 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> deleteEducation(Integer tutorId, Integer educationId) {
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Education education = educationRepository.findById(Long.valueOf(educationId)).orElseThrow(() -> new EducationNotFoundException("Education not found"));
+        Education education = educationRepository.findById(Long.valueOf(educationId))
+                .orElseThrow(() -> new EducationNotFoundException("Education not found"));
 
         if (education.getAccount().getId() != tutor.getId()) {
             throw new EducationNotFoundException("This education does not belong to this tutor");
@@ -199,9 +218,11 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> deleteCertificate(Integer tutorId, Integer certificateId) {
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Certificate certificate = certificateRepository.findById(certificateId).orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
+        Certificate certificate = certificateRepository.findById(certificateId)
+                .orElseThrow(() -> new CertificateNotFoundException("Certificate not found"));
 
         if (certificate.getAccount().getId() != tutor.getId()) {
             throw new CertificateNotFoundException("This certificate does not belong to this tutor");
@@ -229,7 +250,7 @@ public class TutorServiceImpl implements TutorService {
         Set<Subject> subjects = new HashSet<>();
         for (String subjectName : tutorDescriptionDto.getSubjects()) {
             Subject subject = subjectRepository.findBySubjectName(subjectName)
-                    .orElseThrow(() -> new SubjectNotfoundException("Subject not found!"));
+                    .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
             subjects.add(subject);
         }
         account.setSubjects(subjects);
@@ -264,7 +285,7 @@ public class TutorServiceImpl implements TutorService {
         if (!tutorDescriptionDto.getSubjects().isEmpty()) {
             for (String subjectName : tutorDescriptionDto.getSubjects()) {
                 Subject subject = subjectRepository.findBySubjectName(subjectName)
-                        .orElseThrow(() -> new SubjectNotfoundException("Subject not found!"));
+                        .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
                 subjects.add(subject);
             }
         }

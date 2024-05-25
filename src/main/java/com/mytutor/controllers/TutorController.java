@@ -25,6 +25,12 @@ public class TutorController {
         return tutorService.getAllTutors(pageNo, pageSize);
     }
 
+    @GetMapping("/{tutorId}")
+    public ResponseEntity<TutorInfoDto> getTutorById(
+            @PathVariable Integer tutorId ) {
+        return tutorService.getTutorById(tutorId);
+    }
+
     @GetMapping("/{tutorId}/educations")
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(
             @PathVariable Integer tutorId) {
@@ -99,7 +105,7 @@ public class TutorController {
 
     // get tutor-description
     @GetMapping("/{tutorId}/tutor-description")
-    public ResponseEntity<?> getTutorById(
+    public ResponseEntity<?> getTutorDescriptionById(
             @PathVariable Integer tutorId) {
         return tutorService.getTutorDescriptionById(tutorId);
     }

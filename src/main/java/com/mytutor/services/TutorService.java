@@ -19,6 +19,8 @@ public interface TutorService {
 
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo, int pageSize);
 
+    public ResponseEntity<TutorInfoDto> getTutorById(Integer id);
+
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
 
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId);
