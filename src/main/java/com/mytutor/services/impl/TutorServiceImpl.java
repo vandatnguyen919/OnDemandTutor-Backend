@@ -301,6 +301,11 @@ public class TutorServiceImpl implements TutorService {
         TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new AccountNotFoundException("No tutor detail found!"));
         TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutorDetail, TutorDescriptionDto.class);
+        Set<String> subjectNames = new HashSet<>();
+        for (Subject s : tutorDetail.getAccount().getSubjects()) {
+            subjectNames.add(s.getSubjectName());
+        }
+        tutorDescriptionDto.setSubjects(subjectNames);
         return ResponseEntity.status(HttpStatus.OK).body(tutorDescriptionDto);
     }
 
