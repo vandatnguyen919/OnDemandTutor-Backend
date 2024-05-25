@@ -15,9 +15,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author vothimaihoa
@@ -37,7 +39,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     // tutor tu kiem tra xem lich cua minh con khong va tu tay set tiep lich cho 7 ngay tiep theo
     @Override
-    public ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputTimeslotDto> timeslotDtos, Integer numberOfWeeks) {
+    public ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputTimeslotDto> timeslotDtos,
+                                            Integer numberOfWeeks) {
         try {
 
             Account account = accountRepository.findById(tutorId)
@@ -59,7 +62,8 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
 
-    private List<Timeslot> validateTimeslots(List<InputTimeslotDto> inputTimeslotDtos, Account account, Integer numberOfWeeks)
+    private List<Timeslot> validateTimeslots(List<InputTimeslotDto> inputTimeslotDtos, Account account,
+                                             Integer numberOfWeeks)
             throws TimeslotValidationException {
         List<Timeslot> validatedTimeslots = new ArrayList<>();
         for (int weekNo = 0; weekNo < numberOfWeeks; weekNo++) {
@@ -102,11 +106,26 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     // remove timeslot (only allow for not occupied timeslots)
+    @Override
+    public ResponseEntity<?> removeTimeslot(Integer tutorId, Integer timeslotId) {
+        Timeslot timeslot = timeslotRepository.findById(timeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not exists!"));
+        if (timeslot.getAccount().getId() != tutorId) {
+            throw new TimeslotValidationException("The timeslot with id is not belongs to this tutor!");
+        }
+        if (timeslot.isOccupied()) {
+            throw new TimeslotValidationException("This timeslot with id is occupied!");
+        }
+        ResponseTimeslotDto dto = modelMapper.map(timeslot, ResponseTimeslotDto.class);
+        timeslotRepository.delete(timeslot);
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
 
 
-    // hien ra lich trinh cua tutor 7 ngay gan nhat theo id (tu hien tai toi tuong lai),
+
+    // hien ra lich trinh cua tutor 7 ngay gan nhat theo tutor id (trong tuong lai)
    @Override
-    public ResponseEntity<?> getNext7DaysSchedulesOfByTutorId(Integer tutorId) {
+    public ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId) {
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = currentDate.plusDays(7);
         List<Timeslot> timeslots = timeslotRepository
@@ -121,7 +140,6 @@ public class ScheduleServiceImpl implements ScheduleService {
             dto.setAccountId(t.getAccount().getId());
             timeslotDtos.add(dto);
         }
-
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(timeslotDtos);
