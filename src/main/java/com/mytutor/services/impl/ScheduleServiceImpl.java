@@ -87,7 +87,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private LocalDate calculateDateFromDayOfWeek (int dayOfWeek, int weekNo) {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfWeek().getValue() + 1;
-        int distance = dayOfWeek > day ? dayOfWeek - day : dayOfWeek + 7 - day;
+        int distance = dayOfWeek > day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
         return today.plusDays(distance + (weekNo * 7L) );
     }
 
@@ -121,10 +121,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-
-
     // hien ra lich trinh cua tutor 7 ngay gan nhat theo tutor id (trong tuong lai)
-   @Override
+    @Override
     public ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId) {
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = currentDate.plusDays(7);
@@ -144,8 +142,5 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(timeslotDtos);
     }
-
-
-
 
 }

@@ -75,10 +75,6 @@ public class AccountServiceImpl implements AccountService {
         updateAccountDetailsDto.setFullName(accountDB.getFullName());
         updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
-        if (accountDB == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");
-        }
-
         if (!checkCurrentAccount(principal, accountId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
         }
