@@ -16,4 +16,6 @@ public class UpdateAccountDetailsDto {
     private Boolean gender; // male: false, female: true
     private String address;
     private String avatarUrl;
+    private String fullName;
+    private String phoneNumber;
 }

@@ -38,8 +38,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private ModelMapper modelMapper;
-    
-
 
     @Autowired
     public AccountServiceImpl(ModelMapper modelMapper) {
@@ -74,6 +72,8 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
+        updateAccountDetailsDto.setFullName(accountDB.getFullName());
+        updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
         if (accountDB == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Account not found!");
@@ -82,7 +82,6 @@ public class AccountServiceImpl implements AccountService {
         if (!checkCurrentAccount(principal, accountId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
         }
-
         modelMapper.map(updateAccountDetailsDto, accountDB);
 
         accountRepository.save(accountDB);
