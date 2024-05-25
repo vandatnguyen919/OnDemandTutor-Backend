@@ -19,18 +19,20 @@ public class ScheduleController {
     @Autowired
     ScheduleService scheduleService;
 
+    // allow tutor role only
     @PostMapping("/tutors/{tutorId}/add-new-schedule")
     public ResponseEntity<?> addNewSchedule(
             @PathVariable Integer tutorId,
-            @RequestBody List<InputTimeslotDto> tutorScheduleDto) {
-        return scheduleService.addNewSchedule(tutorId, tutorScheduleDto);
+            @RequestBody List<InputTimeslotDto> tutorScheduleDto,
+            @RequestParam(defaultValue = "1", required = false) Integer numberOfWeeks ) {
+        return scheduleService.addNewSchedule(tutorId, tutorScheduleDto, numberOfWeeks);
     }
 
+    // everyone
     @GetMapping("/{tutorId}")
-    public ResponseEntity<?> getAllSchedulesOfATutor(
-            @PathVariable Integer tutorId,
-            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "7", required = false) int pageSize) {
-        return scheduleService.getSchedulesByTutorId(tutorId, pageNo, pageSize);
+    public ResponseEntity<?> getNext7DaysSchedulesOfATutor(
+            @PathVariable Integer tutorId) {
+        return scheduleService.getNext7DaysSchedulesOfByTutorId(tutorId);
     }
+
 }
