@@ -47,7 +47,8 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public ResponseEntity<?> changeRole(Integer accountId, String roleName) {
         Role role = roleRepository.findByRoleName(roleName).get();
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new RuntimeException("Account not found"));
 
         // Set the role to the account
         Set<Role> roles = new HashSet<>();
@@ -70,7 +71,8 @@ public class AccountServiceImpl implements AccountService {
      * @return status code OK if updated successfully
      */
     @Override
-    public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDto) {
+    public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
+                                                  UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
         updateAccountDetailsDto.setFullName(accountDB.getFullName());
         updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
