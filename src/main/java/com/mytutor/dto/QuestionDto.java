@@ -33,8 +33,10 @@ public class QuestionDto {
     private String questionUrl;
 
     private QuestionStatus status;
+    
+    private String subjectName;
 
-    public static QuestionDto mapToDto(Question question) {
+    public static QuestionDto mapToDto(Question question, String subjectName) {
         if (question == null) {
             return null;
         }
@@ -45,6 +47,7 @@ public class QuestionDto {
                 .modifiedAt(question.getModifiedAt())
                 .questionUrl(question.getQuestionUrl())
                 .status(question.getStatus())
+                .subjectName(subjectName)
                 .build();
     }
 }

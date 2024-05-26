@@ -1,6 +1,6 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.TimeSlot.InputTimeslotDto;
+import com.mytutor.dto.timeslot.InputTimeslotDto;
 import com.mytutor.services.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

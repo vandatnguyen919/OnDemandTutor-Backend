@@ -1,7 +1,7 @@
 package com.mytutor.services.impl;
 
-import com.mytutor.dto.TimeSlot.InputTimeslotDto;
-import com.mytutor.dto.TimeSlot.ResponseTimeslotDto;
+import com.mytutor.dto.timeslot.InputTimeslotDto;
+import com.mytutor.dto.timeslot.ResponseTimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Timeslot;
 import com.mytutor.exceptions.AccountNotFoundException;
@@ -15,11 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author vothimaihoa
