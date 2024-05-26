@@ -34,10 +34,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email not found"));
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new UsernameNotFoundException("This acount can not be trusted");
+        if (account.getStatus() == AccountStatus.ACTIVE
+                || account.getStatus() == AccountStatus.PROCESSING) {
+            return new User(account.getEmail(), account.getPassword(), mapRolesToAuthorities(account.getRoles()));
         }
-        return new User(account.getEmail(), account.getPassword(), mapRolesToAuthorities(account.getRoles()));
+        throw new UsernameNotFoundException("This acount can not be trusted");
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(Set<Role> roles) {

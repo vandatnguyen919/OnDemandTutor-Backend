@@ -9,6 +9,7 @@ package com.mytutor.constants;
  * @author vothimaihoa
  */
 public enum AccountStatus {
+    UNVERIFIED,
     PROCESSING,
     ACTIVE,
     BANNED

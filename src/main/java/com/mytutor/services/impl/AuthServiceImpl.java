@@ -36,6 +36,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.mytutor.constants.RoleName;
+import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
@@ -69,6 +70,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private OtpService otpService;
 
     private final GoogleIdTokenVerifier verifier;
 
@@ -125,12 +129,12 @@ public class AuthServiceImpl implements AuthService {
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword())); // tạo password random cho account đăng nhap bang Google
 
-        account.setStatus(AccountStatus.PROCESSING);
+        account.setStatus(AccountStatus.UNVERIFIED);
         Role role = getRole(RoleName.STUDENT);
         account.setRoles(Collections.singleton(role));
         account.setCreatedAt(new Date());
 
-        accountRepository.save(account);
+        Account newAccount = accountRepository.save(account);
 
 //        // Generate JWT after authentication succeed
 //        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
@@ -139,7 +143,8 @@ public class AuthServiceImpl implements AuthService {
 //
 //        // Response ACCESS TOKEN and EXPIRATION TIME
 //        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-        return new ResponseEntity<>("Register success! Please enter OTP code to complete registration", HttpStatus.OK);
+
+        return otpService.sendOtp(newAccount.getEmail());
     }
 
     @Override
@@ -187,10 +192,10 @@ public class AuthServiceImpl implements AuthService {
         // Otherwise, update user info in the database
         existingAccount.setFullName(account.getFullName());
         existingAccount.setAvatarUrl(account.getAvatarUrl());
-        
+
         // Instead of wainting for user to enter OTP code to verify true email.
         // Using advantage of login with gg to verify true email
-        if (existingAccount.getStatus() == AccountStatus.PROCESSING) {
+        if (existingAccount.getStatus() == AccountStatus.UNVERIFIED) {
             existingAccount.setStatus(AccountStatus.ACTIVE);
         }
         return accountRepository.save(existingAccount);
