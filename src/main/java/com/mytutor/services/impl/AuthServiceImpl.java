@@ -139,7 +139,6 @@ public class AuthServiceImpl implements AuthService {
 //
 //        // Response ACCESS TOKEN and EXPIRATION TIME
 //        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-
         return new ResponseEntity<>("Register success! Please enter OTP code to complete registration", HttpStatus.OK);
     }
 
@@ -147,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<?> findByEmail(String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
-        ResponseAccountDetailsDto dto =  modelMapper.map(account, ResponseAccountDetailsDto.class);
+        ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
@@ -167,14 +166,14 @@ public class AuthServiceImpl implements AuthService {
 
         // Response ACCESS TOKEN and EXPIRATION TIME
         AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-        
+
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
     @Transactional
     public Account createOrUpdateUser(Account account) {
         Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
-        
+
         // User first time login with google in the application
         if (existingAccount == null) {
             Role role = getRole(RoleName.STUDENT);
@@ -183,21 +182,25 @@ public class AuthServiceImpl implements AuthService {
             account.setCreatedAt(new Date());
             account.setStatus(AccountStatus.ACTIVE);
             // Store user info in the database
-            accountRepository.save(account);
-            return account;
+            return accountRepository.save(account);
         }
         // Otherwise, update user info in the database
         existingAccount.setFullName(account.getFullName());
         existingAccount.setAvatarUrl(account.getAvatarUrl());
-        accountRepository.save(existingAccount);
-        return existingAccount;
+        
+        // Instead of wainting for user to enter OTP code to verify true email.
+        // Using advantage of login with gg to verify true email
+        if (existingAccount.getStatus() == AccountStatus.PROCESSING) {
+            existingAccount.setStatus(AccountStatus.ACTIVE);
+        }
+        return accountRepository.save(existingAccount);
     }
 
     private Account parseIdToken(String idToken) {
         try {
             // Verify token id
             GoogleIdToken idTokenObj = verifier.verify(idToken);
-            
+
             // Extract user info payload from id token
             GoogleIdToken.Payload payload = idTokenObj.getPayload();
             String email = (String) payload.get("email");

@@ -1,6 +1,6 @@
 package com.mytutor.services;
 
-import com.mytutor.dto.TimeSlot.InputTimeslotDto;
+import com.mytutor.dto.timeslot.InputTimeslotDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 

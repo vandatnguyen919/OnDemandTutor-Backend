@@ -4,6 +4,7 @@
  */
 package com.mytutor.entities;
 
+import com.mytutor.constants.QuestionStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -37,7 +38,7 @@ public class Question {
 
     private String questionUrl;
 
-    private String status;
+    private QuestionStatus status;
 
     @ManyToOne
     @JoinColumn(name = "subject_id")
