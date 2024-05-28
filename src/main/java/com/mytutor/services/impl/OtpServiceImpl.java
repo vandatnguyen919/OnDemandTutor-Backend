@@ -64,7 +64,7 @@ public class OtpServiceImpl implements OtpService {
 
         mailSender.send(message);
 
-        return ResponseEntity.status(HttpStatus.OK).body("OTP is sent to your email");
+        return ResponseEntity.status(HttpStatus.OK).body(receiverEmail);
     }
 
     @Override
