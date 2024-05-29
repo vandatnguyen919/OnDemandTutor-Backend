@@ -12,9 +12,7 @@ import lombok.Data;
  */
 @Data
 public class EducationDto {
-    
-    private String id;
-    
+
     private String majorName;
     
     private String specialization;
