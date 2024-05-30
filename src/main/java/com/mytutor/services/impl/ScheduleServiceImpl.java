@@ -16,9 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author vothimaihoa
@@ -48,7 +46,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
             if (overlapTimeslots.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.OK)
-                    .body("All timeslots are saved successfully");
+                        .body("All timeslots are saved successfully");
             } else {
                 // return overlapped timeslot to FE to show to the customer
                 // FE will show annoucement that timeslots saved, except these slots are overlap...
@@ -68,8 +66,8 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 
     private List<Timeslot> saveValidTimeslotAndGetOverlapTimeslot(List<InputTimeslotDto> inputTimeslotDtos,
-                                                                 Account account, Integer numberOfWeeks)
-                                                                    throws TimeslotValidationException {
+                                                                  Account account, Integer numberOfWeeks)
+            throws TimeslotValidationException {
         List<Timeslot> overlapTimeslots = new ArrayList<>();
         List<Timeslot> validatedTimeslots = new ArrayList<>();
         for (int weekNo = 0; weekNo < numberOfWeeks; weekNo++) {
@@ -92,11 +90,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
 
-    private LocalDate calculateDateFromDayOfWeek (int dayOfWeek, int weekNo) {
+    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek, int weekNo) {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfWeek().getValue() + 1;
         int distance = dayOfWeek > day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
-        return today.plusDays(distance + (weekNo * 7L) );
+        return today.plusDays(distance + (weekNo * 7L));
     }
 
     @Override
@@ -134,21 +132,31 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId) {
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = currentDate.plusDays(7);
-        List<Timeslot> timeslots = timeslotRepository
-                .findByTutorIdOrderedByScheduleDate(tutorId, currentDate, endDate);
-       if (timeslots.isEmpty()) {
-           return ResponseEntity.status(HttpStatus.OK)
-                   .body("This tutor has no available timeslots from now to next 7 days!");
-       }
-        List<ResponseTimeslotDto> timeslotDtos = new ArrayList<>();
-        for (Timeslot t : timeslots) {
-            ResponseTimeslotDto dto = modelMapper.map(t, ResponseTimeslotDto.class);
-            dto.setAccountId(t.getAccount().getId());
-            timeslotDtos.add(dto);
+
+        // Fetch timeslots from the repository
+        List<Timeslot> timeslots = timeslotRepository.findByTutorIdOrderedByScheduleDate(tutorId, currentDate, endDate);
+
+        if (timeslots.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("This tutor has no available timeslots from now to next 7 days!");
         }
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(timeslotDtos);
+        // Group timeslots by scheduleDate (using a TreeMap with Comparator)
+        Map<LocalDate, List<ResponseTimeslotDto>> timeslotDtos = new TreeMap<>(
+                LocalDate::compareTo
+        );
+        for (Timeslot timeslot : timeslots) {
+            LocalDate scheduleDate = timeslot.getScheduleDate();
+            ResponseTimeslotDto dto = modelMapper.map(timeslot, ResponseTimeslotDto.class);
+            dto.setAccountId(timeslot.getAccount().getId());
+
+            timeslotDtos
+                    .computeIfAbsent(scheduleDate, k -> new ArrayList<>())
+                    .add(dto);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(timeslotDtos);
     }
+
 
 }
