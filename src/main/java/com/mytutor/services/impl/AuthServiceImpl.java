@@ -16,7 +16,6 @@ import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
 import jakarta.transaction.Transactional;
 
-import java.security.Principal;
 import java.util.Date;
 
 import org.modelmapper.ModelMapper;
@@ -40,7 +39,6 @@ import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -108,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (AuthenticationException e) {
 
             // If Authentication failed
-            return new ResponseEntity<>("Authentication failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
         }
     }
 
@@ -116,10 +114,10 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<?> register(RegisterDto registerDto) {
 
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
-            return new ResponseEntity<>("This email has been used", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This email has been used");
         }
         if (accountRepository.existsByPhoneNumber(registerDto.getPhoneNumber())) {
-            return new ResponseEntity<>("This phone number has been used", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This phone number has been used");
         }
 
         Account account = new Account();
@@ -127,8 +125,7 @@ public class AuthServiceImpl implements AuthService {
         account.setEmail(registerDto.getEmail());
         account.setFullName(registerDto.getFullName());
         account.setPhoneNumber(registerDto.getPhoneNumber());
-        account.setPassword(passwordEncoder.encode(registerDto.getPassword())); // tạo password random cho account đăng nhap bang Google
-
+        account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         account.setStatus(AccountStatus.UNVERIFIED);
         Role role = getRole(RoleName.STUDENT);
         account.setRoles(Collections.singleton(role));
@@ -143,8 +140,12 @@ public class AuthServiceImpl implements AuthService {
 //
 //        // Response ACCESS TOKEN and EXPIRATION TIME
 //        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+        otpService.sendOtp(newAccount.getEmail());
 
-        return otpService.sendOtp(newAccount.getEmail());
+        AccountResponse accountResponse = new AccountResponse(newAccount.getEmail(), "REGISTRATION");
+
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
+
     }
 
     @Override
@@ -176,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    public Account createOrUpdateUser(Account account) {
+    private Account createOrUpdateUser(Account account) {
         Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
 
         // User first time login with google in the application
@@ -233,4 +234,32 @@ public class AuthServiceImpl implements AuthService {
         }
         return role;
     }
+
+    @Override
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        String email = forgotPasswordDto.getEmail();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        otpService.sendOtp(account.getEmail());
+        
+        AccountResponse accountResponse = new AccountResponse(account.getEmail(), "FORGOT_PASSWORD");
+        
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
+    }
+
+    @Override
+    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
+        String email = resetPasswordDto.getEmail();
+        String password = resetPasswordDto.getPassword();
+
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        account.setPassword(passwordEncoder.encode(password));
+
+        accountRepository.save(account);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
+    }
+
+    private record AccountResponse(String email, String status) {}
 }

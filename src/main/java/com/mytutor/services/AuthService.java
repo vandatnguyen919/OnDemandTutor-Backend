@@ -4,9 +4,11 @@
  */
 package com.mytutor.services;
 
+import com.mytutor.dto.ForgotPasswordDto;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
+import com.mytutor.dto.ResetPasswordDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -24,4 +26,8 @@ public interface AuthService {
     ResponseEntity<?> findByEmail(String email);
 
     ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto);
+    
+    ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto);
+    
+    ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto);
 }
