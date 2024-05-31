@@ -35,7 +35,7 @@ public class Timeslot {
     private Time endTime;
 
     @Column(name="day_of_week")
-    Integer dayOfWeek;
+    private Integer dayOfWeek;
 
     @Column(name="schedule_date")
     private LocalDate scheduleDate;
