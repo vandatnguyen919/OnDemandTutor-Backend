@@ -166,7 +166,6 @@ public class TutorServiceImpl implements TutorService {
             throw new EducationNotFoundException("This education does not belong to this tutor");
         }
 
-
         education.setDegreeType(educationDto.getDegreeType());
         education.setUniversityName(educationDto.getUniversityName());
         education.setMajorName(educationDto.getMajorName());
