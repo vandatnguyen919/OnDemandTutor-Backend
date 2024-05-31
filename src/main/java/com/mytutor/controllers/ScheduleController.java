@@ -29,7 +29,7 @@ public class ScheduleController {
     }
 
     // everyone
-    @GetMapping("/{tutorId}")
+    @GetMapping("/tutors/{tutorId}")
     public ResponseEntity<?> getNext7DaysSchedulesOfATutor(
             @PathVariable Integer tutorId) {
         return scheduleService.getNext7DaysSchedulesByTutorId(tutorId);
