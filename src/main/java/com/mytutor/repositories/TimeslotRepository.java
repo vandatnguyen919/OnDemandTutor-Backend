@@ -36,4 +36,14 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
                                  @Param("date") LocalDate date,
                                  @Param("startTime") Time startTime,
                                  @Param("endTime") Time endTime);
+    
+    @Query("SELECT t FROM Timeslot t " +
+            "WHERE t.account.id = :tutorId " +
+            "AND t.scheduleDate BETWEEN :startDate AND :endDate " +
+            "AND t.dayOfWeek = :dayOfWeek " +
+            "ORDER BY t.scheduleDate, t.startTime ASC")
+    List<Timeslot> findByTutorIdAndDayOfWeekAndDateRange(@Param("tutorId") Integer tutorId,
+                                                         @Param("startDate") LocalDate startDate,
+                                                         @Param("endDate") LocalDate endDate,
+                                                         @Param("dayOfWeek") Integer dayOfWeek);
 }
