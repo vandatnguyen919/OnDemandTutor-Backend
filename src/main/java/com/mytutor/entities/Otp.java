@@ -5,15 +5,14 @@
 
 package com.mytutor.entities;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  *
@@ -21,15 +20,16 @@ import lombok.ToString;
  */
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
-@Table(name="Role")
-@ToString
-public class Role {
-    
+public class Otp {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private String email;
+    private String code;
+    private LocalDateTime expirationTime;
     
-    @Column(name="role_name")
-    private String roleName;
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
 }

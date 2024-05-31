@@ -6,11 +6,10 @@ package com.mytutor.constants;
 
 /**
  *
- * @author vothimaihoa
+ * @author HIEU
  */
-public enum AccountStatus {
-    UNVERIFIED,
-    PROCESSING,
-    ACTIVE,
-    BANNED
+public enum QuestionStatus {
+    UNSOLVED,
+    SOLVED,
+    PROCESSING
 }

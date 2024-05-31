@@ -1,4 +1,4 @@
-package com.mytutor.dto.TimeSlot;
+package com.mytutor.dto.timeslot;
 
 import lombok.Data;
 

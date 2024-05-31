@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package com.mytutor.utils;
 
 import java.security.SecureRandom;
@@ -53,9 +52,31 @@ public class PasswordGenerator {
         return password.toString();
     }
 
+    // Method to generate random OTP code
+    public static String generateRandomOtpCode(int length) {
+        if (length <= 0) {
+            throw new IllegalArgumentException("OTP length should be greater than 0");
+        }
+
+        // First digit should not be zero, so we select from '1' to '9'
+        StringBuilder otp = new StringBuilder(length);
+        otp.append(DIGITS.charAt(RANDOM.nextInt(9) + 1));
+
+        // Generate the remaining digits
+        for (int i = 1; i < length; i++) {
+            otp.append(DIGITS.charAt(RANDOM.nextInt(DIGITS.length())));
+        }
+
+        return otp.toString();
+    }
+
     public static void main(String[] args) {
-        int passwordLength = 12; // Desired password length
-        String randomPassword = generateRandomPassword(passwordLength);
-        System.out.println("Generated Password: " + randomPassword);
+//        int passwordLength = 12; // Desired password length
+//        String randomPassword = generateRandomPassword(passwordLength);
+//        System.out.println("Generated Password: " + randomPassword);
+
+        int otpLength = 6; // Desired OTP length
+        String randomOtp = generateRandomOtpCode(otpLength);
+        System.out.println("Generated OTP: " + randomOtp);
     }
 }
