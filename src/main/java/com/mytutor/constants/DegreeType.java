@@ -12,7 +12,7 @@ public enum DegreeType {
     ASSOCIATE(1),
     BACHELOR(2),
     MASTER(3),
-    DOCTOR(4);
+    DOCTORAL(4);
 
     private final int ranking;
 
