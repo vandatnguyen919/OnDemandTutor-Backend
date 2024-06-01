@@ -72,6 +72,8 @@ public class TutorServiceImpl implements TutorService {
                             .orElse(new TutorDetail());
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, td);
                     tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                            .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
                     return tutorInfoDto;
                 })
                 .collect(Collectors.toList());

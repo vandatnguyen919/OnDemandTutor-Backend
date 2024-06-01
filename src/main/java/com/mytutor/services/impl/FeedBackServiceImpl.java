@@ -7,7 +7,6 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.FeedbackType;
 import com.mytutor.dto.FeedbackDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.entities.Feedback;
 import com.mytutor.repositories.FeedbackRepository;
 import com.mytutor.repositories.ReplyRepository;

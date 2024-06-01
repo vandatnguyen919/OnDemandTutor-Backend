@@ -4,7 +4,10 @@
  */
 package com.mytutor.entities;
 
+import com.mytutor.constants.DegreeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,7 +41,8 @@ public class Education {
 
     private String universityName;
 
-    private String degreeType;
+    @Enumerated(EnumType.STRING)
+    private DegreeType degreeType;
 
     private int startYear;
 

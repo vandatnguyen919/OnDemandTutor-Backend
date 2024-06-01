@@ -4,10 +4,12 @@
  */
 package com.mytutor.dto.tutor;
 
+import com.mytutor.constants.DegreeType;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Subject;
 import com.mytutor.entities.TutorDetail;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +41,7 @@ public class TutorInfoDto {
     private String fullName;
 
     private String phoneNumber;
-    
+
     private Double averageRating;
 
     private Double teachingPricePerHour;
@@ -51,6 +53,17 @@ public class TutorInfoDto {
     private String videoIntroductionLink;
 
     private Set<Subject> subjects;
+
+    private List<TutorEducation> educations;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TutorEducation {
+
+        private String majorName;
+        private DegreeType degreeType;
+    }
 
     public static TutorInfoDto mapToDto(Account account, TutorDetail tutorDetail) {
         if (account == null || tutorDetail == null) {
