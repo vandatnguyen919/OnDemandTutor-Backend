@@ -31,7 +31,7 @@ public class StudentController {
     private StudentService studentService;
 
     @Hidden
-    @GetMapping("")
+    @GetMapping("/students")
     public ResponseEntity<?> getAllStudents() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
