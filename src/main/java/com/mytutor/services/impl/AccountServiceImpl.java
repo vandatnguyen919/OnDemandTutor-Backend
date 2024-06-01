@@ -74,7 +74,6 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-        updateAccountDetailsDto.setFullName(accountDB.getFullName());
         updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
         if (!checkCurrentAccount(principal, accountId)) {

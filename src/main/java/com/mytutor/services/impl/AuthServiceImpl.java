@@ -176,7 +176,7 @@ public class AuthServiceImpl implements AuthService {
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
-    @Transactional
+
     private Account createOrUpdateUser(Account account) {
         Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
 
