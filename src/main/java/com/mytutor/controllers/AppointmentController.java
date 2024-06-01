@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/appointments")
 public class AppointmentController {
 
-    @Autowired
-
-
-    @GetMapping("/{tutorId}")
-    public ResponseEntity<?> getAppoinmentByTutorId(@PathVariable String tutorId) {
-        return
-    }
+//    @Autowired
+//
+//
+//    @GetMapping("/{tutorId}")
+//    public ResponseEntity<?> getAppoinmentByTutorId(@PathVariable String tutorId) {
+//        return null;
+//    }
 
 }

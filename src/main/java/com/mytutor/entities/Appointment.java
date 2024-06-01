@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -37,6 +39,9 @@ public class Appointment {
     @ManyToOne
     @JoinColumn(name = "student_id")
     private Account student;
+
+//    @OneToMany(mappedBy="appointment")
+//    private Set<Timeslot> timeslots = new HashSet<>();
 
     public enum AppointmentStatus {
         PROCESSING,

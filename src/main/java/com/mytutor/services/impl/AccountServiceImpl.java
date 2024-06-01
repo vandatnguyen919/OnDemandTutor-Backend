@@ -5,6 +5,7 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
@@ -84,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepository.save(accountDB);
 
-        return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
+        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(accountDB, ResponseAccountDetailsDto.class));
     }
 
     @Override
@@ -95,5 +96,13 @@ public class AccountServiceImpl implements AccountService {
         }
         return account.getId() == accountId;
     }
+
+    public ResponseEntity<?> readAccountById(Integer id) {
+        Account account = getAccountById(id);
+        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
+        modelMapper.map(account, dto);
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
 
 }
