@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto.tutor;
 
+import com.mytutor.constants.DegreeType;
 import lombok.Data;
 
 /**
@@ -13,19 +14,21 @@ import lombok.Data;
 @Data
 public class EducationDto {
 
+    private int id;
+
     private String majorName;
-    
+
     private String specialization;
-    
+
     private String universityName;
-    
-    private String degreeType;
-    
+
+    private DegreeType degreeType;
+
     private int startYear;
-    
+
     private int endYear;
-    
+
     private String diplomaUrl;
-        
+
     private boolean isVerified;
 }

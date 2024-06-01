@@ -2,55 +2,46 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package com.mytutor.entities;
 
-import com.mytutor.constants.DegreeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import java.util.Date;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  *
- * @author vothimaihoa
+ * @author Nguyen Van Dat
  */
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
-@Table(name = "Education")
-public class Education {
+public class Reply {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
+    private String content;
+    
+    private Date createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tutor_id")
-    private Account account;
-
-    private String majorName;
-
-    private String specialization;
-
-    private String universityName;
-
-    @Enumerated(EnumType.STRING)
-    private DegreeType degreeType;
-
-    private int startYear;
-
-    private int endYear;
-
-    private String diplomaUrl;
-
-    private boolean isVerified = false;
+    private Date modifiedAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private Account createdBy;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "feedback_id")
+    private Feedback feedback;
 }
-
-
