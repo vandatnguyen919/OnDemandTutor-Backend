@@ -8,9 +8,11 @@ import com.mytutor.constants.DegreeType;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Subject;
 import com.mytutor.entities.TutorDetail;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -52,7 +54,7 @@ public class TutorInfoDto {
 
     private String videoIntroductionLink;
 
-    private Set<Subject> subjects;
+    private Set<String> subjects;
 
     private List<TutorEducation> educations;
 
@@ -62,6 +64,7 @@ public class TutorInfoDto {
     public static class TutorEducation {
 
         private String majorName;
+        private String specialization;
         private DegreeType degreeType;
     }
 
@@ -83,7 +86,7 @@ public class TutorInfoDto {
                 .backgroundDescription(tutorDetail.getBackgroundDescription())
                 .meetingLink(tutorDetail.getMeetingLink())
                 .videoIntroductionLink(tutorDetail.getVideoIntroductionLink())
-                .subjects(account.getSubjects())
+                .subjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()))
                 .build();
     }
 }
