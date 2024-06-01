@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
  * @author Nguyen Van Dat
  */
 @Service
-public class FeedBackServiceImpl implements FeedbackService {
+public class FeedbackServiceImpl implements FeedbackService {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
