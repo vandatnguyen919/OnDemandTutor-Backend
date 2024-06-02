@@ -52,8 +52,11 @@ public class TutorServiceImpl implements TutorService {
     SubjectRepository subjectRepository;
 
     @Autowired
+    FeedbackRepository feedbackRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
-    
+
     @Autowired
     private TutorDetailRepository tutorDetailRepository;
 
@@ -67,7 +70,11 @@ public class TutorServiceImpl implements TutorService {
                 .map(a -> {
                     TutorDetail td = tutorDetailRepository.findByAccountId(a.getId())
                             .orElse(new TutorDetail());
-                    return TutorInfoDto.mapToDto(a, td);
+                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, td);
+                    tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                            .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+                    return tutorInfoDto;
                 })
                 .collect(Collectors.toList());
 
@@ -273,20 +280,24 @@ public class TutorServiceImpl implements TutorService {
                 .orElseThrow(() -> new AccountNotFoundException("No tutor detail found!"));;
 
         String background = tutorDescriptionDto.getBackgroundDescription();
-        if (background != null)
+        if (background != null) {
             tutorDetail.setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
+        }
 
         String meetingLink = tutorDescriptionDto.getMeetingLink();
-        if (meetingLink != null)
+        if (meetingLink != null) {
             tutorDetail.setMeetingLink(meetingLink);
+        }
 
         Double price = tutorDescriptionDto.getTeachingPricePerHour();
-        if (price != null)
+        if (price != null) {
             tutorDetail.setTeachingPricePerHour(price);
+        }
 
         String video = tutorDescriptionDto.getVideoIntroductionLink();
-        if (video != null)
+        if (video != null) {
             tutorDetail.setVideoIntroductionLink(video);
+        }
 
         Set<Subject> subjects = new HashSet<>();
         if (!tutorDescriptionDto.getSubjects().isEmpty()) {
@@ -315,6 +326,5 @@ public class TutorServiceImpl implements TutorService {
         tutorDescriptionDto.setSubjects(subjectNames);
         return ResponseEntity.status(HttpStatus.OK).body(tutorDescriptionDto);
     }
-
 
 }
