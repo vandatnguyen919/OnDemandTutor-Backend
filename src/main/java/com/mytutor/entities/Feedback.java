@@ -37,7 +37,7 @@ public class Feedback {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int rating;
+    private Integer rating;
 
     private String content;
 
@@ -45,14 +45,14 @@ public class Feedback {
 
     private Date modifiedAt;
 
-    private boolean isBanned;
+    private Boolean isBanned;
 
     @Enumerated(EnumType.STRING)
     private FeedbackType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private Account createBy;
+    private Account createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tutor_id")
