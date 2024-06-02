@@ -4,7 +4,6 @@
  */
 package com.mytutor.services;
 
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
