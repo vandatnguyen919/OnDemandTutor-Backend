@@ -1,10 +1,13 @@
 package com.mytutor.entities;
 
+import com.mytutor.constants.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -38,12 +41,8 @@ public class Appointment {
     @JoinColumn(name = "student_id")
     private Account student;
 
-    public enum AppointmentStatus {
-        PROCESSING,
-        CONFIRMED,
-        CANCELED,
-        SUCCESS,
-        FAILED
-    }
+    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Timeslot> timeslots = new ArrayList<>();
+
 }
 

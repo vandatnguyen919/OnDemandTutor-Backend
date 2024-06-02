@@ -21,9 +21,9 @@ public class EducationDto {
     
     private String degreeType;
     
-    private int startYear;
+    private Integer startYear;
     
-    private int endYear;
+    private Integer endYear;
     
     private String diplomaUrl;
         
