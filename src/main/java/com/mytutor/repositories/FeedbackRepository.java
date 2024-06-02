@@ -21,7 +21,10 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
 
     @Query("SELECT f FROM Feedback f WHERE f.type = :type ORDER BY f.createdAt DESC, f.rating DESC")
     Page<Feedback> findFeedbackByType(@Param("type") FeedbackType type, Pageable pageable);
-    
+
+    @Query("SELECT f FROM Feedback f WHERE f.type = :type AND f.tutor = :tutor ORDER BY f.createdAt DESC, f.rating DESC")
+    Page<Feedback> findFeedbackByTypeAndTutorId(@Param("type") FeedbackType type, @Param("tutor") Account tutor, Pageable pageable);
+
     @Query("SELECT ROUND(AVG(f.rating), 1) FROM Feedback f WHERE f.tutor = :account")
     Double getAverageRatingByAccount(@Param("account") Account account);
 }

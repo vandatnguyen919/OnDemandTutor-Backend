@@ -16,7 +16,6 @@ import com.mytutor.exceptions.CertificateNotFoundException;
 import com.mytutor.exceptions.EducationNotFoundException;
 import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.*;
-import com.mytutor.services.AccountService;
 import com.mytutor.services.TutorService;
 import java.util.HashSet;
 import java.util.List;
@@ -40,19 +39,19 @@ import org.springframework.stereotype.Service;
 public class TutorServiceImpl implements TutorService {
 
     @Autowired
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
-    EducationRepository educationRepository;
+    private EducationRepository educationRepository;
 
     @Autowired
-    CertificateRepository certificateRepository;
+    private CertificateRepository certificateRepository;
 
     @Autowired
-    SubjectRepository subjectRepository;
+    private SubjectRepository subjectRepository;
 
     @Autowired
-    FeedbackRepository feedbackRepository;
+    private FeedbackRepository feedbackRepository;
 
     @Autowired
     private ModelMapper modelMapper;

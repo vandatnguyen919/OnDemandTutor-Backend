@@ -5,7 +5,7 @@
 package com.mytutor.dto;
 
 import com.mytutor.entities.Reply;
-import java.util.Date;
+import java.text.SimpleDateFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,21 +21,27 @@ public class ReplyDto {
 
     private int id;
     private String content;
-    private Date createdAt;
-    private Date modifiedAt;
-    private int createdById;
+    private String createdAt;
+    private String modifiedAt;
 
+    private int createdBy;
     public static ReplyDto mapToDto(Reply reply) {
         if (reply == null) {
             return null;
         }
 
-        return new ReplyDto(
-                reply.getId(),
-                reply.getContent(),
-                reply.getCreatedAt(),
-                reply.getModifiedAt(),
-                reply.getCreatedBy().getId()
-        );
+
+        ReplyDto replyDto = new ReplyDto();
+        replyDto.setId(reply.getId());
+        replyDto.setContent(reply.getContent());
+        
+        // Create a SimpleDateFormat object with the desired format
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        
+        replyDto.setCreatedAt(sdf.format(reply.getCreatedAt()));
+        replyDto.setModifiedAt(sdf.format(reply.getModifiedAt()));
+        replyDto.setCreatedBy(reply.getCreatedBy().getId());
+        
+        return replyDto;
     }
 }
