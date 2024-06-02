@@ -47,6 +47,7 @@ public class TutorController {
     public ResponseEntity<?> addAllEducations(
             @PathVariable Integer tutorId,
             @RequestBody List<EducationDto> educationDtos) {
+        System.out.println(educationDtos.get(0).getDegreeType().toString());
         return tutorService.addAllEducations(tutorId, educationDtos);
     }
 

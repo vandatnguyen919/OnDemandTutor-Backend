@@ -22,7 +22,7 @@ public class EducationDto {
 
     private String universityName;
 
-    private DegreeType degreeType;
+    private String degreeType;
 
     private int startYear;
 

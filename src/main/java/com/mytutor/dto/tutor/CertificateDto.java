@@ -13,7 +13,7 @@ import lombok.Data;
 @Data
 public class CertificateDto {
     
-    private int id;
+    private Integer id;
     
     private String certificateName;
 
@@ -21,9 +21,11 @@ public class CertificateDto {
 
     private String issuedBy;
 
-    private int issuedYear;
+    private Integer issuedYear;
 
     private String certificateUrl;
+
+    private String subject;
 
     private boolean isVerified;
 }

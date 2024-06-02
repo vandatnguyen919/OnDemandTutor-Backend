@@ -39,9 +39,11 @@ public class Certificate {
 
     private String issuedBy;
 
-    private int issuedYear;
+    private Integer issuedYear;
 
     private String certificateUrl;
+
+    private String subject;
 
     private boolean isVerified = false;
 }

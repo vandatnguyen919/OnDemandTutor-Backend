@@ -1,10 +1,13 @@
 package com.mytutor.entities;
 
+import com.mytutor.constants.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -38,12 +41,14 @@ public class Appointment {
     @JoinColumn(name = "student_id")
     private Account student;
 
-    public enum AppointmentStatus {
-        PROCESSING,
-        CONFIRMED,
-        CANCELED,
-        SUCCESS,
-        FAILED
-    }
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "Appointment_Timeslot",
+            joinColumns = @JoinColumn(name = "appointment_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "timeslot_id", referencedColumnName = "id"))
+    private List<Timeslot> timeslots = new ArrayList<>();
+
+    @OneToMany(mappedBy = "appointment")
+    List<Payment> payments = new ArrayList<>();
+
 }
 
