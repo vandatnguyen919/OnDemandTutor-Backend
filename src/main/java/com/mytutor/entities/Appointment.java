@@ -41,8 +41,14 @@ public class Appointment {
     @JoinColumn(name = "student_id")
     private Account student;
 
-    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "Appointment_Timeslot",
+            joinColumns = @JoinColumn(name = "appointment_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "timeslot_id", referencedColumnName = "id"))
     private List<Timeslot> timeslots = new ArrayList<>();
+
+    @OneToMany(mappedBy = "appointment")
+    List<Payment> payments = new ArrayList<>();
 
 }
 

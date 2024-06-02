@@ -2,6 +2,7 @@ package com.mytutor.controllers;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.AppointmentDto;
+import com.mytutor.dto.PaginationDto;
 import com.mytutor.entities.Appointment;
 import com.mytutor.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,18 +30,22 @@ public class AppointmentController {
 
     // lay ra tat ca appointment cua mot tutor theo trang thai
     @GetMapping("/tutors/{tutorId}")
-    public ResponseEntity<List<AppointmentDto>> getAppointmentsByTutor(
+    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutor(
             @PathVariable Integer tutorId,
-            @RequestParam AppointmentStatus status) {
-        return appointmentService.getAppointmentsByTutorId(tutorId, status);
+            @RequestParam AppointmentStatus status,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
+        return appointmentService.getAppointmentsByTutorId(tutorId, status, pageNo, pageSize);
     }
 
     // lay ra tat ca appointment cua mot student theo trang thai
     @GetMapping("/students/{studentId}")
-    public ResponseEntity<List<AppointmentDto>> getAppointmentsByStudent(
+    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudent(
             @PathVariable Integer studentId,
-            @RequestParam AppointmentStatus status) {
-        return appointmentService.getAppointmentsByStudentId(studentId, status);
+            @RequestParam AppointmentStatus status,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
+        return appointmentService.getAppointmentsByStudentId(studentId, status, pageNo, pageSize);
     }
 
     // student tao mot appointment moi
@@ -54,10 +59,10 @@ public class AppointmentController {
 
     // tutor xac nhan appointment
     @PutMapping("{appointmentId}/tutors/{tutorId}")
-    public ResponseEntity<AppointmentDto> updateAppointmentStatus(
+    public ResponseEntity<?> updateAppointmentStatus(
             @PathVariable Integer appointmentId,
             @PathVariable Integer tutorId,
-            @RequestParam AppointmentStatus status
+            @RequestParam String status
     ) {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }

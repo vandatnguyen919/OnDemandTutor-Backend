@@ -43,9 +43,5 @@ public class Timeslot {
     @Column(name="is_occupied")
     private boolean isOccupied = false;
 
-    @ManyToOne
-    @JoinColumn(name = "appointment_id")
-    private Appointment appointment;
-
 
 }
