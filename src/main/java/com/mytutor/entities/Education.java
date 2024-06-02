@@ -44,9 +44,9 @@ public class Education {
     @Enumerated(EnumType.STRING)
     private DegreeType degreeType;
 
-    private int startYear;
+    private Integer startYear;
 
-    private int endYear;
+    private Integer endYear;
 
     private String diplomaUrl;
 

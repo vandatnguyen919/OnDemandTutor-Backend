@@ -23,4 +23,6 @@ public interface AccountService {
     ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
 
     boolean checkCurrentAccount(Principal principal, Integer accountId);
+
+    ResponseEntity<?> readAccountById(Integer accountId);
 }
