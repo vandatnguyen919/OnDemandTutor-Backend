@@ -13,7 +13,7 @@ import lombok.Data;
 @Data
 public class CertificateDto {
     
-    private int id;
+    private Integer id;
     
     private String certificateName;
 

@@ -18,7 +18,7 @@ import java.security.Principal;
  * @author vothimaihoa
  */
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping("/api/account-management")
 public class AccountController {
 
     @Autowired

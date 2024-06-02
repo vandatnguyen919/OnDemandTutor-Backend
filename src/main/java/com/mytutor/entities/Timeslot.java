@@ -35,7 +35,7 @@ public class Timeslot {
     private Time endTime;
 
     @Column(name="day_of_week")
-    Integer dayOfWeek;
+    private Integer dayOfWeek;
 
     @Column(name="schedule_date")
     private LocalDate scheduleDate;
@@ -43,8 +43,9 @@ public class Timeslot {
     @Column(name="is_occupied")
     private boolean isOccupied = false;
 
-    @Column(name="appointment_id")
-    private Integer appointmentId;
+    @ManyToOne
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
 
 
 }

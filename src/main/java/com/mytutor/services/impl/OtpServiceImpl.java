@@ -12,7 +12,6 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.OtpRepository;
 import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
-import com.nimbusds.oauth2.sdk.Response;
 import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -63,8 +62,8 @@ public class OtpServiceImpl implements OtpService {
         message.setText("Your OTP code is: " + otp);
 
         mailSender.send(message);
-
-        return ResponseEntity.status(HttpStatus.OK).body("OTP is sent to your email");
+        
+        return ResponseEntity.status(HttpStatus.OK).body(receiverEmail);
     }
 
     @Override
@@ -74,12 +73,19 @@ public class OtpServiceImpl implements OtpService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This OTP is expired or not found");
         }
 
-        if (otpEntity.getCode().equals(otp)) {
-            Account account = otpEntity.getAccount();
+        if (!otpEntity.getCode().equals(otp)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This OTP is not correct");
+        }
+
+        Account account = otpEntity.getAccount();
+        if (account.getStatus() == AccountStatus.UNVERIFIED) {
             account.setStatus(AccountStatus.ACTIVE);
             accountRepository.save(account);
-            return ResponseEntity.status(HttpStatus.OK).body("Register succeed");
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This OTP is not correct");
+        //invalidate OTP after verification succeed
+        otpEntity.setExpirationTime(LocalDateTime.now().minusMinutes(EXPIRATION_TIME));
+        otpRepository.save(otpEntity);
+        
+        return ResponseEntity.status(HttpStatus.OK).body("OTP verification succeed");
     }
 }

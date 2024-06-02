@@ -4,9 +4,11 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.dto.ForgotPasswordDto;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
+import com.mytutor.dto.ResetPasswordDto;
 import com.mytutor.services.AuthService;
 import com.mytutor.services.OtpService;
 import java.security.Principal;
@@ -48,11 +50,21 @@ public class AuthController {
         return authService.loginOAuthGoogle(idTokenRequestDto);
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        return authService.forgotPassword(forgotPasswordDto);
+    }
+    
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
+        return authService.resetPassword(resetPasswordDto);
+    }
+
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestParam String receiverEmail) {
         return otpService.sendOtp(receiverEmail);
     }
-    
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam String otp) {
         return otpService.verifyOtp(email, otp);

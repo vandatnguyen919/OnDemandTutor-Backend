@@ -58,8 +58,12 @@ public class PasswordGenerator {
             throw new IllegalArgumentException("OTP length should be greater than 0");
         }
 
+        // First digit should not be zero, so we select from '1' to '9'
         StringBuilder otp = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
+        otp.append(DIGITS.charAt(RANDOM.nextInt(9) + 1));
+
+        // Generate the remaining digits
+        for (int i = 1; i < length; i++) {
             otp.append(DIGITS.charAt(RANDOM.nextInt(DIGITS.length())));
         }
 

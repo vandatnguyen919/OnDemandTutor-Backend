@@ -53,12 +53,9 @@ public class TutorServiceImpl implements TutorService {
 
     @Autowired
     private ModelMapper modelMapper;
-
+    
     @Autowired
     private TutorDetailRepository tutorDetailRepository;
-
-    @Autowired
-    private AccountService accountService;
 
     @Override
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo, int pageSize) {

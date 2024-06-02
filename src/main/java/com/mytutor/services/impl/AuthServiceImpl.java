@@ -16,7 +16,6 @@ import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
 import jakarta.transaction.Transactional;
 
-import java.security.Principal;
 import java.util.Date;
 
 import org.modelmapper.ModelMapper;
@@ -36,10 +35,10 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.mytutor.constants.RoleName;
+import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -69,6 +68,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private OtpService otpService;
 
     private final GoogleIdTokenVerifier verifier;
 
@@ -104,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (AuthenticationException e) {
 
             // If Authentication failed
-            return new ResponseEntity<>("Authentication failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
         }
     }
 
@@ -112,10 +114,10 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<?> register(RegisterDto registerDto) {
 
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
-            return new ResponseEntity<>("This email has been used", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This email has been used");
         }
         if (accountRepository.existsByPhoneNumber(registerDto.getPhoneNumber())) {
-            return new ResponseEntity<>("This phone number has been used", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This phone number has been used");
         }
 
         Account account = new Account();
@@ -123,14 +125,13 @@ public class AuthServiceImpl implements AuthService {
         account.setEmail(registerDto.getEmail());
         account.setFullName(registerDto.getFullName());
         account.setPhoneNumber(registerDto.getPhoneNumber());
-        account.setPassword(passwordEncoder.encode(registerDto.getPassword())); // tạo password random cho account đăng nhap bang Google
-
-        account.setStatus(AccountStatus.PROCESSING);
+        account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        account.setStatus(AccountStatus.UNVERIFIED);
         Role role = getRole(RoleName.STUDENT);
         account.setRoles(Collections.singleton(role));
         account.setCreatedAt(new Date());
 
-        accountRepository.save(account);
+        Account newAccount = accountRepository.save(account);
 
 //        // Generate JWT after authentication succeed
 //        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
@@ -139,15 +140,19 @@ public class AuthServiceImpl implements AuthService {
 //
 //        // Response ACCESS TOKEN and EXPIRATION TIME
 //        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+        otpService.sendOtp(newAccount.getEmail());
 
-        return new ResponseEntity<>("Register success! Please enter OTP code to complete registration", HttpStatus.OK);
+        AccountResponse accountResponse = new AccountResponse(newAccount.getEmail(), "REGISTRATION");
+
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
+
     }
 
     @Override
     public ResponseEntity<?> findByEmail(String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
-        ResponseAccountDetailsDto dto =  modelMapper.map(account, ResponseAccountDetailsDto.class);
+        ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
@@ -167,14 +172,14 @@ public class AuthServiceImpl implements AuthService {
 
         // Response ACCESS TOKEN and EXPIRATION TIME
         AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-        
+
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
-    @Transactional
-    public Account createOrUpdateUser(Account account) {
+
+    private Account createOrUpdateUser(Account account) {
         Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
-        
+
         // User first time login with google in the application
         if (existingAccount == null) {
             Role role = getRole(RoleName.STUDENT);
@@ -183,21 +188,25 @@ public class AuthServiceImpl implements AuthService {
             account.setCreatedAt(new Date());
             account.setStatus(AccountStatus.ACTIVE);
             // Store user info in the database
-            accountRepository.save(account);
-            return account;
+            return accountRepository.save(account);
         }
         // Otherwise, update user info in the database
         existingAccount.setFullName(account.getFullName());
         existingAccount.setAvatarUrl(account.getAvatarUrl());
-        accountRepository.save(existingAccount);
-        return existingAccount;
+
+        // Instead of wainting for user to enter OTP code to verify true email.
+        // Using advantage of login with gg to verify true email
+        if (existingAccount.getStatus() == AccountStatus.UNVERIFIED) {
+            existingAccount.setStatus(AccountStatus.ACTIVE);
+        }
+        return accountRepository.save(existingAccount);
     }
 
     private Account parseIdToken(String idToken) {
         try {
             // Verify token id
             GoogleIdToken idTokenObj = verifier.verify(idToken);
-            
+
             // Extract user info payload from id token
             GoogleIdToken.Payload payload = idTokenObj.getPayload();
             String email = (String) payload.get("email");
@@ -225,4 +234,32 @@ public class AuthServiceImpl implements AuthService {
         }
         return role;
     }
+
+    @Override
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        String email = forgotPasswordDto.getEmail();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        otpService.sendOtp(account.getEmail());
+        
+        AccountResponse accountResponse = new AccountResponse(account.getEmail(), "FORGOT_PASSWORD");
+        
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
+    }
+
+    @Override
+    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
+        String email = resetPasswordDto.getEmail();
+        String password = resetPasswordDto.getPassword();
+
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        account.setPassword(passwordEncoder.encode(password));
+
+        accountRepository.save(account);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
+    }
+
+    private record AccountResponse(String email, String status) {}
 }

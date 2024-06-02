@@ -1,4 +1,4 @@
-package com.mytutor.dto.TimeSlot;
+package com.mytutor.dto.timeslot;
 
 import lombok.Data;
 
@@ -11,6 +11,7 @@ import java.time.LocalDate;
  */
 @Data
 public class ResponseTimeslotDto {
+    
     private int id;
 
     private Integer accountId;
@@ -19,7 +20,7 @@ public class ResponseTimeslotDto {
 
     private Time endTime;
 
-    Integer dayOfWeek;
+    private Integer dayOfWeek;
 
     private LocalDate scheduleDate;
 
