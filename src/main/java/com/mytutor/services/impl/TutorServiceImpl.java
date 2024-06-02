@@ -4,6 +4,7 @@
  */
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.DegreeType;
 import com.mytutor.constants.RoleName;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.CertificateDto;
@@ -128,6 +129,7 @@ public class TutorServiceImpl implements TutorService {
             Education education = modelMapper.map(educationDto, Education.class);
             education.setAccount(tutor);
             education.setVerified(false);
+            education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
 
             educationRepository.save(education);
         }
@@ -172,7 +174,7 @@ public class TutorServiceImpl implements TutorService {
             throw new EducationNotFoundException("This education does not belong to this tutor");
         }
 
-        education.setDegreeType(educationDto.getDegreeType());
+        education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
         education.setUniversityName(educationDto.getUniversityName());
         education.setMajorName(educationDto.getMajorName());
         education.setSpecialization(educationDto.getSpecialization());
