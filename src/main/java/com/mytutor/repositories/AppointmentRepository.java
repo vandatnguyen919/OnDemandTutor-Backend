@@ -12,6 +12,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ *
+ * @author vothimaihoa
+ */
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
