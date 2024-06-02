@@ -5,8 +5,8 @@ import lombok.Data;
 import java.sql.Time;
 
 /**
- * @author vothimaihoa
  *
+ * @author vothimaihoa
  */
 @Data
 public class InputTimeslotDto {
