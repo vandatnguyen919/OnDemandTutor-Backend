@@ -168,7 +168,7 @@ public class TutorServiceImpl implements TutorService {
         Account tutor = accountRepository.findById(tutorId).orElseThrow(
                 () -> new AccountNotFoundException("Account not found"));
 
-        Education education = educationRepository.findById(Long.valueOf(educationId))
+        Education education = educationRepository.findById(educationId)
                 .orElseThrow(() -> new EducationNotFoundException("Education not found"));
 
         if (education.getAccount().getId() != tutor.getId()) {
@@ -220,7 +220,7 @@ public class TutorServiceImpl implements TutorService {
         Account tutor = accountRepository.findById(tutorId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Education education = educationRepository.findById(Long.valueOf(educationId))
+        Education education = educationRepository.findById(educationId)
                 .orElseThrow(() -> new EducationNotFoundException("Education not found"));
 
         if (education.getAccount().getId() != tutor.getId()) {

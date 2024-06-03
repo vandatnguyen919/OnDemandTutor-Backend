@@ -10,6 +10,7 @@ import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
 import com.mytutor.dto.ResetPasswordDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,7 +26,7 @@ public interface AuthService {
 
     ResponseEntity<?> findByEmail(String email);
 
-    ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto);
+    ResponseEntity<?> loginOAuthGoogle(OAuth2AuthenticationToken oAuth2AuthenticationToken);
     
     ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto);
     
