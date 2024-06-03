@@ -58,6 +58,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html").permitAll()
                                 .requestMatchers("/oauth2/**").permitAll()
                                 .requestMatchers("/api/auth/login-with-google").authenticated()
+                                .anyRequest().permitAll()
                         )
                 .oauth2Login(oauth2
                         -> oauth2

@@ -54,9 +54,7 @@ public class AuthController {
 //    }
     @GetMapping("/login-with-google")
     public ResponseEntity<?> loginSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
-//        return new ResponseEntity<>(oAuth2AuthenticationToken.getPrincipal().getAttributes(), HttpStatus.OK);
         return authService.loginOAuthGoogle( oAuth2AuthenticationToken);
-//        return null;
     }
 
     @PostMapping("/forgot-password")
