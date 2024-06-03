@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 public class TutorDetail {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name = "teaching_price_per_hour")
@@ -39,6 +40,9 @@ public class TutorDetail {
 
     @Column(name = "video_introduction_link")
     private String videoIntroductionLink;
+
+    @Column(name = "percentage")
+    private Integer percentage = 30;
 
     @OneToOne
     @JoinColumn(name = "account_id") // Tên cột tham chiếu khóa ngoại trong bảng Tutor_Detail

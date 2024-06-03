@@ -4,8 +4,10 @@
  */
 package com.mytutor.entities;
 
-import jakarta.persistence.Column;
+import com.mytutor.constants.DegreeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,7 +17,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  *
@@ -24,39 +25,31 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @Data
-@ToString
 @Table(name = "Education")
 public class Education {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tutor_id")
     private Account account;
 
-    @Column(name = "major_name")
     private String majorName;
 
-    @Column(name = "specialization")
     private String specialization;
 
-    @Column(name = "university_name")
     private String universityName;
 
-    @Column(name = "degree_type")
-    private String degreeType;
+    @Enumerated(EnumType.STRING)
+    private DegreeType degreeType;
 
-    @Column(name = "start_year")
-    private int startYear;
+    private Integer startYear;
 
-    @Column(name = "end_year")
-    private int endYear;
+    private Integer endYear;
 
-    @Column(name = "diploma_url")
     private String diplomaUrl;
 
-    @Column(name = "is_verified")
     private boolean isVerified = false;
 }
 

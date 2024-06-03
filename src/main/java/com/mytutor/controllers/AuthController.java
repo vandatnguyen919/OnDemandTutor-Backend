@@ -4,22 +4,24 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.dto.ForgotPasswordDto;
 import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
-import com.mytutor.dto.ResponseAccountDetailsDto;
-import com.mytutor.entities.Account;
-import com.mytutor.service.AuthService;
-import jakarta.servlet.http.HttpServletResponse;
+import com.mytutor.dto.ResetPasswordDto;
+import com.mytutor.services.AuthService;
+import com.mytutor.services.OtpService;
 import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -33,31 +35,52 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("login-manually")
+    @Autowired
+    private OtpService otpService;
+
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
     }
 
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
         return authService.register(registerDto);
     }
+//
+//    @PostMapping("/login-with-google")
+//    public ResponseEntity<?> loginOAuthGoogle(@RequestBody IdTokenRequestDto idTokenRequestDto) {
+//        return authService.loginOAuthGoogle(idTokenRequestDto);
+//    }
+    @GetMapping("/login-with-google")
+    public ResponseEntity<?> loginSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+//        return new ResponseEntity<>(oAuth2AuthenticationToken.getPrincipal().getAttributes(), HttpStatus.OK);
+        return authService.loginOAuthGoogle( oAuth2AuthenticationToken);
+//        return null;
+    }
 
-    @PostMapping("/login-with-google")
-    public ResponseEntity LoginWithGoogleOauth2(@RequestBody IdTokenRequestDto requestBody, HttpServletResponse response) {
-        String authToken = authService.loginOAuthGoogle(requestBody);
-        final ResponseCookie cookie = ResponseCookie.from("AUTH-TOKEN", authToken)
-                .httpOnly(true)
-                .maxAge(7 * 24 * 3600)
-                .path("/")
-                .secure(false)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return ResponseEntity.ok().build();
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        return authService.forgotPassword(forgotPasswordDto);
     }
     
+    @PutMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
+        return authService.resetPassword(resetPasswordDto);
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestParam String receiverEmail) {
+        return otpService.sendOtp(receiverEmail);
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        return otpService.verifyOtp(email, otp);
+    }
+
     @GetMapping("/profile")
-    public ResponseEntity getUserInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
-        return authService.getAccountInfo(principal, responseAccountDetailsDto);
+    public ResponseEntity<?> getUserInfo(Principal principal) {
+        return authService.findByEmail(principal.getName());
     }
 }

@@ -8,7 +8,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.sql.Time;
+import java.time.LocalDate;
 
 /**
  *
@@ -28,18 +29,19 @@ public class Timeslot {
     private Account account;
 
     @Column(name="start_time")
-    private Date startTime;
+    private Time startTime;
 
     @Column(name="end_time")
-    private Date endTime;
+    private Time endTime;
+
+    @Column(name="day_of_week")
+    private Integer dayOfWeek;
 
     @Column(name="schedule_date")
-    private Date date;
+    private LocalDate scheduleDate;
 
     @Column(name="is_occupied")
-    boolean isOccupied = false;
+    private boolean isOccupied = false;
 
-    @Column(name="appointment_id")
-    int appointmentId;
 
 }

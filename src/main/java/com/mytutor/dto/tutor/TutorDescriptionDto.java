@@ -4,7 +4,6 @@
  */
 package com.mytutor.dto.tutor;
 
-import com.mytutor.entities.Role;
 import com.mytutor.entities.Subject;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +24,6 @@ public class TutorDescriptionDto {
     
     private String videoIntroductionLink;
 
-    private Set<Subject> subjects = new HashSet<>();
+    private Set<String> subjects = new HashSet<>();
 
 }

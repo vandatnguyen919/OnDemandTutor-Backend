@@ -29,26 +29,22 @@ public class Certificate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tutor_id")
     private Account account;
 
-    @Column(name = "certificate_name")
     private String certificateName;
 
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "issued_by")
     private String issuedBy;
 
-    @Column(name = "issued_year")
-    private int issuedYear;
+    private Integer issuedYear;
 
-    @Column(name = "certificate_url")
     private String certificateUrl;
 
-    @Column(name = "is_verified")
+    private String subject;
+
     private boolean isVerified = false;
 }
 

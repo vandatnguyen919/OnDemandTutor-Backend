@@ -8,14 +8,17 @@ import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
+import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
-import com.mytutor.service.AuthService;
+import com.mytutor.services.AuthService;
 import jakarta.transaction.Transactional;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
-import java.security.Principal;
+import java.net.URI;
 import java.util.Date;
 
 import org.modelmapper.ModelMapper;
@@ -29,29 +32,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
+import com.mytutor.constants.RoleName;
+import com.mytutor.services.OtpService;
+import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
-import java.util.Optional;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  *
  * @author Nguyen Van Dat
  */
 @Service
-public class AuthServiceImpl implements AuthService {
+ public class AuthServiceImpl implements AuthService {
 
     @Autowired
-    private final AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -71,16 +77,18 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private final GoogleIdTokenVerifier verifier;
+    @Autowired
+    private OtpService otpService;
 
-    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
-        NetHttpTransport transport = new NetHttpTransport();
-        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(clientId))
-                .build();
-    }
+
+//    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
+//        this.accountRepository = accountRepository;
+//        NetHttpTransport transport = new NetHttpTransport();
+//        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+//        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+//                .setAudience(Collections.singletonList(clientId))
+//                .build();
+//    }
 
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
@@ -99,15 +107,13 @@ public class AuthServiceImpl implements AuthService {
             long expirationTime = JwtProvider.JWT_EXPIRATION;
 
             // Response ACCESS TOKEN and EXPIRATION TIME
-            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
-            authenticationResponseDto.setAccessToken(token);
-            authenticationResponseDto.setExpirationTime(expirationTime);
+            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
 
             return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
         } catch (AuthenticationException e) {
 
             // If Authentication failed
-            return new ResponseEntity<>("Authentication failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
         }
     }
 
@@ -115,10 +121,10 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<?> register(RegisterDto registerDto) {
 
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
-            return new ResponseEntity<>("This email has been used", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This email has been used");
         }
         if (accountRepository.existsByPhoneNumber(registerDto.getPhoneNumber())) {
-            return new ResponseEntity<>("This phone number has been used", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This phone number has been used");
         }
 
         Account account = new Account();
@@ -127,91 +133,111 @@ public class AuthServiceImpl implements AuthService {
         account.setFullName(registerDto.getFullName());
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-
-        account.setCreatedAt(new Date());
-        account.setStatus(AccountStatus.ACTIVE);
-        Role role = roleRepository.findByRoleName("student").get();
+        account.setStatus(AccountStatus.UNVERIFIED);
+        Role role = getRole(RoleName.STUDENT);
         account.setRoles(Collections.singleton(role));
+        account.setCreatedAt(new Date());
 
-        accountRepository.save(account);
+        Account newAccount = accountRepository.save(account);
+
+//        // Generate JWT after authentication succeed
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
+//        String token = JwtProvider.generateToken(userDetails);
+//        long expirationTime = JwtProvider.JWT_EXPIRATION;
+//
+//        // Response ACCESS TOKEN and EXPIRATION TIME
+//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+        otpService.sendOtp(newAccount.getEmail());
+
+        AccountResponse accountResponse = new AccountResponse(newAccount.getEmail(), "REGISTRATION");
+
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
+
+    }
+
+    @Override
+    public ResponseEntity<?> findByEmail(String email) {
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> loginOAuthGoogle(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+        Map<String, Object> userOAuth = oAuth2AuthenticationToken.getPrincipal().getAttributes();
+        if (userOAuth == null) {
+            return new ResponseEntity<>("Credentials are invalid!", HttpStatus.BAD_REQUEST);
+        }
+        String email = (String) userOAuth.get("email");
+        String fullName = (String) userOAuth.get("name");
+        boolean emailVerified = (boolean) userOAuth.get("email_verified");
+        String avatar = (String) userOAuth.get("picture");
+        // Check user has already logged in before or new user
+        Account account = accountRepository.findByEmailAddress(email);
+
+        if (account == null) {
+            Account newAccount = new Account();
+            newAccount.setEmail(email);
+            newAccount.setFullName(fullName);
+            newAccount.setAvatarUrl(avatar);
+            newAccount.setStatus(AccountStatus.ACTIVE);
+            newAccount.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
+            newAccount.setCreatedAt(new Date());
+            Role role = getRole(RoleName.STUDENT);
+            newAccount.setRoles(Collections.singleton(role));
+            account = accountRepository.save(newAccount);
+        }
 
         // Generate JWT after authentication succeed
-        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
         String token = JwtProvider.generateToken(userDetails);
         long expirationTime = JwtProvider.JWT_EXPIRATION;
 
         // Response ACCESS TOKEN and EXPIRATION TIME
-        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto();
-        authenticationResponseDto.setAccessToken(token);
-        authenticationResponseDto.setExpirationTime(expirationTime);
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
 
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
+    }
 
+
+    private Role getRole(RoleName roleName) {
+        // Get a role from the database
+        Role role = roleRepository.findByRoleName(roleName.name()).orElse(null);
+        // Create a new role if it is not in the database
+        if (role == null) {
+            role = new Role();
+            role.setRoleName(roleName.name());
+            roleRepository.save(role);
+            role = roleRepository.findByRoleName(roleName.name()).get();
+        }
+        return role;
     }
 
     @Override
-    public Optional<Account> findByEmail(String email) {
-        return accountRepository.findByEmail(email);
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        String email = forgotPasswordDto.getEmail();
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        otpService.sendOtp(account.getEmail());
+        
+        AccountResponse accountResponse = new AccountResponse(account.getEmail(), "FORGOT_PASSWORD");
+        
+        return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
     }
 
     @Override
-    public ResponseEntity<?> getAccountInfo(Principal principal, ResponseAccountDetailsDto responseAccountDetailsDto) {
-        Account account = findByEmail(principal.getName()).orElse(null);
-        return ResponseEntity.ok().body(modelMapper.map(account, ResponseAccountDetailsDto.class));
+    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
+        String email = resetPasswordDto.getEmail();
+        String password = resetPasswordDto.getPassword();
+
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        account.setPassword(passwordEncoder.encode(password));
+
+        accountRepository.save(account);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
     }
 
-    @Override
-    public String loginOAuthGoogle(IdTokenRequestDto requestBody) {
-        Account account = verifyIDToken(requestBody.getIdToken());
-        System.out.println(requestBody.getIdToken());
-        System.out.println(account.getEmail());
-        if (account == null) {
-            throw new IllegalArgumentException();
-        }
-        account = createOrUpdateUser(account);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
-        String token = JwtProvider.generateToken(userDetails);
-        return token;
-    }
-
-    @Transactional
-    public Account createOrUpdateUser(Account account) {
-        Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
-        if (existingAccount == null) {
-            Role userRole = new Role();
-            Role role = roleRepository.findByRoleName("student").get();
-            account.setRoles(Collections.singleton(role));
-            account.setPassword("123"); // phải có password vì nếu null sẽ bị exception trong hàm User của CustomerUserDetails trong spring security
-            accountRepository.save(account);
-            return account;
-        }
-//        existingAccount.setFullName(account.getFullName());
-//        existingAccount.setPhoneNumber(account.getPhoneNumber());
-//        existingAccount.setAvatarUrl(account.getAvatarUrl());
-        accountRepository.save(existingAccount);
-        return existingAccount;
-    }
-
-    private Account verifyIDToken(String idToken) {
-        try {
-            GoogleIdToken idTokenObj = verifier.verify(idToken);
-            if (idTokenObj == null) {
-                return null;
-            }
-            GoogleIdToken.Payload payload = idTokenObj.getPayload();
-            String email = (String) payload.get("email");
-            String fullName = (String) payload.get("full_name");
-            String phoneNumber = (String) payload.get("phone_number");
-            String avatarUrl = (String) payload.get("avatar_url");
-            Account account = new Account();
-            account.setEmail(email);
-            account.setFullName(fullName);
-            account.setPhoneNumber(phoneNumber);
-            account.setAvatarUrl(avatarUrl);
-            return account;
-        } catch (GeneralSecurityException | IOException e) {
-            return null;
-        }
-    }
-
+    private record AccountResponse(String email, String status) {}
 }
