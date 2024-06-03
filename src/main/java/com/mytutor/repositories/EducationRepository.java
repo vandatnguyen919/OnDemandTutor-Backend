@@ -17,7 +17,7 @@ import org.springframework.data.repository.query.Param;
  * @author vothimaihoa
  */
 @Repository
-public interface EducationRepository extends JpaRepository<Education, Long> {
+public interface EducationRepository extends JpaRepository<Education, Integer> {
 
     @Query("SELECT e FROM Education e WHERE e.account.id = :accountId ORDER BY e.degreeType DESC")
     List<Education> findByAccountId(@Param("accountId") Integer tutorId);

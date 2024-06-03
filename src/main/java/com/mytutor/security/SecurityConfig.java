@@ -56,8 +56,12 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html").permitAll()
-                        .anyRequest().permitAll())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                                .requestMatchers("/oauth2/**").permitAll()
+                                .requestMatchers("/api/auth/login-with-google").authenticated()
+                        )
+                .oauth2Login(oauth2
+                        -> oauth2
+                        .defaultSuccessUrl("/api/auth/login-with-google", true));
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
