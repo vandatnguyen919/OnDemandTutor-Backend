@@ -18,23 +18,26 @@ public class ModeratorController {
     ModeratorService moderatorService;
 
     // duyet bang cap cua tutor - education
-//    @PutMapping("/educations/{tutorId}")
-//    public ResponseEntity<?> checkEducations(
-//           @RequestBody CheckEducationDto checkEducationDto) {
-//        return moderatorService.checkEducationOfATutor(educationDto, status);
-//    }
+    @PutMapping("/educations/{educationId}")
+    public ResponseEntity<?> checkEducations(
+           @PathVariable int educationId,
+           @RequestParam String status) {
+        return moderatorService.checkAnEducation(educationId, status);
+    }
 
     // duyet chung chi cua tutor - certificate
-//    @PutMapping("/certificates/{tutorId}")
-//    public ResponseEntity<?> checkCertificates(
-//            @PathVariable Integer tutorId) {
-//        return moderatorService.checkCertificatesOfTutor(tutorId);
-//    }
-//
-//    // duyet tutor description
-//    @PutMapping("/tutor-descriptions/{tutorId}")
-//    public ResponseEntity<?> checkTutorDescriptions(
-//            @PathVariable Integer tutorId) {
-//        return moderatorService.checkTutorDescriptionsOfTutor(tutorId);
-//    }
+    @PutMapping("/certificates/{certificateId}")
+    public ResponseEntity<?> checkCertificates(
+            @PathVariable int certificateId,
+            @RequestParam String status) {
+        return moderatorService.checkACertificate(certificateId, status);
+    }
+
+    // duyet tutor description
+    @PutMapping("/tutors/{tutorId}")
+    public ResponseEntity<?> checkTutor(
+            @PathVariable Integer tutorId,
+            @RequestParam String status) {
+        return moderatorService.checkTutor(tutorId, status);
+    }
 }

@@ -27,5 +27,5 @@ public class CertificateDto {
 
     private String subject;
 
-    private boolean isVerified;
+    private String verifyStatus;
 }

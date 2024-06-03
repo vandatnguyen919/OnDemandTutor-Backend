@@ -6,6 +6,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.DegreeType;
 import com.mytutor.constants.RoleName;
+import com.mytutor.constants.VerifyStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
@@ -128,8 +129,7 @@ public class TutorServiceImpl implements TutorService {
 
             Education education = modelMapper.map(educationDto, Education.class);
             education.setAccount(tutor);
-            education.setVerified(false);
-            System.out.println(educationDto.getDegreeType().toString());
+            education.setVerifyStatus(VerifyStatus.PROCESSING);
             education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
 
             educationRepository.save(education);
@@ -150,7 +150,7 @@ public class TutorServiceImpl implements TutorService {
         for (CertificateDto certificateDto : certificateDtos) {
             Certificate certificate = modelMapper.map(certificateDto, Certificate.class);
             certificate.setAccount(tutor);
-            certificate.setVerified(false);
+            certificate.setVerifyStatus(VerifyStatus.PROCESSING);
 
             certificateRepository.save(certificate);
         }

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public interface ModeratorService {
-    ResponseEntity<?> checkEducationsOfTutor(CheckEducationDto educationDto, String status);
-//    ResponseEntity<?> checkCertificatesOfTutor(Integer tutorId);
-//    ResponseEntity<?> checkTutorDescriptionsOfTutor(Integer tutorId);
+    ResponseEntity<?> checkAnEducation(int educationId, String status); // sua lai: truyen vao dto gom list cac educationId trong requestbody
+    ResponseEntity<?> checkACertificate(int certificateId, String status);
+    ResponseEntity<?> checkTutor(Integer tutorId, String status);
 
 }

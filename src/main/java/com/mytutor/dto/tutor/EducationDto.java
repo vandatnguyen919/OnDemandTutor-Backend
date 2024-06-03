@@ -4,7 +4,9 @@
  */
 package com.mytutor.dto.tutor;
 
-import com.mytutor.constants.DegreeType;
+import com.mytutor.constants.VerifyStatus;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 /**
@@ -30,5 +32,5 @@ public class EducationDto {
 
     private String diplomaUrl;
 
-    private boolean isVerified;
+    private String verifyStatus;
 }
