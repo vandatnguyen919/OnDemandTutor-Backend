@@ -25,5 +25,7 @@ public class CertificateDto {
 
     private String certificateUrl;
 
+    private String subject;
+
     private boolean isVerified;
 }

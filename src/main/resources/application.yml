@@ -2,6 +2,24 @@ server:
   port: 8080
 
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 6421722014-8nnqo77r774ocnq3nq72khr9u371chck.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
   application:
     name: MyTutor
   
@@ -27,8 +45,6 @@ spring:
           auth: true
           starttls:
             enable: true
-            
-app:
-  googleClientId:
-    219800808436-439nq5ad23vrt7v8gk4cqhr2h14uch9o.apps.googleusercontent.com
+
+
 

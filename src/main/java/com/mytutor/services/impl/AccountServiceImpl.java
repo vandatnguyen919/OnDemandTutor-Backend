@@ -9,6 +9,7 @@ import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Role;
+import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 
@@ -48,7 +49,7 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> changeRole(Integer accountId, String roleName) {
         Role role = roleRepository.findByRoleName(roleName).get();
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new RuntimeException("Account not found"));
+                () -> new AccountNotFoundException("Account not found"));
 
         // Set the role to the account
         Set<Role> roles = new HashSet<>();
@@ -76,14 +77,14 @@ public class AccountServiceImpl implements AccountService {
         Account accountDB = getAccountById(accountId);
         updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
-        if (!checkCurrentAccount(principal, accountId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
-        }
+//        if (!checkCurrentAccount(principal, accountId)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
+//        }
         modelMapper.map(updateAccountDetailsDto, accountDB);
 
         accountRepository.save(accountDB);
 
-        return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
+        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(accountDB, ResponseAccountDetailsDto.class));
     }
 
     @Override
@@ -94,5 +95,13 @@ public class AccountServiceImpl implements AccountService {
         }
         return account.getId() == accountId;
     }
+
+    public ResponseEntity<?> readAccountById(Integer id) {
+        Account account = getAccountById(id);
+        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
+        modelMapper.map(account, dto);
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
 
 }

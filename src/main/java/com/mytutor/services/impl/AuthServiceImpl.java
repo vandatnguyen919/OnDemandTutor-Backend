@@ -14,7 +14,6 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
-import jakarta.transaction.Transactional;
 
 import java.util.Date;
 
@@ -29,27 +28,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.mytutor.constants.RoleName;
 import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Map;
 
 /**
  *
  * @author Nguyen Van Dat
  */
 @Service
-public class AuthServiceImpl implements AuthService {
+ public class AuthServiceImpl implements AuthService {
 
     @Autowired
-    private final AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -72,16 +68,15 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private OtpService otpService;
 
-    private final GoogleIdTokenVerifier verifier;
 
-    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
-        NetHttpTransport transport = new NetHttpTransport();
-        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(clientId))
-                .build();
-    }
+//    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
+//        this.accountRepository = accountRepository;
+//        NetHttpTransport transport = new NetHttpTransport();
+//        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+//        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+//                .setAudience(Collections.singletonList(clientId))
+//                .build();
+//    }
 
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
@@ -150,20 +145,41 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> findByEmail(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
         ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto) {
-        Account account = parseIdToken(idTokenRequestDto.getIdToken());
-        if (account == null) {
-            return new ResponseEntity<>("id token is invalid", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> loginOAuthGoogle(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+        Map<String, Object> userOAuth = oAuth2AuthenticationToken.getPrincipal().getAttributes();
+        if (userOAuth == null) {
+            return new ResponseEntity<>("Credentials are invalid!", HttpStatus.BAD_REQUEST);
         }
+        String email = (String) userOAuth.get("email");
+        String fullName = (String) userOAuth.get("name");
+        boolean emailVerified = (boolean) userOAuth.get("email_verified");
+        String avatar = (String) userOAuth.get("picture");
         // Check user has already logged in before or new user
-        account = createOrUpdateUser(account);
+        Account account = accountRepository.findByEmailAddress(email);
+
+        if (account == null) {
+            Account newAccount = new Account();
+            newAccount.setEmail(email);
+            newAccount.setFullName(fullName);
+            newAccount.setAvatarUrl(avatar);
+            newAccount.setStatus(AccountStatus.ACTIVE);
+            newAccount.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
+            newAccount.setCreatedAt(new Date());
+            Role role = getRole(RoleName.STUDENT);
+            newAccount.setRoles(Collections.singleton(role));
+            account = accountRepository.save(newAccount);
+        }
+
+        // Using advantage of login with gg to verify true email
+        if (account.getStatus() == AccountStatus.UNVERIFIED) {
+            account.setStatus(AccountStatus.ACTIVE);
+        }
 
         // Generate JWT after authentication succeed
         UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
@@ -176,51 +192,6 @@ public class AuthServiceImpl implements AuthService {
         return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
-
-    private Account createOrUpdateUser(Account account) {
-        Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
-
-        // User first time login with google in the application
-        if (existingAccount == null) {
-            Role role = getRole(RoleName.STUDENT);
-            account.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
-            account.setRoles(Collections.singleton(role));
-            account.setCreatedAt(new Date());
-            account.setStatus(AccountStatus.ACTIVE);
-            // Store user info in the database
-            return accountRepository.save(account);
-        }
-        // Otherwise, update user info in the database
-        existingAccount.setFullName(account.getFullName());
-        existingAccount.setAvatarUrl(account.getAvatarUrl());
-
-        // Instead of wainting for user to enter OTP code to verify true email.
-        // Using advantage of login with gg to verify true email
-        if (existingAccount.getStatus() == AccountStatus.UNVERIFIED) {
-            existingAccount.setStatus(AccountStatus.ACTIVE);
-        }
-        return accountRepository.save(existingAccount);
-    }
-
-    private Account parseIdToken(String idToken) {
-        try {
-            // Verify token id
-            GoogleIdToken idTokenObj = verifier.verify(idToken);
-
-            // Extract user info payload from id token
-            GoogleIdToken.Payload payload = idTokenObj.getPayload();
-            String email = (String) payload.get("email");
-            String fullName = (String) payload.get("name");
-            String avatarUrl = (String) payload.get("picture");
-            Account account = new Account();
-            account.setEmail(email);
-            account.setFullName(fullName);
-            account.setAvatarUrl(avatarUrl);
-            return account;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     private Role getRole(RoleName roleName) {
         // Get a role from the database

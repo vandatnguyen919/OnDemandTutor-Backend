@@ -20,13 +20,13 @@ public class EducationDto {
     private String specialization;
 
     private String universityName;
-    
+
     private String degreeType;
-    
-    private Integer startYear;
-    
-    private Integer endYear;
-    
+
+    private int startYear;
+
+    private int endYear;
+
     private String diplomaUrl;
 
     private boolean isVerified;
