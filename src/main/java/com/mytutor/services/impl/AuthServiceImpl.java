@@ -14,11 +14,7 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
-import jakarta.transaction.Transactional;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 
-import java.net.URI;
 import java.util.Date;
 
 import org.modelmapper.ModelMapper;
@@ -34,20 +30,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.mytutor.constants.RoleName;
 import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 
 import java.util.Collections;
 import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  *
@@ -186,6 +174,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
             Role role = getRole(RoleName.STUDENT);
             newAccount.setRoles(Collections.singleton(role));
             account = accountRepository.save(newAccount);
+        }
+
+        // Using advantage of login with gg to verify true email
+        if (account.getStatus() == AccountStatus.UNVERIFIED) {
+            account.setStatus(AccountStatus.ACTIVE);
         }
 
         // Generate JWT after authentication succeed

@@ -47,16 +47,10 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
         return authService.register(registerDto);
     }
-//
-//    @PostMapping("/login-with-google")
-//    public ResponseEntity<?> loginOAuthGoogle(@RequestBody IdTokenRequestDto idTokenRequestDto) {
-//        return authService.loginOAuthGoogle(idTokenRequestDto);
-//    }
+
     @GetMapping("/login-with-google")
-    public ResponseEntity<?> loginSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
-//        return new ResponseEntity<>(oAuth2AuthenticationToken.getPrincipal().getAttributes(), HttpStatus.OK);
+    public ResponseEntity<?> loginWithGoogleSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
         return authService.loginOAuthGoogle( oAuth2AuthenticationToken);
-//        return null;
     }
 
     @PostMapping("/forgot-password")
