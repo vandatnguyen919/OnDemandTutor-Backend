@@ -47,6 +47,9 @@ public class Appointment {
             inverseJoinColumns = @JoinColumn(name = "timeslot_id", referencedColumnName = "id"))
     private List<Timeslot> timeslots = new ArrayList<>();
 
+    @Column(name = "tuition")
+    private Double tuition;
+
     @OneToMany(mappedBy = "appointment")
     List<Payment> payments = new ArrayList<>();
 
