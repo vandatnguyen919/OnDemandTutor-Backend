@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize
                         -> authorize
-                        .requestMatchers("/api/auth/login-with-google").authenticated()
+                        .requestMatchers("/api/auth/callback/google/redirect").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/**",
@@ -64,7 +64,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2
                         -> oauth2
-                        .defaultSuccessUrl("/api/auth/login-with-google", true));
+                        .defaultSuccessUrl("/api/auth/callback/google/redirect", true));
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
