@@ -16,4 +16,5 @@ public interface ScheduleService {
     ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId);
     ResponseEntity<?> updateTimeslotStatus(Integer tutorId, Integer timeslotId, Boolean status);
     ResponseEntity<?> removeTimeslot(Integer tutorId, Integer timeslotId);
+    void deletePastUnusedTimeslots();
 }

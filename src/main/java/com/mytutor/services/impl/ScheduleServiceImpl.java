@@ -16,9 +16,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +41,14 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Autowired
     ModelMapper modelMapper;
+
+    @Override
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * ?") // Mỗi ngày vào lúc nửa đêm
+    public void deletePastUnusedTimeslots() {
+        LocalDateTime now = LocalDateTime.now();
+        timeslotRepository.deletePastUnusedTimeslots(now);
+    }
 
     @Override
     public ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputTimeslotDto> timeslotDtos,

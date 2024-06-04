@@ -67,7 +67,7 @@ public class ModeratorServiceImpl implements ModeratorService {
                 .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
 
         // nếu approved tutor -> set account: giữ role tutor, status thành ACTIVE + status của mọi bằng cấp chứng chỉ thành APPROVED
-        // nếu reject tutor -> set account: role thành student và status ACTIVE + xóa tất cả bằng cấp chúng ch tutor details liên quan
+        // nếu reject tutor -> set account: role thành student và status ACTIVE + xóa tất cả bằng cấp chúng ch tutor details liên quan (cả trong firebase - FE xử lý)
         if (status.equalsIgnoreCase("approved")) {
             tutor.setStatus(AccountStatus.ACTIVE);
             educationRepository.updateEducationByTutorId(VerifyStatus.APPROVED, tutorId);
@@ -83,7 +83,6 @@ public class ModeratorServiceImpl implements ModeratorService {
             return ResponseEntity.status(HttpStatus.OK).body("Rejected tutor!");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Status not allowed!");
-
     }
 
 }

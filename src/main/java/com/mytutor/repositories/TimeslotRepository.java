@@ -2,12 +2,14 @@ package com.mytutor.repositories;
 
 import com.mytutor.entities.Timeslot;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -46,4 +48,8 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
                                                          @Param("startDate") LocalDate startDate,
                                                          @Param("endDate") LocalDate endDate,
                                                          @Param("dayOfWeek") Integer dayOfWeek);
+
+    @Modifying
+    @Query("DELETE FROM Timeslot t WHERE t.startTime < :currentDateTime AND t.isOccupied = false")
+    void deletePastUnusedTimeslots(LocalDateTime currentDateTime);
 }

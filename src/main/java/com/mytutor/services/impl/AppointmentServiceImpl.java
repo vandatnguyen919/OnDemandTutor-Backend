@@ -174,6 +174,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         for (Appointment overlappingAppointment : overlappingAppointments) {
             overlappingAppointment.setStatus(AppointmentStatus.FAILED);
+            timeslotRepository.deleteAll(overlappingAppointment.getTimeslots());
             appointmentRepository.save(overlappingAppointment);
         }
     }

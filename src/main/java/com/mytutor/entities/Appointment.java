@@ -53,5 +53,7 @@ public class Appointment {
     @OneToMany(mappedBy = "appointment")
     List<Payment> payments = new ArrayList<>();
 
+
+
 }
 
