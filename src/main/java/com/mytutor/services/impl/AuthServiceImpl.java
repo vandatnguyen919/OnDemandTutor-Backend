@@ -15,8 +15,11 @@ import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
 
+import java.net.URI;
 import java.util.Date;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +36,8 @@ import org.springframework.stereotype.Service;
 import com.mytutor.constants.RoleName;
 import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Collections;
 import java.util.Map;
@@ -67,6 +72,8 @@ import java.util.Map;
 
     @Autowired
     private OtpService otpService;
+
+    private static final String URL_CLIENT = "http://localhost:5173";
 
 
 //    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
@@ -158,7 +165,6 @@ import java.util.Map;
         }
         String email = (String) userOAuth.get("email");
         String fullName = (String) userOAuth.get("name");
-        boolean emailVerified = (boolean) userOAuth.get("email_verified");
         String avatar = (String) userOAuth.get("picture");
         // Check user has already logged in before or new user
         Account account = accountRepository.findByEmailAddress(email);
@@ -181,15 +187,34 @@ import java.util.Map;
             account.setStatus(AccountStatus.ACTIVE);
         }
 
+        if (account.getStatus().equals(AccountStatus.BANNED)) {
+            //Create uri with token for redirect
+            String url = URL_CLIENT + "/" + "?success=false&message=You%20are%20banned";
+            URI uri = URI.create(url);
+
+            return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
+        }
+
         // Generate JWT after authentication succeed
         UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
         String token = JwtProvider.generateToken(userDetails);
         long expirationTime = JwtProvider.JWT_EXPIRATION;
 
         // Response ACCESS TOKEN and EXPIRATION TIME
-        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
 
-        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
+        //Create uri with token for redirect
+        String url = URL_CLIENT + "/" + "?success=true&accessToken=" + token;
+        URI uri = URI.create(url);
+
+        // REMOVE JSESSIONID
+        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
+        Cookie cookie = new Cookie("JSESSIONID", "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
     }
 
 
