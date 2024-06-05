@@ -4,6 +4,7 @@
  */
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.DegreeType;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.CertificateDto;
@@ -18,10 +19,7 @@ import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -72,14 +70,20 @@ public class TutorServiceImpl implements TutorService {
                                                                     String tutorLevel,
                                                                     String sortBy,
                                                                     String keyword) {
+
+        // Parse string (Eg: "maths,physics,chemistry") into set of subject string name
         Set<String> subjectSet = subjects.equalsIgnoreCase("all") ? null
                 : Arrays.stream(subjects.split("[,\\s+]+")).map(s -> s.trim().toLowerCase()).collect(Collectors.toSet());
 
+        // Parse string (Eg: "associate,bachelor,master,doctoral") into set of Degree Type
         Set<DegreeType> tutorLevelSet = tutorLevel.equalsIgnoreCase("all") ? null
                 : Arrays.stream(tutorLevel.split("[,\\s+]+")).map(DegreeType::getDegreeType).collect(Collectors.toSet());
 
+        // Get active tutors only
+        List<AccountStatus> listOfStatus = List.of(AccountStatus.ACTIVE);
+
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Account> tutors = accountRepositoryCustom.findTutorsByFilters(subjectSet, priceMin, priceMax, tutorLevelSet, sortBy, keyword, pageable);
+        Page<Account> tutors = accountRepositoryCustom.findTutorsByFilters(subjectSet, priceMin, priceMax, tutorLevelSet, sortBy, keyword, listOfStatus, pageable);
         List<Account> listOfTutors = tutors.getContent();
 
         List<TutorInfoDto> content = listOfTutors.stream()

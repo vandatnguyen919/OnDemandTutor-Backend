@@ -1,5 +1,6 @@
 package com.mytutor.repositories.impl;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.DegreeType;
 import com.mytutor.constants.FeedbackType;
 import com.mytutor.constants.Role;
@@ -25,7 +26,14 @@ public class AccountRepositoryCustomImpl implements AccountRepositoryCustom {
     private EntityManager entityManager;
 
     @Override
-    public Page<Account> findTutorsByFilters(Set<String> subjectSet, double priceMin, double priceMax, Set<DegreeType> tutorLevelSet, String sortBy, String keyword, Pageable pageable) {
+    public Page<Account> findTutorsByFilters(Set<String> subjectSet,
+                                             double priceMin,
+                                             double priceMax,
+                                             Set<DegreeType> tutorLevelSet,
+                                             String sortBy,
+                                             String keyword,
+                                             List<AccountStatus> listOfStatus,
+                                             Pageable pageable) {
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Account> query = cb.createQuery(Account.class);
@@ -35,6 +43,7 @@ public class AccountRepositoryCustomImpl implements AccountRepositoryCustom {
 
         // Get all tutors
         predicates.add(account.get("role").in(Role.TUTOR));
+        predicates.add(account.get("status").in(listOfStatus));
 
         // Filter by subjects
         if (subjectSet != null && !subjectSet.isEmpty()) {
