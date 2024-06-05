@@ -6,6 +6,7 @@
 package com.mytutor.entities;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,14 +20,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Entity
@@ -38,43 +40,40 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
+
     private String fullName;
-    
+
     @Column(unique = true)
     private String email;
-    
+
     @Column
     private String password;
-    
+
     private Date dateOfBirth;
-    
+
     private Boolean gender; // male: false, female: true
-    
+
     private String address;
-    
+
     @Column(unique = true)
     private String phoneNumber;
-    
+
     private String avatarUrl;
-    
+
     private Date createdAt;
-    
+
     private String description;
-    
+
     @Enumerated(EnumType.STRING)
-    private AccountStatus status = AccountStatus.ACTIVE; // Default: active 
-    
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "Role_Account", 
-                joinColumns = @JoinColumn(name = "account_id"),
-                inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
+    private AccountStatus status = AccountStatus.ACTIVE; // Default: active
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "Tutor_Subject",
-               joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
-               inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
+            joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
     private Set<Subject> subjects = new HashSet<>();
 
 }

@@ -5,7 +5,7 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.DegreeType;
-import com.mytutor.constants.RoleName;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
@@ -63,7 +63,7 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Account> tutors = accountRepository.findAllAccountsByRole(RoleName.TUTOR.name(), pageable);
+        Page<Account> tutors = accountRepository.findByRole(Role.TUTOR, pageable);
         List<Account> listOfTutors = tutors.getContent();
 
         List<TutorInfoDto> content = listOfTutors.stream()

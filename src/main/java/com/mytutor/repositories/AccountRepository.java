@@ -4,8 +4,10 @@
  */
 package com.mytutor.repositories;
 
+import com.mytutor.constants.Role;
 import com.mytutor.entities.Account;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +32,5 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    @Query("SELECT a FROM Account a JOIN a.roles r WHERE r.roleName = :roleName")
-    Page<Account> findAllAccountsByRole(@Param("roleName") String roleName, Pageable pageable);
+    Page<Account> findByRole(Role role, Pageable pageable);
 }
