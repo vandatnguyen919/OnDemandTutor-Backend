@@ -7,19 +7,7 @@ package com.mytutor.entities;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.Role;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -71,9 +59,18 @@ public class Account {
     private Role role;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "Tutor_Subject",
+    @JoinTable(name = "tutor_subject",
             joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
     private Set<Subject> subjects = new HashSet<>();
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "tutor_detail_id")
+    private TutorDetail tutorDetail;
+
+    @OneToMany(mappedBy = "account")
+    private Set<Education> educations;
+
+    @OneToMany(mappedBy = "tutor")
+    private Set<Feedback> feedbacks;
 }

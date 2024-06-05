@@ -18,6 +18,7 @@ public enum Role {
     }
 
     public static Role getRole(String role) {
+        if (role == null) return null;
         if (role.equalsIgnoreCase(STUDENT.toString())) {
             return STUDENT;
         } else if (role.equalsIgnoreCase(TUTOR.toString())) {
