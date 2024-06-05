@@ -5,7 +5,6 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.DegreeType;
-import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
@@ -18,6 +17,8 @@ import com.mytutor.exceptions.EducationNotFoundException;
 import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Service
@@ -41,6 +41,9 @@ public class TutorServiceImpl implements TutorService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private AccountRepositoryCustom accountRepositoryCustom;
 
     @Autowired
     private EducationRepository educationRepository;
@@ -61,9 +64,22 @@ public class TutorServiceImpl implements TutorService {
     private TutorDetailRepository tutorDetailRepository;
 
     @Override
-    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo, int pageSize) {
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
+                                                                    int pageSize,
+                                                                    String subjects,
+                                                                    double priceMin,
+                                                                    double priceMax,
+                                                                    String tutorLevel,
+                                                                    String sortBy,
+                                                                    String keyword) {
+        Set<String> subjectSet = subjects.equalsIgnoreCase("all") ? null
+                : Arrays.stream(subjects.split("[,\\s+]+")).map(s -> s.trim().toLowerCase()).collect(Collectors.toSet());
+
+        Set<DegreeType> tutorLevelSet = tutorLevel.equalsIgnoreCase("all") ? null
+                : Arrays.stream(tutorLevel.split("[,\\s+]+")).map(DegreeType::getDegreeType).collect(Collectors.toSet());
+
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Account> tutors = accountRepository.findByRole(Role.TUTOR, pageable);
+        Page<Account> tutors = accountRepositoryCustom.findTutorsByFilters(subjectSet, priceMin, priceMax, tutorLevelSet, sortBy, keyword, pageable);
         List<Account> listOfTutors = tutors.getContent();
 
         List<TutorInfoDto> content = listOfTutors.stream()
@@ -279,7 +295,8 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
         TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("No tutor detail found!"));;
+                .orElseThrow(() -> new AccountNotFoundException("No tutor detail found!"));
+        ;
 
         String background = tutorDescriptionDto.getBackgroundDescription();
         if (background != null) {
