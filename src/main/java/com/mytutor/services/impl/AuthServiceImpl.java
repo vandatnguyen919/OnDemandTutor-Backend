@@ -7,11 +7,9 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Role;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.services.AuthService;
 
@@ -33,7 +31,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
-import com.mytutor.constants.RoleName;
+import com.mytutor.constants.Role;
 import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -51,9 +49,6 @@ import java.util.Map;
 
     @Autowired
     private AccountRepository accountRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -129,8 +124,7 @@ import java.util.Map;
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         account.setStatus(AccountStatus.UNVERIFIED);
-        Role role = getRole(RoleName.STUDENT);
-        account.setRoles(Collections.singleton(role));
+        account.setRole(Role.STUDENT);
         account.setCreatedAt(new Date());
 
         Account newAccount = accountRepository.save(account);
@@ -177,8 +171,7 @@ import java.util.Map;
             newAccount.setStatus(AccountStatus.ACTIVE);
             newAccount.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
             newAccount.setCreatedAt(new Date());
-            Role role = getRole(RoleName.STUDENT);
-            newAccount.setRoles(Collections.singleton(role));
+            newAccount.setRole(Role.STUDENT);
             account = accountRepository.save(newAccount);
         }
 
@@ -215,20 +208,6 @@ import java.util.Map;
         response.addCookie(cookie);
 
         return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
-    }
-
-
-    private Role getRole(RoleName roleName) {
-        // Get a role from the database
-        Role role = roleRepository.findByRoleName(roleName.name()).orElse(null);
-        // Create a new role if it is not in the database
-        if (role == null) {
-            role = new Role();
-            role.setRoleName(roleName.name());
-            roleRepository.save(role);
-            role = roleRepository.findByRoleName(roleName.name()).get();
-        }
-        return role;
     }
 
     @Override

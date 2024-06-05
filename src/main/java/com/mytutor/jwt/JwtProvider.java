@@ -43,7 +43,7 @@ public class JwtProvider {
         claims.put("id", account.getId());
         claims.put("email", account.getEmail());
         claims.put("fullName", account.getFullName());
-        claims.put("authorities", userDetails.getAuthorities());
+        claims.put("role", account.getRole());
 
         String token = Jwts.builder()
                 .subject(userDetails.getUsername())
