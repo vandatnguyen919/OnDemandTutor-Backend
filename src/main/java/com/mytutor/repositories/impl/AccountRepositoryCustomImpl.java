@@ -65,9 +65,10 @@ public class AccountRepositoryCustomImpl implements AccountRepositoryCustom {
 
         //Filter by keyword tutor's name or profile's description
         Predicate fullNamePredicate = cb.like(account.get("fullName"), "%" + keyword + "%");
-        Predicate backgroundDescriptionPredicate = cb.like(tutorDetailJoin.get("backgroundDescription"), "%" + keyword + "%");
-
-        predicates.add(cb.or(fullNamePredicate, backgroundDescriptionPredicate));
+//        Predicate backgroundDescriptionPredicate = cb.like(tutorDetailJoin.get("backgroundDescription"), "%" + keyword + "%");
+//
+//        predicates.add(cb.or(fullNamePredicate, backgroundDescriptionPredicate));
+        predicates.add(fullNamePredicate);
 
         //Join with Feedback to get the rating
         Join<Account, Feedback> feedbackJoin = account.join("feedbacks", JoinType.LEFT);
