@@ -149,7 +149,6 @@ public class TutorServiceImpl implements TutorService {
             Education education = modelMapper.map(educationDto, Education.class);
             education.setAccount(tutor);
             education.setVerified(false);
-            System.out.println(educationDto.getDegreeType().toString());
             education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
 
             educationRepository.save(education);
