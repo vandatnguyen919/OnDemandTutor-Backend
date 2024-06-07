@@ -132,8 +132,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     // tutor update appointment status
     @Override
     public ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status) {
-        // confirm -> appointmentStatus = CONFIRMED + timeslot isOccupied=true
-        // status of other appointment has one of the same timeslots: FAILED
+        // confirm -> appointmentStatus = CONFIRMED + timeslot isOccupied = true
+        // status of other appointments has one of the same timeslots: FAILED
         // reason for failed appointments on FE: tutor has another appointment on at least one of the timeslot you have booked.
                                         // you must contact with the tutor before booking
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -144,14 +144,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                     .body("This appointment is not belong to this tutor");
         }
 
-        if (status.toString().equalsIgnoreCase((AppointmentStatus.CONFIRMED).toString())) {
+        if (status.equalsIgnoreCase((AppointmentStatus.CONFIRMED).toString())) {
             appointment.setStatus(AppointmentStatus.CONFIRMED);
             for (Timeslot t : appointment.getTimeslots()) {
                 t.setOccupied(true);
             }
             updateOtherAppointment(appointment);
 
-        } else if (status.toString().equalsIgnoreCase((AppointmentStatus.FAILED).toString())) {
+        } else if (status.equalsIgnoreCase((AppointmentStatus.FAILED).toString())) {
             if (!appointment.getPayments().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("This appointment has been paid, cannot set it into FAILED status");
@@ -168,12 +168,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     private void updateOtherAppointment(Appointment appointment){
-
         List<Appointment> overlappingAppointments = appointmentRepository
                 .findAppointmentsWithOverlappingTimeslots(appointment.getTimeslots(), appointment.getId());
-
+        // reason for failed appointments on FE: tutor has another appointment on at least one of the timeslot you have booked.
+        // you must contact with the tutor before booking to avoid conflicting schedule
         for (Appointment overlappingAppointment : overlappingAppointments) {
             overlappingAppointment.setStatus(AppointmentStatus.FAILED);
+            timeslotRepository.deleteAll(overlappingAppointment.getTimeslots());
             appointmentRepository.save(overlappingAppointment);
         }
     }
