@@ -106,10 +106,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     // student create appointment
     @Override
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
-        if (!Objects.equals(studentId, appointmentDto.getStudentId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Cannot book for other student!");
-        }
+//        if (!Objects.equals(studentId, appointmentDto.getStudentId())) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body("Cannot book for other student!");
+//        }
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PROCESSING);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
