@@ -5,12 +5,16 @@
 package com.mytutor.security;
 
 import com.mytutor.jwt.JwtAuthenticationFilter;
+
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+
 import static org.springframework.security.config.Customizer.withDefaults;
+
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,7 +29,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Configuration
@@ -43,6 +46,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize
                         -> authorize
+                        .requestMatchers("/api/auth/callback/google/redirect").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/**",
@@ -56,13 +60,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html").permitAll()
-                                .requestMatchers("/oauth2/**").permitAll()
-                                .requestMatchers("/api/auth/login-with-google").authenticated()
-                                .anyRequest().permitAll()
-                        )
+                        .anyRequest().permitAll()
+                )
                 .oauth2Login(oauth2
                         -> oauth2
-                        .defaultSuccessUrl("/api/auth/login-with-google", true));
+                        .defaultSuccessUrl("/api/auth/callback/google/redirect", true));
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

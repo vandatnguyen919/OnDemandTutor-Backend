@@ -41,9 +41,12 @@ public class JwtProvider {
         
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", account.getId());
-        claims.put("email", account.getEmail());
         claims.put("fullName", account.getFullName());
-        claims.put("authorities", userDetails.getAuthorities());
+        claims.put("avatarUrl", account.getEmail());
+        claims.put("createdAt", account.getCreatedAt());
+        claims.put("description", account.getDescription());
+        claims.put("status", account.getStatus());
+        claims.put("role", account.getRole());
 
         String token = Jwts.builder()
                 .subject(userDetails.getUsername())

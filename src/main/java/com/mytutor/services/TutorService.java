@@ -17,7 +17,14 @@ import org.springframework.http.ResponseEntity;
  */
 public interface TutorService {
 
-    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo, int pageSize);
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
+                                                                    int pageSize,
+                                                                    String subjects,
+                                                                    double priceMin,
+                                                                    double priceMax,
+                                                                    String tutorLevel,
+                                                                    String sortBy,
+                                                                    String keyword);
 
     public ResponseEntity<TutorInfoDto> getTutorById(Integer id);
 

@@ -11,7 +11,9 @@ import com.mytutor.dto.RegisterDto;
 import com.mytutor.dto.ResetPasswordDto;
 import com.mytutor.services.AuthService;
 import com.mytutor.services.OtpService;
+
 import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @RestController
@@ -47,21 +48,17 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
         return authService.register(registerDto);
     }
-//
-//    @PostMapping("/login-with-google")
-//    public ResponseEntity<?> loginOAuthGoogle(@RequestBody IdTokenRequestDto idTokenRequestDto) {
-//        return authService.loginOAuthGoogle(idTokenRequestDto);
-//    }
-    @GetMapping("/login-with-google")
-    public ResponseEntity<?> loginSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
-        return authService.loginOAuthGoogle( oAuth2AuthenticationToken);
+
+    @GetMapping("/callback/google/redirect")
+    public ResponseEntity<?> loginWithGoogleSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+        return authService.loginOAuthGoogle(oAuth2AuthenticationToken);
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
         return authService.forgotPassword(forgotPasswordDto);
     }
-    
+
     @PutMapping("/reset-password")
     public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
         return authService.resetPassword(resetPasswordDto);

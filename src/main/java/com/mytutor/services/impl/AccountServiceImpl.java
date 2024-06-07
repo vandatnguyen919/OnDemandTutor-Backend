@@ -5,13 +5,12 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Role;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.RoleRepository;
 
 import com.mytutor.services.AccountService;
 
@@ -35,9 +34,6 @@ public class AccountServiceImpl implements AccountService {
     private AccountRepository accountRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -47,14 +43,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity<?> changeRole(Integer accountId, String roleName) {
-        Role role = roleRepository.findByRoleName(roleName).get();
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new AccountNotFoundException("Account not found"));
 
         // Set the role to the account
-        Set<Role> roles = new HashSet<>();
-        roles.add(role);
-        account.setRoles(roles);
+        account.setRole(Role.getRole(roleName));
         account.setStatus(AccountStatus.PROCESSING);
 
         accountRepository.save(account);
