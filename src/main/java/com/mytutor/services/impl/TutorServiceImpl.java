@@ -114,10 +114,14 @@ public class TutorServiceImpl implements TutorService {
         Account tutor = accountRepository.findById(tutorId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(tutorId).orElse(new TutorDetail());
-        TutorInfoDto dto = TutorInfoDto.mapToDto(tutor, tutorDetail);
+        TutorDetail td = tutorDetailRepository.findByAccountId(tutor.getId())
+                .orElse(new TutorDetail());
+        TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, td);
+        tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
+        tutorInfoDto.setEducations(educationRepository.findByAccountId(tutor.getId()).stream()
+                .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
 
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(tutorInfoDto);
     }
 
     @Override
