@@ -5,6 +5,7 @@
 package com.mytutor.dto;
 
 import com.mytutor.constants.FeedbackType;
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Feedback;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,12 +46,10 @@ public class FeedbackDto {
         feedbackDto.setTutorId(feedback.getTutor().getId());
         feedbackDto.setRating(feedback.getRating());
         feedbackDto.setContent(feedback.getContent());
+
         
-        // Create a SimpleDateFormat object with the desired format
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
-        feedbackDto.setCreatedAt(sdf.format(feedback.getCreatedAt()));
-        feedbackDto.setModifiedAt(sdf.format(feedback.getModifiedAt()));
+        feedbackDto.setCreatedAt(RegexConsts.sdf.format(feedback.getCreatedAt()));
+        feedbackDto.setModifiedAt(RegexConsts.sdf.format(feedback.getModifiedAt()));
         feedbackDto.setIsBanned(feedback.getIsBanned());
         feedbackDto.setType(feedback.getType());
         feedbackDto.setReplies(feedback.getReplies().stream().map(r -> ReplyDto.mapToDto(r)).collect(Collectors.toList()));

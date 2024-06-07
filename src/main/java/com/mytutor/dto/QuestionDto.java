@@ -5,6 +5,7 @@
 package com.mytutor.dto;
 
 import com.mytutor.constants.QuestionStatus;
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Question;
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -19,16 +20,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class QuestionDto {
 
     private int id;
 
     private String content;
 
-    private Date createdAt;
+    private String createdAt;
 
-    private Date modifiedAt;
+    private String modifiedAt;
 
     private String questionUrl;
 
@@ -40,14 +40,16 @@ public class QuestionDto {
         if (question == null) {
             return null;
         }
-        return QuestionDto.builder()
-                .id(question.getId())
-                .content(question.getContent())
-                .createdAt(question.getCreatedAt())
-                .modifiedAt(question.getModifiedAt())
-                .questionUrl(question.getQuestionUrl())
-                .status(question.getStatus())
-                .subjectName(subjectName)
-                .build();
+        QuestionDto questionDto = new QuestionDto();
+        questionDto.setId(question.getId());
+        questionDto.setContent(question.getContent());
+        questionDto.setCreatedAt(RegexConsts.sdf.format(question.getCreatedAt()));
+        questionDto.setModifiedAt(RegexConsts.sdf.format(question.getModifiedAt()));
+        questionDto.setQuestionUrl(question.getQuestionUrl());
+        questionDto.setStatus(question.getStatus());
+        questionDto.setSubjectName(subjectName);
+
+        return questionDto;
+
     }
 }

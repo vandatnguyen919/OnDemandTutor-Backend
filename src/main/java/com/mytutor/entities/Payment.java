@@ -20,7 +20,7 @@ import java.sql.Date;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Column
     private Double moneyAmount;

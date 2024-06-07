@@ -4,6 +4,7 @@
  */
 package com.mytutor.jwt;
 
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Account;
 import com.mytutor.repositories.AccountRepository;
 import io.jsonwebtoken.Claims;
@@ -41,9 +42,12 @@ public class JwtProvider {
         
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", account.getId());
-        claims.put("email", account.getEmail());
         claims.put("fullName", account.getFullName());
-        claims.put("authorities", userDetails.getAuthorities());
+        claims.put("avatarUrl", account.getAvatarUrl());
+        claims.put("createdAt", RegexConsts.sdf.format(account.getCreatedAt()));
+        claims.put("description", account.getDescription());
+        claims.put("status", account.getStatus());
+        claims.put("role", account.getRole());
 
         String token = Jwts.builder()
                 .subject(userDetails.getUsername())

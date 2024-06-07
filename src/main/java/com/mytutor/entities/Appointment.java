@@ -21,7 +21,7 @@ public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -47,8 +47,13 @@ public class Appointment {
             inverseJoinColumns = @JoinColumn(name = "timeslot_id", referencedColumnName = "id"))
     private List<Timeslot> timeslots = new ArrayList<>();
 
+    @Column(name = "tuition")
+    private Double tuition;
+
     @OneToMany(mappedBy = "appointment")
     List<Payment> payments = new ArrayList<>();
+
+    private String meetingLink;
 
 }
 
