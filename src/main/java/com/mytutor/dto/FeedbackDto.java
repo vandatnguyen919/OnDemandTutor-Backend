@@ -7,7 +7,6 @@ package com.mytutor.dto;
 import com.mytutor.constants.FeedbackType;
 import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Feedback;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,7 +45,6 @@ public class FeedbackDto {
         feedbackDto.setTutorId(feedback.getTutor().getId());
         feedbackDto.setRating(feedback.getRating());
         feedbackDto.setContent(feedback.getContent());
-
         
         feedbackDto.setCreatedAt(RegexConsts.sdf.format(feedback.getCreatedAt()));
         feedbackDto.setModifiedAt(RegexConsts.sdf.format(feedback.getModifiedAt()));
