@@ -3,7 +3,6 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.AppointmentDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.timeslot.ResponseTimeslotDto;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
 import com.mytutor.repositories.AppointmentRepository;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -145,9 +143,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("This appointment is not belong to this tutor");
         }
-        if (appointment.getStatus().equals(AppointmentStatus.CANCELED)) {
+        if (appointment.getStatus().equals(AppointmentStatus.CANCELED)
+                || appointment.getStatus().equals(AppointmentStatus.DONE)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Cannot modify status of a canceled appointment!");
+                    .body("Cannot modify status of a canceled or done appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {
@@ -156,10 +155,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         else if (status.equalsIgnoreCase((AppointmentStatus.CANCELED).toString())) {
-            if (appointment.getStatus().equals(AppointmentStatus.DONE)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Cannot canceled a done appointment!");
-            }
             appointment.setStatus(AppointmentStatus.CANCELED);
             // goi service hoan tien cho student...
         } else {
