@@ -21,7 +21,7 @@ public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -41,14 +41,16 @@ public class Appointment {
     @JoinColumn(name = "student_id")
     private Account student;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "Appointment_Timeslot",
-            joinColumns = @JoinColumn(name = "appointment_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "timeslot_id", referencedColumnName = "id"))
+    @OneToMany(mappedBy = "appointment")
     private List<Timeslot> timeslots = new ArrayList<>();
+
+    @Column(name = "tuition")
+    private Double tuition;
 
     @OneToMany(mappedBy = "appointment")
     List<Payment> payments = new ArrayList<>();
+
+    private String meetingLink;
 
 }
 
