@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -29,7 +30,7 @@ public class Payment {
     private String provider;
 
     @Column
-    private Date transactionTime;
+    private LocalDateTime transactionTime;
 
     @ManyToOne
     @JoinColumn(name="appointment_id")

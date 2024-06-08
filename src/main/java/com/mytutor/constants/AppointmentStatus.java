@@ -5,9 +5,10 @@ package com.mytutor.constants;
  * @author vothimaihoa
  */
 public enum AppointmentStatus {
-    PROCESSING,
-    CONFIRMED,
+    PENDING_PAYMENT,
+    FAILED,
+    PAID,
     CANCELED,
-    SUCCESS,
-    FAILED
+    REFUNDED,
+    DONE
 }
