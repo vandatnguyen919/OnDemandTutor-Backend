@@ -32,7 +32,7 @@ public class AppointmentController {
     @GetMapping("/tutors/{tutorId}")
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutor(
             @PathVariable Integer tutorId,
-            @RequestParam AppointmentStatus status,
+            @RequestParam(value = "status", defaultValue = "SUCCESS", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
         return appointmentService.getAppointmentsByTutorId(tutorId, status, pageNo, pageSize);
@@ -42,7 +42,7 @@ public class AppointmentController {
     @GetMapping("/students/{studentId}")
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudent(
             @PathVariable Integer studentId,
-            @RequestParam AppointmentStatus status,
+            @RequestParam(value = "status", defaultValue = "SUCCESS", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
         return appointmentService.getAppointmentsByStudentId(studentId, status, pageNo, pageSize);
@@ -57,8 +57,6 @@ public class AppointmentController {
         return appointmentService.createAppointment(studentId, appointment);
     }
 
-
-
     // tutor xac nhan appointment
     @PutMapping("{appointmentId}/tutors/{tutorId}")
     public ResponseEntity<?> updateAppointmentStatus(
@@ -68,5 +66,13 @@ public class AppointmentController {
     ) {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
+
+//    // he thong xoa cac slot sau khi student thanh toan
+//    @PutMapping("{appointmentId}")
+//    public ResponseEntity<?> updateTimeslotsOfAppointment(
+//            @PathVariable Integer appointmentId
+//    ) {
+//        return appointmentService.updateTimeslotsOfAppointment(appointmentId);
+//    }
 
 }
