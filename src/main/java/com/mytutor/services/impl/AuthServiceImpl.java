@@ -161,7 +161,7 @@ import java.util.Map;
         String fullName = (String) userOAuth.get("name");
         String avatar = (String) userOAuth.get("picture");
         // Check user has already logged in before or new user
-        Account account = accountRepository.findByEmailAddress(email);
+        Account account = accountRepository.findByEmail(email).orElse(null);
 
         if (account == null) {
             Account newAccount = new Account();
