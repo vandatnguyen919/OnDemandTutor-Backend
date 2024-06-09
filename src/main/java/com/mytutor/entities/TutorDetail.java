@@ -45,7 +45,7 @@ public class TutorDetail {
     private Integer percentage = 30;
 
     @OneToOne
-    @JoinColumn(name = "account_id") // Tên cột tham chiếu khóa ngoại trong bảng Tutor_Detail
+    @JoinColumn(name = "account_id")
     private Account account;
 
 }

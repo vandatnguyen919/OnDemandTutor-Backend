@@ -50,7 +50,7 @@ public class FeedbackDto {
         feedbackDto.setModifiedAt(RegexConsts.sdf.format(feedback.getModifiedAt()));
         feedbackDto.setIsBanned(feedback.getIsBanned());
         feedbackDto.setType(feedback.getType());
-        feedbackDto.setReplies(feedback.getReplies().stream().map(r -> ReplyDto.mapToDto(r)).collect(Collectors.toList()));
+        feedbackDto.setReplies(feedback.getReplies().stream().map(ReplyDto::mapToDto).collect(Collectors.toList()));
 
         return feedbackDto;
     }
