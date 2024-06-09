@@ -39,14 +39,16 @@ public class TutorController {
 
     @GetMapping("/{tutorId}/educations")
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(
-            @PathVariable Integer tutorId) {
-        return tutorService.getListOfEducationsByTutorId(tutorId);
+            @PathVariable Integer tutorId,
+            @RequestParam(value = "isVerified", defaultValue = "", required = false) String isVerified) {
+        return tutorService.getListOfEducationsByTutorId(tutorId, isVerified);
     }
 
     @GetMapping("/{tutorId}/certificates")
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(
-            @PathVariable Integer tutorId) {
-        return tutorService.getListOfCertificatesByTutorId(tutorId);
+            @PathVariable Integer tutorId,
+            @RequestParam(value = "isVerified", defaultValue = "", required = false) String isVerified) {
+        return tutorService.getListOfCertificatesByTutorId(tutorId, isVerified);
     }
 
     @PostMapping("/{tutorId}/educations")

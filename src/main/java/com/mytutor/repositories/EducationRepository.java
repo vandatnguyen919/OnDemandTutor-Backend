@@ -21,4 +21,7 @@ public interface EducationRepository extends JpaRepository<Education, Integer> {
 
     @Query("SELECT e FROM Education e WHERE e.account.id = :accountId ORDER BY e.degreeType DESC")
     List<Education> findByAccountId(@Param("accountId") Integer tutorId);
+
+    @Query("SELECT e FROM Education e WHERE e.account.id = :accountId AND e.isVerified = :isVerified ORDER BY e.degreeType DESC")
+    List<Education> findByAccountId(@Param("accountId") Integer tutorId, @Param("isVerified") boolean isVerified);
 }
