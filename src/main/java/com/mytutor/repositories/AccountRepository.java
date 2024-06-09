@@ -23,9 +23,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Integer> {
 
-    @Query("SELECT a FROM Account a WHERE a.email = :email")
-    Account findByEmailAddress(String email);
-
     Optional<Account> findByEmail(String email);
 
     boolean existsByEmail(String email);
