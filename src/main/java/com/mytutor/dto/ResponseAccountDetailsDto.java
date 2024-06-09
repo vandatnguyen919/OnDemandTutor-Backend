@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto;
 
+import com.mytutor.constants.Role;
 import com.mytutor.entities.Account;
 import java.util.Date;
 
@@ -30,6 +31,7 @@ public class ResponseAccountDetailsDto {
     private String email;
     private String fullName;
     private String phoneNumber;
+    private Role role;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
         if (account == null) {
@@ -45,6 +47,7 @@ public class ResponseAccountDetailsDto {
                 .email(account.getEmail())
                 .fullName(account.getFullName())
                 .phoneNumber(account.getPhoneNumber())
+                .role(account.getRole())
                 .build();
     }
 

@@ -11,6 +11,7 @@ import com.mytutor.exceptions.InvalidAppointmentStatusException;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.services.AppointmentService;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,18 +58,25 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
                                                                                   AppointmentStatus status,
                                                                                   Integer pageNo, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments = appointmentRepository.findAppointmentByTutorId(tutorId, status, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
+        return getPaginationDtoResponseEntity(tutorId, status, pageNo, pageSize);
     }
 
     @Override
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudentId(Integer studentId,
                                                                                     AppointmentStatus status,
                                                                                     Integer pageNo, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments = appointmentRepository.findAppointmentByStudentId(studentId, status, pageable);
+        return getPaginationDtoResponseEntity(studentId, status, pageNo, pageSize);
+    }
 
+    @NotNull
+    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Appointment> appointments;
+        if (status == null) {
+            appointments = appointmentRepository.findAppointmentByTutorId(accountId, pageable);
+        } else {
+            appointments = appointmentRepository.findAppointmentByTutorId(accountId, status, pageable);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
