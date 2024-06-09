@@ -8,6 +8,8 @@ import com.mytutor.constants.DegreeType;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Subject;
 import com.mytutor.entities.TutorDetail;
+
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -30,9 +32,9 @@ public class TutorInfoDto {
 
     private int id;
 
-    private Date dateOfBirth;
+    private String dateOfBirth;
 
-    private Boolean gender; // male: false, female: true
+    private String gender; // male: false, female: true
 
     private String address;
 
@@ -75,8 +77,8 @@ public class TutorInfoDto {
 
         return TutorInfoDto.builder()
                 .id(account.getId())
-                .dateOfBirth(account.getDateOfBirth())
-                .gender(account.getGender())
+                .dateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()))
+                .gender(account.getGender() ? "female" : "male")
                 .address(account.getAddress())
                 .avatarUrl(account.getAvatarUrl())
                 .email(account.getEmail())
@@ -87,6 +89,7 @@ public class TutorInfoDto {
                 .meetingLink(tutorDetail.getMeetingLink())
                 .videoIntroductionLink(tutorDetail.getVideoIntroductionLink())
                 .subjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()))
+                .educations(account.getEducations().stream().map(e -> new TutorEducation(e.getMajorName(), e.getSpecialization(), e.getDegreeType())).collect(Collectors.toList()))
                 .build();
     }
 }
