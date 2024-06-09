@@ -4,7 +4,6 @@
  */
 package com.mytutor.dto.tutor;
 
-import com.mytutor.constants.DegreeType;
 import lombok.Data;
 
 /**
