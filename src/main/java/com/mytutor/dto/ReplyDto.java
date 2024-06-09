@@ -21,22 +21,26 @@ import lombok.NoArgsConstructor;
 public class ReplyDto {
 
     private int id;
+    private int createdById;
+    private String createdBy;
+    private String avatarUrl;
     private String content;
     private String createdAt;
     private String modifiedAt;
 
-    private int createdBy;
     public static ReplyDto mapToDto(Reply reply) {
         if (reply == null) {
             return null;
         }
         ReplyDto replyDto = new ReplyDto();
         replyDto.setId(reply.getId());
+        replyDto.setCreatedById(reply.getCreatedBy().getId());
+        replyDto.setCreatedBy(reply.getCreatedBy().getEmail());
+        replyDto.setAvatarUrl(reply.getCreatedBy().getAvatarUrl());
         replyDto.setContent(reply.getContent());
         replyDto.setCreatedAt(RegexConsts.sdf.format(reply.getCreatedAt()));
         replyDto.setModifiedAt(RegexConsts.sdf.format(reply.getModifiedAt()));
-        replyDto.setCreatedBy(reply.getCreatedBy().getId());
-        
+
         return replyDto;
     }
 }
