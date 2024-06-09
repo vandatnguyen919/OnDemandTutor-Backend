@@ -118,7 +118,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getTimeslots().add(t);
             }
         }
-        // check coi timeslot co duoc doi occupied khong
         appointmentRepository.save(appointment);
 
         // response
@@ -147,9 +146,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-
-
-    // tutor update appointment status: DONE or CANCELED
+    // tutor update appointment status: DONE from PAID or CANCELED from PAID
     @Override
     public ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -158,9 +155,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         if(!Objects.equals(tutorId, appointment.getTutor().getId())) {
             throw new AppointmentNotFoundException("This appointment is not belong to this tutor");
         }
-        if (appointment.getStatus().equals(AppointmentStatus.CANCELED)
-                || appointment.getStatus().equals(AppointmentStatus.DONE)) {
-            throw new InvalidAppointmentStatusException("Cannot modify status of a canceled or done appointment!");
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidAppointmentStatusException("Tutor can only update paid appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {

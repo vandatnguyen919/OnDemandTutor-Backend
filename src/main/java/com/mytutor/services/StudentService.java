@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
  */
 public interface StudentService {
     
-    ResponseEntity<?> getAllQuestion(int pageNo, int pageSize, String type);
+    ResponseEntity<?> getAllQuestion(int pageNo, int pageSize, String type, String subjects, String content);
 
     ResponseEntity<?> addQuestion(Integer studentId, QuestionDto questionDto);
     
