@@ -34,6 +34,8 @@ public class QuestionDto {
     
     private String subjectName;
 
+    private ResponseAccountDetailsDto account;
+
     public static QuestionDto mapToDto(Question question, String subjectName) {
         if (question == null) {
             return null;
@@ -46,6 +48,7 @@ public class QuestionDto {
         questionDto.setQuestionUrl(question.getQuestionUrl());
         questionDto.setStatus(question.getStatus());
         questionDto.setSubjectName(subjectName);
+        questionDto.setAccount(ResponseAccountDetailsDto.mapToDto(question.getAccount()));
 
         return questionDto;
 
