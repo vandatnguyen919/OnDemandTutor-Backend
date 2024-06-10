@@ -7,9 +7,7 @@ package com.mytutor.dto;
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Question;
-import java.util.Date;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

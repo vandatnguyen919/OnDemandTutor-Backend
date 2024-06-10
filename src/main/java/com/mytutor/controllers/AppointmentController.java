@@ -3,13 +3,10 @@ package com.mytutor.controllers;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.AppointmentDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.entities.Appointment;
 import com.mytutor.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  *
@@ -67,6 +64,7 @@ public class AppointmentController {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
 
+
 //    // he thong xoa cac slot sau khi student thanh toan
 //    @PutMapping("{appointmentId}")
 //    public ResponseEntity<?> updateTimeslotsOfAppointment(
@@ -74,5 +72,6 @@ public class AppointmentController {
 //    ) {
 //        return appointmentService.updateTimeslotsOfAppointment(appointmentId);
 //    }
+
 
 }
