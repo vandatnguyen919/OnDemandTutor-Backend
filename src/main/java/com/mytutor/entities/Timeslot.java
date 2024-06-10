@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  *
@@ -29,10 +30,10 @@ public class Timeslot {
     private Account account;
 
     @Column(name="start_time")
-    private Time startTime;
+    private LocalTime startTime;
 
     @Column(name="end_time")
-    private Time endTime;
+    private LocalTime endTime;
 
     @Column(name="day_of_week")
     private Integer dayOfWeek;
