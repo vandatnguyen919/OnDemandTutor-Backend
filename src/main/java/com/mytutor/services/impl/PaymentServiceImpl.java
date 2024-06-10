@@ -3,7 +3,6 @@ package com.mytutor.services.impl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
-import com.mytutor.dto.payment.RequestPaymentDto;
 import com.mytutor.dto.payment.ResponsePaymentDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
@@ -40,13 +39,13 @@ public class PaymentServiceImpl implements PaymentService {
     private AppointmentRepository appointmentRepository;
 
     @Override
-    public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, RequestPaymentDto requestPaymentDto) {
+    public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Appointment appointment = appointmentRepository.findById(requestPaymentDto.getAppointmentId()).orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
+        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
 
         int tutorId = appointment.getTutor().getId();
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
