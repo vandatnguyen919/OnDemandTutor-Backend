@@ -1,6 +1,5 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.payment.RequestPaymentDto;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +20,9 @@ public class PaymentController {
     public ResponseEntity<?> createPayment(
             Principal principal,
             HttpServletRequest req,
-            @RequestBody RequestPaymentDto requestPaymentDto
+            @RequestParam Integer appointmentId
     ) {
-        return paymentService.createPayment(principal, req, requestPaymentDto);
+        return paymentService.createPayment(principal, req, appointmentId);
     }
 
     @GetMapping("/check-payment/vnpay")
