@@ -131,12 +131,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // is called after receiving a payment status from payment system
     @Override
-    public ResponseEntity<?> updatePaidAppointment(AppointmentDto appointmentDto) {
-        Appointment appointment = appointmentRepository.findById(appointmentDto.getId())
+    public ResponseEntity<?> updatePaidAppointment(Integer appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
         appointment.setStatus(AppointmentStatus.PAID);
-        for (Integer i : appointmentDto.getTimeslotIds()) {
-            Timeslot t = timeslotRepository.findById(i).get();
+        for (Timeslot t : appointment.getTimeslots()) {
             t.setAppointment(appointment);
         }
         appointmentRepository.save(appointment);
