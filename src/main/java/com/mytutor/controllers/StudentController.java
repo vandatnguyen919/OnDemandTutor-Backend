@@ -36,12 +36,15 @@ public class StudentController {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+
     @GetMapping("/questions")
     public ResponseEntity<?> getAllQuestions(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestParam(value = "type", defaultValue = "all", required = false) String type) {
-        return studentService.getAllQuestion(pageNo, pageSize, type);
+            @RequestParam(value = "type", defaultValue = "all", required = false) String type,
+            @RequestParam(value = "subjects", defaultValue = "all", required = false) String subjects,
+            @RequestParam(value = "questionContent", defaultValue = "", required = false) String questionContent) {
+        return studentService.getAllQuestion(pageNo, pageSize, type, subjects, questionContent);
     }
 
     @PostMapping("/students/{studentId}/questions")
