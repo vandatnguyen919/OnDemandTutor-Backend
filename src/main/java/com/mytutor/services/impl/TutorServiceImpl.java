@@ -116,10 +116,9 @@ public class TutorServiceImpl implements TutorService {
 
         TutorDetail td = tutorDetailRepository.findByAccountId(tutor.getId())
                 .orElse(new TutorDetail());
+        System.out.println(td.getAccount().getEmail());
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, td);
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
-        tutorInfoDto.setEducations(educationRepository.findByAccountId(tutor.getId()).stream()
-                .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
 
         return ResponseEntity.status(HttpStatus.OK).body(tutorInfoDto);
     }
