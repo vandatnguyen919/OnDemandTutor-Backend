@@ -80,6 +80,14 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public ResponseEntity<?> getQuestionById(Integer questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new QuestionNotFoundException("Question not found"));
+        QuestionDto questionDto = QuestionDto.mapToDto(question, question.getSubject().getSubjectName());
+        return ResponseEntity.status(HttpStatus.OK).body(questionDto);
+    }
+
+    @Override
     public ResponseEntity<?> addQuestion(Integer studentId, QuestionDto questionDto) {
 
         Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
@@ -87,6 +95,7 @@ public class StudentServiceImpl implements StudentService {
         Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
         Question question = new Question();
+        question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
         question.setQuestionUrl(questionDto.getQuestionUrl());
         question.setCreatedAt(new Date());
@@ -105,15 +114,20 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public ResponseEntity<?> updateQuestion(Integer studentId, Integer questionId, QuestionDto questionDto) {
 
-        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account student = accountRepository.findById(studentId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
+        Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName())
+                .orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
-        Question question = questionRepository.findById(questionId).orElseThrow(() -> new QuestionNotFoundException("Question not found"));
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new QuestionNotFoundException("Question not found"));
 
         if (student.getId() != question.getAccount().getId()) {
             throw new QuestionNotFoundException("Question does not belong to this account");
         }
+
+        question.setTitle(questionDto.getTitle());
 
         question.setContent(questionDto.getContent());
         question.setQuestionUrl(questionDto.getQuestionUrl());

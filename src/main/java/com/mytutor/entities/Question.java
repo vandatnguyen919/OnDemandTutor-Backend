@@ -30,6 +30,8 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    private String title;
+
     private String content;
 
     private Date createdAt;
