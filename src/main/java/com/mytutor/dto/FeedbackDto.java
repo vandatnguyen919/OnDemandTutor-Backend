@@ -24,7 +24,9 @@ import lombok.NoArgsConstructor;
 public class FeedbackDto {
 
     private int id;
-    private int createdBy;
+    private int createdById;
+    private String createdBy;
+    private String avatarUrl;
     private int tutorId;
     private Integer rating;
     private String content;
@@ -41,7 +43,9 @@ public class FeedbackDto {
 
         FeedbackDto feedbackDto = new FeedbackDto();
         feedbackDto.setId(feedback.getId());
-        feedbackDto.setCreatedBy(feedback.getCreatedBy().getId());
+        feedbackDto.setCreatedById(feedback.getCreatedBy().getId());
+        feedbackDto.setCreatedBy(feedback.getCreatedBy().getEmail());
+        feedbackDto.setAvatarUrl(feedback.getCreatedBy().getAvatarUrl());
         feedbackDto.setTutorId(feedback.getTutor().getId());
         feedbackDto.setRating(feedback.getRating());
         feedbackDto.setContent(feedback.getContent());
