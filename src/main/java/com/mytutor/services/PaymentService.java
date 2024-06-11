@@ -1,6 +1,5 @@
 package com.mytutor.services;
 
-import com.mytutor.dto.payment.RequestPaymentDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 
@@ -11,7 +10,7 @@ public interface PaymentService {
 
     ResponseEntity<?> createPayment(Principal principal,
                                     HttpServletRequest req,
-                                    RequestPaymentDto requestPaymentDto);
+                                    Integer appointmentId);
 
     ResponseEntity<?> checkVNPayPayment(
             HttpServletRequest req,

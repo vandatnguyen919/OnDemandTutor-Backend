@@ -22,6 +22,8 @@ public class QuestionDto {
 
     private int id;
 
+    private String title;
+
     private String content;
 
     private String createdAt;
@@ -42,6 +44,7 @@ public class QuestionDto {
         }
         QuestionDto questionDto = new QuestionDto();
         questionDto.setId(question.getId());
+        questionDto.setTitle(question.getTitle());
         questionDto.setContent(question.getContent());
         questionDto.setCreatedAt(RegexConsts.sdf.format(question.getCreatedAt()));
         questionDto.setModifiedAt(RegexConsts.sdf.format(question.getModifiedAt()));
