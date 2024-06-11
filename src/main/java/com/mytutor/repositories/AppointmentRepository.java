@@ -20,6 +20,14 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
     @Query("SELECT a FROM Appointment a " +
+            " WHERE a.tutor.id = :tutorId ")
+    Page<Appointment> findAppointmentByTutorId(Integer tutorId, Pageable pageable);
+
+    @Query("SELECT a FROM Appointment a " +
+            " WHERE a.student.id = :studentId ")
+    Page<Appointment> findAppointmentByStudentId(Integer studentId, Pageable pageable);
+
+    @Query("SELECT a FROM Appointment a " +
             " WHERE a.tutor.id = :tutorId " +
             " AND a.status = :status")
     Page<Appointment> findAppointmentByTutorId(Integer tutorId, AppointmentStatus status, Pageable pageable);

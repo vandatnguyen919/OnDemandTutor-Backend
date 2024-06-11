@@ -4,10 +4,11 @@ package com.mytutor.exceptions;
  *
  * @author vothimaihoa
  */
-public class AppointmentNotFoundException extends RuntimeException{
+public class ConflictTimeslotException extends RuntimeException{
+
     private static final long serialVersionUID = 1L;
 
-    public AppointmentNotFoundException(String message) {
+    public ConflictTimeslotException(String message) {
         super(message);
     }
 }

@@ -7,9 +7,7 @@ package com.mytutor.dto;
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Question;
-import java.util.Date;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -24,6 +22,8 @@ public class QuestionDto {
 
     private int id;
 
+    private String title;
+
     private String content;
 
     private String createdAt;
@@ -36,18 +36,22 @@ public class QuestionDto {
     
     private String subjectName;
 
+    private ResponseAccountDetailsDto account;
+
     public static QuestionDto mapToDto(Question question, String subjectName) {
         if (question == null) {
             return null;
         }
         QuestionDto questionDto = new QuestionDto();
         questionDto.setId(question.getId());
+        questionDto.setTitle(question.getTitle());
         questionDto.setContent(question.getContent());
         questionDto.setCreatedAt(RegexConsts.sdf.format(question.getCreatedAt()));
         questionDto.setModifiedAt(RegexConsts.sdf.format(question.getModifiedAt()));
         questionDto.setQuestionUrl(question.getQuestionUrl());
         questionDto.setStatus(question.getStatus());
         questionDto.setSubjectName(subjectName);
+        questionDto.setAccount(ResponseAccountDetailsDto.mapToDto(question.getAccount()));
 
         return questionDto;
 

@@ -3,13 +3,10 @@ package com.mytutor.controllers;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.AppointmentDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.entities.Appointment;
 import com.mytutor.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  *
@@ -32,7 +29,7 @@ public class AppointmentController {
     @GetMapping("/tutors/{tutorId}")
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutor(
             @PathVariable Integer tutorId,
-            @RequestParam(value = "status", defaultValue = "SUCCESS", required = false) AppointmentStatus status,
+            @RequestParam(value = "status", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
         return appointmentService.getAppointmentsByTutorId(tutorId, status, pageNo, pageSize);
@@ -42,7 +39,7 @@ public class AppointmentController {
     @GetMapping("/students/{studentId}")
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudent(
             @PathVariable Integer studentId,
-            @RequestParam(value = "status", defaultValue = "SUCCESS", required = false) AppointmentStatus status,
+            @RequestParam(value = "status", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
         return appointmentService.getAppointmentsByStudentId(studentId, status, pageNo, pageSize);
@@ -67,6 +64,7 @@ public class AppointmentController {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
 
+
 //    // he thong xoa cac slot sau khi student thanh toan
 //    @PutMapping("{appointmentId}")
 //    public ResponseEntity<?> updateTimeslotsOfAppointment(
@@ -74,5 +72,6 @@ public class AppointmentController {
 //    ) {
 //        return appointmentService.updateTimeslotsOfAppointment(appointmentId);
 //    }
+
 
 }

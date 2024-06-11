@@ -3,20 +3,27 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.AppointmentDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.timeslot.ResponseTimeslotDto;
+import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
+import com.mytutor.exceptions.AccountNotFoundException;
+import com.mytutor.exceptions.AppointmentNotFoundException;
+import com.mytutor.exceptions.ConflictTimeslotException;
+import com.mytutor.exceptions.InvalidAppointmentStatusException;
+import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.services.AppointmentService;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,11 +47,13 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Override
     public ResponseEntity<AppointmentDto> getAppointmentById(Integer appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
         AppointmentDto dto = modelMapper.map(appointment, AppointmentDto.class);
         for (Timeslot t : appointment.getTimeslots()) {
             dto.getTimeslotIds().add(t.getId());
@@ -53,16 +62,28 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutorId(Integer tutorId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments = appointmentRepository.findAppointmentByTutorId(tutorId, status, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
+    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
+                                                                                  AppointmentStatus status,
+                                                                                  Integer pageNo, Integer pageSize) {
+        return getPaginationDtoResponseEntity(tutorId, status, pageNo, pageSize);
     }
 
     @Override
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudentId(Integer studentId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudentId(Integer studentId,
+                                                                                    AppointmentStatus status,
+                                                                                    Integer pageNo, Integer pageSize) {
+        return getPaginationDtoResponseEntity(studentId, status, pageNo, pageSize);
+    }
+
+    @NotNull
+    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments = appointmentRepository.findAppointmentByStudentId(studentId, status, pageable);
+        Page<Appointment> appointments;
+        if (status == null) {
+            appointments = appointmentRepository.findAppointmentByTutorId(accountId, pageable);
+        } else {
+            appointments = appointmentRepository.findAppointmentByTutorId(accountId, status, pageable);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
@@ -97,14 +118,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         for (Integer i : appointmentDto.getTimeslotIds()) {
             Timeslot t = timeslotRepository.findById(i).get();
             if (t.isOccupied()) {
-                throw new RuntimeException("Cannot book because some timeslots are occupied!");
+                throw new ConflictTimeslotException("Cannot book because some timeslots are occupied!");
             }
             else {
                 t.setOccupied(true);
                 appointment.getTimeslots().add(t);
             }
         }
-        // check coi timeslot co duoc doi occupied khong
+        Account tutor = accountRepository.findById(appointmentDto.getTutorId()).orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+        appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour() * calculateTotalHours(appointment.getTimeslots()));
         appointmentRepository.save(appointment);
 
         // response
@@ -115,14 +137,22 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    private double calculateTotalHours(List<Timeslot> timeslots) {
+        double totalHours = 0;
+        for (Timeslot t : timeslots) {
+            Duration duration = Duration.between((Temporal) t.getStartTime(), (Temporal) t.getEndTime());
+            totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
+        }
+        return totalHours;
+    }
+
     // is called after receiving a payment status from payment system
     @Override
-    public ResponseEntity<?> updatePaidAppointment(AppointmentDto appointmentDto) {
-        Appointment appointment = appointmentRepository.findById(appointmentDto.getId())
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+    public ResponseEntity<?> updatePaidAppointment(Integer appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
         appointment.setStatus(AppointmentStatus.PAID);
-        for (Integer i : appointmentDto.getTimeslotIds()) {
-            Timeslot t = timeslotRepository.findById(i).get();
+        for (Timeslot t : appointment.getTimeslots()) {
             t.setAppointment(appointment);
         }
         appointmentRepository.save(appointment);
@@ -133,21 +163,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-
-
-    // tutor update appointment status: DONE or CANCELED
+    // tutor update appointment status: DONE from PAID or CANCELED from PAID
     @Override
     public ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
 
         if(!Objects.equals(tutorId, appointment.getTutor().getId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("This appointment is not belong to this tutor");
+            throw new AppointmentNotFoundException("This appointment is not belong to this tutor");
         }
-        if (appointment.getStatus().equals(AppointmentStatus.CANCELED)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Cannot modify status of a canceled appointment!");
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidAppointmentStatusException("Tutor can only update paid appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {
@@ -156,15 +182,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         else if (status.equalsIgnoreCase((AppointmentStatus.CANCELED).toString())) {
-            if (appointment.getStatus().equals(AppointmentStatus.DONE)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Cannot canceled a done appointment!");
-            }
             appointment.setStatus(AppointmentStatus.CANCELED);
             // goi service hoan tien cho student...
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("This status is invalid!");
+            throw new InvalidAppointmentStatusException("This status is invalid!");
         }
 
         appointmentRepository.save(appointment);
