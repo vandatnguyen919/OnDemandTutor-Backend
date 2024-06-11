@@ -125,8 +125,12 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getTimeslots().add(t);
             }
         }
-        Account tutor = accountRepository.findById(appointmentDto.getTutorId()).orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
-        appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour() * calculateTotalHours(appointment.getTimeslots()));
+        Account tutor = accountRepository.findById(appointmentDto.getTutorId())
+                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+
+        appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
+                * calculateTotalHours(appointment.getTimeslots()));
+
         appointmentRepository.save(appointment);
 
         // response
@@ -155,6 +159,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         for (Timeslot t : appointment.getTimeslots()) {
             t.setAppointment(appointment);
         }
+        timeslotRepository.saveAll(appointment.getTimeslots());
         appointmentRepository.save(appointment);
         AppointmentDto dto = modelMapper.map(appointment, AppointmentDto.class);
         for (Timeslot t : appointment.getTimeslots()) {
@@ -195,5 +200,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // student update appointment status (canceled)
 
+    // sau khi hết 15p do vnpay đếm,
+    // mọi thứ trong hàm create appointment sẽ bị roll back về trạng thái trước khi create appointment
     // ...
 }
