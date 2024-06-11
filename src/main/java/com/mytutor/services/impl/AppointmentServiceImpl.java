@@ -3,11 +3,14 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.AppointmentDto;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
+import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.AppointmentNotFoundException;
 import com.mytutor.exceptions.ConflictTimeslotException;
 import com.mytutor.exceptions.InvalidAppointmentStatusException;
+import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.services.AppointmentService;
@@ -18,7 +21,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -42,6 +47,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Override
     public ResponseEntity<AppointmentDto> getAppointmentById(Integer appointmentId) {
@@ -118,7 +125,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getTimeslots().add(t);
             }
         }
-        // check coi timeslot co duoc doi occupied khong
+        Account tutor = accountRepository.findById(appointmentDto.getTutorId()).orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+        appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour() * calculateTotalHours(appointment.getTimeslots()));
         appointmentRepository.save(appointment);
 
         // response
@@ -127,6 +135,15 @@ public class AppointmentServiceImpl implements AppointmentService {
             dto.getTimeslotIds().add(t.getId());
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    private double calculateTotalHours(List<Timeslot> timeslots) {
+        double totalHours = 0;
+        for (Timeslot t : timeslots) {
+            Duration duration = Duration.between((Temporal) t.getStartTime(), (Temporal) t.getEndTime());
+            totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
+        }
+        return totalHours;
     }
 
     // is called after receiving a payment status from payment system
@@ -146,9 +163,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-
-
-    // tutor update appointment status: DONE or CANCELED
+    // tutor update appointment status: DONE from PAID or CANCELED from PAID
     @Override
     public ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
@@ -157,9 +172,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         if(!Objects.equals(tutorId, appointment.getTutor().getId())) {
             throw new AppointmentNotFoundException("This appointment is not belong to this tutor");
         }
-        if (appointment.getStatus().equals(AppointmentStatus.CANCELED)
-                || appointment.getStatus().equals(AppointmentStatus.DONE)) {
-            throw new InvalidAppointmentStatusException("Cannot modify status of a canceled or done appointment!");
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidAppointmentStatusException("Tutor can only update paid appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {
