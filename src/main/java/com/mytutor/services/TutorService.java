@@ -28,9 +28,9 @@ public interface TutorService {
 
     public ResponseEntity<TutorInfoDto> getTutorById(Integer id);
 
-    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
+    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
 
-    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId);
+    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified);
 
     public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos);
 

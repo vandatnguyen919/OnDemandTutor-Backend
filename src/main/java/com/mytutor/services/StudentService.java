@@ -16,6 +16,8 @@ public interface StudentService {
     
     ResponseEntity<?> getAllQuestion(int pageNo, int pageSize, String type, String subjects, String content);
 
+    ResponseEntity<?> getQuestionById(Integer questionId);
+
     ResponseEntity<?> addQuestion(Integer studentId, QuestionDto questionDto);
     
     ResponseEntity<?> updateQuestion(Integer studentId, Integer questionId, QuestionDto questionDto);
