@@ -64,13 +64,4 @@ public class AppointmentController {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
 
-
-    // he thong xoa cac slot sau khi student thanh toan
-    @PutMapping("{appointmentId}")
-    public ResponseEntity<?> updatePaidAppointment(
-            @PathVariable Integer appointmentId
-    ) {
-        return appointmentService.updatePaidAppointment(appointmentId);
-    }
-
 }
