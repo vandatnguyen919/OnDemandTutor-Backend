@@ -16,7 +16,7 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    @PostMapping("/create-payment")
+    @GetMapping("/create-payment")
     public ResponseEntity<?> createPayment(
             Principal principal,
             HttpServletRequest req,
