@@ -32,6 +32,12 @@ public class Payment {
     @Column
     private LocalDateTime transactionTime;
 
+    @Column
+    private String transactionDate;
+
+    @Column
+    private String transactionId;
+
     @ManyToOne
     @JoinColumn(name="appointment_id")
     private Appointment appointment;

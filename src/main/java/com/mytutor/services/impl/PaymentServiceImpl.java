@@ -3,13 +3,16 @@ package com.mytutor.services.impl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.payment.ResponsePaymentDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
+import com.mytutor.entities.Payment;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.AppointmentNotFoundException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
+import com.mytutor.repositories.PaymentRepository;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -37,6 +41,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
@@ -56,7 +63,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public ResponseEntity<?> checkVNPayPayment(HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
+    public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
         String vnp_Command = "querydr";
@@ -124,7 +131,31 @@ public class PaymentServiceImpl implements PaymentService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
         }
 
-        return ResponseEntity.status(responseCode).body("Payment succeed");
+//        return ResponseEntity.status(responseCode).body("Payment succeed");
+        return processToDatabase(principal, vnp_TxnRef, vnp_TransDate);
+    }
+
+    public ResponseEntity<?> processToDatabase(Principal principal, String transactionId, String transactionDate) {
+        Account payer = accountRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        Appointment appointment = appointmentRepository
+                .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+        System.out.println(appointment.getDescription());
+        appointment.setStatus(AppointmentStatus.PAID);
+        Payment payment = new Payment();
+        payment.setMoneyAmount(appointment.getTuition());
+        payment.setTransactionTime(LocalDateTime.now());
+        payment.setTransactionId(transactionId);
+        payment.setTransactionDate(transactionDate);
+        payment.setAppointment(appointment);
+        payment.setProvider("VNPay");
+
+        appointment.getPayments().add(payment);
+        paymentRepository.save(payment);
+        appointmentRepository.save(appointment);
+
+        return ResponseEntity.status(HttpStatus.OK).body(payment);
     }
 
     private ResponseEntity<?> createPaymentWithVNPay(long amountParam, HttpServletRequest req) {
