@@ -6,14 +6,12 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
-import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.exceptions.AppointmentNotFoundException;
-import com.mytutor.exceptions.ConflictTimeslotException;
-import com.mytutor.exceptions.InvalidAppointmentStatusException;
+import com.mytutor.exceptions.*;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.services.AppointmentService;
+import com.mytutor.services.PaymentService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
@@ -48,6 +47,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     ModelMapper modelMapper;
+
     @Autowired
     private AccountRepository accountRepository;
 
@@ -184,9 +184,22 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.ok("Appointment status updated successfully");
     }
 
+    // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null
+    @Override
+    public void rollbackAppointment(Appointment appointment) {
+        for (Timeslot t : appointment.getTimeslots()) {
+            t.setOccupied(false);
+            t.setAppointment(null);
+        }
+        appointmentRepository.delete(appointment);
+    }
+
     // student update appointment status (canceled)
 
     // sau khi hết 15p do vnpay đếm,
     // mọi thứ trong hàm create appointment sẽ bị roll back về trạng thái trước khi create appointment
     // ...
+
+
+
 }

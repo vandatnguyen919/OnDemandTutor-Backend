@@ -13,12 +13,14 @@ import com.mytutor.exceptions.AppointmentNotFoundException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.PaymentRepository;
+import com.mytutor.services.AppointmentService;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -45,6 +47,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
 
+    @Autowired
+    private AppointmentService appointmentService;
+
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
@@ -63,6 +68,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
@@ -121,26 +127,30 @@ public class PaymentServiceImpl implements PaymentService {
         JsonObject jsonObject = JsonParser.parseString(String.valueOf(response)).getAsJsonObject();
         String resCode = jsonObject.get("vnp_ResponseCode").getAsString();
         String resMessage = jsonObject.get("vnp_Message").getAsString();
-
-        if (!"00".equals(resCode)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
-        }
-
         String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
-        if (!"00".equals(resTranStatus)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
-        }
 
-//        return ResponseEntity.status(responseCode).body("Payment succeed");
-        return processToDatabase(principal, vnp_TxnRef, vnp_TransDate);
-    }
-
-    public ResponseEntity<?> processToDatabase(Principal principal, String transactionId, String transactionDate) {
+        // get current payment
         Account payer = accountRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         Appointment appointment = appointmentRepository
                 .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+
+        if (!"00".equals(resCode)) {
+            appointmentService.rollbackAppointment(appointment);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
+        }
+
+        if (!"00".equals(resTranStatus)) {
+            appointmentService.rollbackAppointment(appointment);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
+        }
+//        return ResponseEntity.status(responseCode).body("Payment succeed");
+        return processToDatabase(appointment, vnp_TxnRef, vnp_TransDate);
+    }
+
+    public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
+
         System.out.println(appointment.getDescription());
         appointment.setStatus(AppointmentStatus.PAID);
         Payment payment = new Payment();

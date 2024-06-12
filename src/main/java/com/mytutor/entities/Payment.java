@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
  *
  * @author vothimaihoa
  */
-
 @Entity
 @Data
 @NoArgsConstructor

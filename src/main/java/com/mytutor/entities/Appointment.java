@@ -41,7 +41,7 @@ public class Appointment {
     @JoinColumn(name = "student_id")
     private Account student;
 
-    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "appointment")
     private List<Timeslot> timeslots = new ArrayList<>();
 
     @Column(name = "tuition")

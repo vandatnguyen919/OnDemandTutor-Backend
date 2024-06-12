@@ -126,4 +126,15 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(PaymentFailedException.class)
+    public ResponseEntity<ErrorObject> handlePaymentException(PaymentFailedException ex) {
+        ErrorObject errorObject = new ErrorObject();
+
+        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setTimestamp(new Date());
+
+        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
+    }
 }
