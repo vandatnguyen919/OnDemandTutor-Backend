@@ -24,6 +24,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,7 +45,8 @@ public class SecurityConfig {
     private String jwtKey;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
@@ -66,8 +69,14 @@ public class SecurityConfig {
                                 "/swagger-ui.html").permitAll()
                         .anyRequest().permitAll()
                 )
-                .oauth2ResourceServer(oauth2
-                        -> oauth2.jwt(Customizer.withDefaults())) // using BearerTokenAuthenticationFilter to automatically extract token from request header. No need to manually create JwtAuthenticationFilter
+                .exceptionHandling(
+                        exceptions -> exceptions
+                                .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
+                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
+                .oauth2ResourceServer(oauth2 // using BearerTokenAuthenticationFilter to automatically extract token from request header. No need to manually create JwtAuthenticationFilter
+                        -> oauth2
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .oauth2Login(oauth2
                         -> oauth2
                         .defaultSuccessUrl("/api/auth/callback/google/redirect", true));
