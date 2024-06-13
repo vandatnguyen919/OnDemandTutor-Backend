@@ -4,10 +4,12 @@ package com.mytutor.exceptions;
  *
  * @author vothimaihoa
  */
-public class AppointmentNotFoundException extends RuntimeException{
+public class PaymentFailedException extends RuntimeException {
+
     private static final long serialVersionUID = 1L;
 
-    public AppointmentNotFoundException(String message) {
+    public PaymentFailedException(String message) {
         super(message);
     }
+
 }

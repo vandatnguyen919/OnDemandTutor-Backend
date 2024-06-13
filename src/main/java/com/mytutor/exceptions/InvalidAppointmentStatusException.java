@@ -4,10 +4,10 @@ package com.mytutor.exceptions;
  *
  * @author vothimaihoa
  */
-public class AppointmentNotFoundException extends RuntimeException{
+public class InvalidAppointmentStatusException extends RuntimeException{
     private static final long serialVersionUID = 1L;
 
-    public AppointmentNotFoundException(String message) {
+    public InvalidAppointmentStatusException(String message) {
         super(message);
     }
 }

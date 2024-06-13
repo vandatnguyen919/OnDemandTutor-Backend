@@ -8,9 +8,9 @@ import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
 import com.mytutor.entities.Account;
 import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.security.CustomUserDetailsService;
+import com.mytutor.security.SecurityUtil;
 import com.mytutor.services.AuthService;
 
 import java.net.URI;
@@ -24,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -33,11 +32,9 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.stereotype.Service;
 import com.mytutor.constants.Role;
 import com.mytutor.services.OtpService;
-import com.mytutor.utils.PasswordGenerator;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -54,7 +51,7 @@ import java.util.Map;
     private ModelMapper modelMapper;
 
     @Autowired
-    private JwtProvider JwtProvider;
+    private SecurityUtil securityUtil;
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
@@ -70,16 +67,6 @@ import java.util.Map;
 
     private static final String URL_CLIENT = "http://localhost:5173";
 
-
-//    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
-//        this.accountRepository = accountRepository;
-//        NetHttpTransport transport = new NetHttpTransport();
-//        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-//        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-//                .setAudience(Collections.singletonList(clientId))
-//                .build();
-//    }
-
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
         try {
@@ -92,12 +79,10 @@ import java.util.Map;
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // Generate JWT after authentication succeed
-            UserDetails userDetails = userDetailsService.loadUserByUsername(loginDto.getEmail());
-            String token = JwtProvider.generateToken(userDetails);
-            long expirationTime = JwtProvider.JWT_EXPIRATION;
+            String token = securityUtil.createToken(authentication);
 
             // Response ACCESS TOKEN and EXPIRATION TIME
-            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
 
             return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
         } catch (AuthenticationException e) {
@@ -129,13 +114,6 @@ import java.util.Map;
 
         Account newAccount = accountRepository.save(account);
 
-//        // Generate JWT after authentication succeed
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
-//        String token = JwtProvider.generateToken(userDetails);
-//        long expirationTime = JwtProvider.JWT_EXPIRATION;
-//
-//        // Response ACCESS TOKEN and EXPIRATION TIME
-//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
         otpService.sendOtp(newAccount.getEmail());
 
         AccountResponse accountResponse = new AccountResponse(newAccount.getEmail(), "REGISTRATION");
@@ -169,7 +147,6 @@ import java.util.Map;
             newAccount.setFullName(fullName);
             newAccount.setAvatarUrl(avatar);
             newAccount.setStatus(AccountStatus.ACTIVE);
-            newAccount.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
             newAccount.setCreatedAt(new Date());
             newAccount.setRole(Role.STUDENT);
             account = accountRepository.save(newAccount);
@@ -189,12 +166,7 @@ import java.util.Map;
         }
 
         // Generate JWT after authentication succeed
-        UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
-        String token = JwtProvider.generateToken(userDetails);
-        long expirationTime = JwtProvider.JWT_EXPIRATION;
-
-        // Response ACCESS TOKEN and EXPIRATION TIME
-//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+        String token = securityUtil.createToken(oAuth2AuthenticationToken);
 
         //Create uri with token for redirect
         String url = URL_CLIENT + "/" + "?success=true&accessToken=" + token;

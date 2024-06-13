@@ -3,20 +3,24 @@ package com.mytutor.services.impl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
-import com.mytutor.dto.payment.RequestPaymentDto;
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.payment.ResponsePaymentDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
+import com.mytutor.entities.Payment;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.AppointmentNotFoundException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
+import com.mytutor.repositories.PaymentRepository;
+import com.mytutor.services.AppointmentService;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -28,6 +32,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -39,14 +44,20 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private AppointmentService appointmentService;
+
     @Override
-    public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, RequestPaymentDto requestPaymentDto) {
+    public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Appointment appointment = appointmentRepository.findById(requestPaymentDto.getAppointmentId()).orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
+        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
 
         int tutorId = appointment.getTutor().getId();
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
@@ -57,7 +68,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public ResponseEntity<?> checkVNPayPayment(HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
+    @Transactional
+    public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
         String vnp_Command = "querydr";
@@ -115,17 +127,45 @@ public class PaymentServiceImpl implements PaymentService {
         JsonObject jsonObject = JsonParser.parseString(String.valueOf(response)).getAsJsonObject();
         String resCode = jsonObject.get("vnp_ResponseCode").getAsString();
         String resMessage = jsonObject.get("vnp_Message").getAsString();
+        String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
+
+        // get current payment
+        Account payer = accountRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        Appointment appointment = appointmentRepository
+                .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
 
         if (!"00".equals(resCode)) {
+            appointmentService.rollbackAppointment(appointment);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
         }
 
-        String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
         if (!"00".equals(resTranStatus)) {
+            appointmentService.rollbackAppointment(appointment);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
         }
+//        return ResponseEntity.status(responseCode).body("Payment succeed");
+        return processToDatabase(appointment, vnp_TxnRef, vnp_TransDate);
+    }
 
-        return ResponseEntity.status(responseCode).body("Payment succeed");
+    public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
+
+        System.out.println(appointment.getDescription());
+        appointment.setStatus(AppointmentStatus.PAID);
+        Payment payment = new Payment();
+        payment.setMoneyAmount(appointment.getTuition());
+        payment.setTransactionTime(LocalDateTime.now());
+        payment.setTransactionId(transactionId);
+        payment.setTransactionDate(transactionDate);
+        payment.setAppointment(appointment);
+        payment.setProvider("VNPay");
+
+        appointment.getPayments().add(payment);
+        paymentRepository.save(payment);
+        appointmentRepository.save(appointment);
+
+        return ResponseEntity.status(HttpStatus.OK).body(payment);
     }
 
     private ResponseEntity<?> createPaymentWithVNPay(long amountParam, HttpServletRequest req) {
