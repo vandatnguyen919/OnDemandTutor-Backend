@@ -44,8 +44,11 @@ public class QuestionRepositoryImpl implements QuestionRepositoryCustom {
             Join<Question, Subject> subjectJoin = question.join("subject", JoinType.INNER);
             predicates.add(subjectJoin.get("subjectName").in(subjectSet));
         }
-
-        Predicate contentPredicate = cb.like(question.get("content"), "%" + questionContent + "%");
+        String likePattern = "%" + questionContent + "%";
+        Predicate contentPredicate = cb.or(
+                cb.like(question.get("title"), likePattern),
+                cb.like(question.get("content"), likePattern)
+        );
         predicates.add(contentPredicate);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));

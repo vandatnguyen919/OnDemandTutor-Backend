@@ -54,7 +54,7 @@ public class AppointmentController {
         return appointmentService.createAppointment(studentId, appointment);
     }
 
-    // tutor xac nhan appointment
+    // tutor thay doi appointment status khi can
     @PutMapping("{appointmentId}/tutors/{tutorId}")
     public ResponseEntity<?> updateAppointmentStatus(
             @PathVariable Integer appointmentId,
@@ -63,15 +63,5 @@ public class AppointmentController {
     ) {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
-
-
-//    // he thong xoa cac slot sau khi student thanh toan
-//    @PutMapping("{appointmentId}")
-//    public ResponseEntity<?> updateTimeslotsOfAppointment(
-//            @PathVariable Integer appointmentId
-//    ) {
-//        return appointmentService.updateTimeslotsOfAppointment(appointmentId);
-//    }
-
 
 }

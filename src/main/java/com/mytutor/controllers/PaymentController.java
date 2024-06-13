@@ -1,6 +1,5 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.payment.RequestPaymentDto;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,22 +16,23 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    @PostMapping("/create-payment")
+    @GetMapping("/create-payment")
     public ResponseEntity<?> createPayment(
             Principal principal,
             HttpServletRequest req,
-            @RequestBody RequestPaymentDto requestPaymentDto
+            @RequestParam Integer appointmentId
     ) {
-        return paymentService.createPayment(principal, req, requestPaymentDto);
+        return paymentService.createPayment(principal, req, appointmentId);
     }
 
     @GetMapping("/check-payment/vnpay")
     public ResponseEntity<?> checkPayment(
+            Principal principal,
             HttpServletRequest req,
             @RequestParam(name = "vnp_TxnRef") String vnp_TxnRef,
             @RequestParam(name = "vnp_PayDate") String vnp_TransDate
     ) throws IOException {
-        return paymentService.checkVNPayPayment(req, vnp_TxnRef, vnp_TransDate);
+        return paymentService.checkVNPayPayment(principal, req, vnp_TxnRef, vnp_TransDate);
     }
 
 //    @GetMapping("/refund-payment")

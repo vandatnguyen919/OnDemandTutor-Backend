@@ -89,7 +89,6 @@ public class TutorInfoDto {
                 .meetingLink(tutorDetail.getMeetingLink())
                 .videoIntroductionLink(tutorDetail.getVideoIntroductionLink())
                 .subjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()))
-                .educations(account.getEducations().stream().map(e -> new TutorEducation(e.getMajorName(), e.getSpecialization(), e.getDegreeType())).collect(Collectors.toList()))
                 .build();
     }
 }

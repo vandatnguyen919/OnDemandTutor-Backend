@@ -18,5 +18,5 @@ import lombok.NoArgsConstructor;
 public class AuthenticationResponseDto {
 
     private String accessToken;
-    private long expirationTime;
+//    private long expirationTime;
 }
