@@ -114,6 +114,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
+        if (appointmentRepository.findAppointmentsWithPendingPayment(studentId, AppointmentStatus.PENDING_PAYMENT)!=null) {
+            throw new PaymentFailedException("This student is having another booking in pending payment status!");
+        }
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
@@ -184,7 +187,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.ok("Appointment status updated successfully");
     }
 
-    // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null
+    // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
     @Override
     public void rollbackAppointment(Appointment appointment) {
         for (Timeslot t : appointment.getTimeslots()) {
