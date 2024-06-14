@@ -3,6 +3,8 @@ package com.mytutor.dto.timeslot;
 import lombok.Data;
 
 import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  * @author vothimaihoa
@@ -15,9 +17,9 @@ public class ResponseWeeklyScheduleDto {
 
     private Integer accountId;
 
-    private Time startTime;
+    private LocalTime startTime;
 
-    private Time endTime;
+    private LocalTime endTime;
 
     private Integer dayOfWeek;
 
