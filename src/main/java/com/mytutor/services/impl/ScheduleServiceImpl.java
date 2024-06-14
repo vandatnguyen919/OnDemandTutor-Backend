@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -136,6 +137,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(6);
+        LocalTime startTime = LocalTime.now().plusHours(12);
 
         ScheduleDto scheduleDto = new ScheduleDto();
         List<ScheduleItemDto> items = scheduleDto.getSchedules();
@@ -144,7 +146,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         for (int i = 0; i < 7; i++) {
 
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
-            List<Timeslot> timeslots = timeslotRepository.findByTutorIdAndDayOfWeekAndDateRange(tutorId, startDate, endDate, d);
+            List<Timeslot> timeslots = timeslotRepository.findByTutorIdAndDayOfWeekAndDateRange(startTime, tutorId, startDate, endDate, d);
             if (timeslots == null) {
                 timeslots = new ArrayList<>();
             }
