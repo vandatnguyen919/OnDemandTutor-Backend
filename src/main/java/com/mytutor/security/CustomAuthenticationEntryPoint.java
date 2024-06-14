@@ -30,7 +30,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
         this.delegate.commence(request, response, authException);
-        response.setContentType("application/json;charset=UTF-8");
+//        response.setContentType("application/json;charset=UTF-8"); // Support Vietnamese languages
 
         ErrorObject errorObject = new ErrorObject();
         errorObject.setStatusCode(HttpStatus.UNAUTHORIZED.value());
