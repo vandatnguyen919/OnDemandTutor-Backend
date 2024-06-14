@@ -6,10 +6,12 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
+import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.*;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
+import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.PaymentService;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +52,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private WeeklyScheduleRepository weeklyScheduleRepository;
 
     @Override
     public ResponseEntity<AppointmentDto> getAppointmentById(Integer appointmentId) {
@@ -118,12 +123,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
         for (Integer i : appointmentDto.getTimeslotIds()) {
-            Timeslot t = timeslotRepository.findById(i).get();
-            if (t.isOccupied()) {
+            WeeklySchedule w = weeklyScheduleRepository.findById(i).get();
+            if (w.isOccupied()) {
                 throw new ConflictTimeslotException("Cannot book because some timeslots are occupied!");
             }
             else {
-                t.setOccupied(true);
+                w.setOccupied(true);
+                Timeslot t = new Timeslot();
+                t.setWeeklySchedule(w);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
             }
@@ -148,7 +155,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private double calculateTotalHours(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            Duration duration = Duration.between((Temporal) t.getStartTime(), (Temporal) t.getEndTime());
+            Duration duration = Duration.between((Temporal) t.getWeeklySchedule().getStartTime(), (Temporal) t.getWeeklySchedule().getEndTime());
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
         return totalHours;
@@ -188,7 +195,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public void rollbackAppointment(Appointment appointment) {
         for (Timeslot t : appointment.getTimeslots()) {
-            t.setOccupied(false);
+            t.getWeeklySchedule().setOccupied(false);
             t.setAppointment(null);
         }
         appointmentRepository.delete(appointment);

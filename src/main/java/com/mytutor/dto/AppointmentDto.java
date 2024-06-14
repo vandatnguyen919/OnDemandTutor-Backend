@@ -1,8 +1,6 @@
 package com.mytutor.dto;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.timeslot.ResponseTimeslotDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
