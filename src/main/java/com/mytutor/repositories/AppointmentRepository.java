@@ -1,6 +1,7 @@
 package com.mytutor.repositories;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
 import org.springframework.data.domain.Page;
@@ -47,5 +48,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @Query("SELECT a FROM Appointment a WHERE a.status = :status AND a.student.id = :studentId")
     Appointment findAppointmentsWithPendingPayment(@Param("studentId") Integer studentId, @Param("status") AppointmentStatus status);
 
-
+    @Query("SELECT DISTINCT a.tutor FROM Appointment a WHERE a.student.id = :studentId AND a.status = :status")
+    List<Account> findAllBookedTutorsByStudentIdAndStatus(@Param("studentId") int studentId, @Param("status") AppointmentStatus status);
 }

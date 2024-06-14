@@ -5,8 +5,10 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.DegreeType;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
@@ -53,13 +55,16 @@ public class TutorServiceImpl implements TutorService {
     private SubjectRepository subjectRepository;
 
     @Autowired
+    private TutorDetailRepository tutorDetailRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
     private FeedbackRepository feedbackRepository;
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private TutorDetailRepository tutorDetailRepository;
 
     @Override
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
@@ -121,6 +126,15 @@ public class TutorServiceImpl implements TutorService {
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
 
         return ResponseEntity.status(HttpStatus.OK).body(tutorInfoDto);
+    }
+
+    @Override
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId) {
+
+        List<Account> tutors = appointmentRepository.findAllBookedTutorsByStudentIdAndStatus(studentId, AppointmentStatus.PAID);
+
+        List<ResponseAccountDetailsDto> tutorDtos = tutors.stream().map(ResponseAccountDetailsDto::mapToDto).toList();
+        return ResponseEntity.status(HttpStatus.OK).body(tutorDtos);
     }
 
     @Override

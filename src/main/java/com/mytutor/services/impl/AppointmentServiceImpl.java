@@ -40,13 +40,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
-    AppointmentRepository appointmentRepository;
+    private AppointmentRepository appointmentRepository;
 
     @Autowired
-    TimeslotRepository timeslotRepository;
+    private TimeslotRepository timeslotRepository;
 
     @Autowired
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Autowired
     private AccountRepository accountRepository;

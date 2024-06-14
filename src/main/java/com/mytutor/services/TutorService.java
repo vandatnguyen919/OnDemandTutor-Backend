@@ -28,6 +28,8 @@ public interface TutorService {
 
     public ResponseEntity<TutorInfoDto> getTutorById(Integer id);
 
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId);
+
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
 
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified);
