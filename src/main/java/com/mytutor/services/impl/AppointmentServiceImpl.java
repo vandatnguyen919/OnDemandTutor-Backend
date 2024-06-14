@@ -13,7 +13,6 @@ import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
-import com.mytutor.services.PaymentService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +20,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -119,29 +117,31 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
+        if
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
         for (Integer i : appointmentDto.getTimeslotIds()) {
             WeeklySchedule w = weeklyScheduleRepository.findById(i).get();
-            if (w.isOccupied()) {
-                throw new ConflictTimeslotException("Cannot book because some timeslots are occupied!");
+            Timeslot t = new Timeslot();
+            t.setWeeklySchedule(w);
+            t.setScheduleDate(calculateDateFromDayOfWeek(w.getDayOfWeek()));
+            // tìm timeslot có weeklyid = w.getId và isOccupied = true
+            if (timeslotRepository.findOccupiedTimeslotByWeeklySchedule(w.getId()) != null) {
+                throw new ConflictTimeslotException("Cannot book because " +
+                        "some timeslots are occupied!");
             }
             else {
-                w.setOccupied(true);
-                Timeslot t = new Timeslot();
-                t.setWeeklySchedule(w);
+                t.setOccupied(true);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
             }
         }
         Account tutor = accountRepository.findById(appointmentDto.getTutorId())
                 .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
-
+        timeslotRepository.saveAll(appointment.getTimeslots());
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
                 * calculateTotalHours(appointment.getTimeslots()));
-
-        timeslotRepository.saveAll(appointment.getTimeslots());
         appointmentRepository.save(appointment);
 
         // response
@@ -152,10 +152,19 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
+        LocalDate today = LocalDate.now();
+        int day = today.getDayOfWeek().getValue() + 1;
+        int distance = dayOfWeek >= day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
+        return today.plusDays(distance);
+    }
+
     private double calculateTotalHours(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            Duration duration = Duration.between((Temporal) t.getWeeklySchedule().getStartTime(), (Temporal) t.getWeeklySchedule().getEndTime());
+            System.out.println(t.getWeeklySchedule().getStartTime());
+            Duration duration = Duration.between( t.getWeeklySchedule().getStartTime(), t.getWeeklySchedule().getEndTime());
+
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
         return totalHours;
@@ -194,10 +203,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null
     @Override
     public void rollbackAppointment(Appointment appointment) {
-        for (Timeslot t : appointment.getTimeslots()) {
-            t.getWeeklySchedule().setOccupied(false);
-            t.setAppointment(null);
-        }
         appointmentRepository.delete(appointment);
     }
 

@@ -36,8 +36,11 @@ public class Timeslot {
     @JoinColumn(name = "appointment_id")
     private Appointment appointment;
 
+    @Column(name="is_occupied")
+    private boolean isOccupied;
+
     // người dùng ấn book => add timeslot của appointment đó, Java tính toán scheduleDate từ weeklySchedule
-    // + update weeklySchedule thành isOccupied = true
+    // + update timeslot thành isOccupied = true
 
     // người dùng không thanh toán kịp = rollback: xóa appointment + xóa timeslot + isOccupied weekly = false
 }

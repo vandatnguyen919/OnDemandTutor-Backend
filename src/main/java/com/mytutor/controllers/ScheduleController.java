@@ -34,19 +34,19 @@ public class ScheduleController {
         return scheduleService.getTutorWeeklySchedule(tutorId);
     }
 
-    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
-    public ResponseEntity<?> deleteSchedule(
-            @PathVariable Integer scheduleId,
-            @PathVariable Integer tutorId) {
-        return scheduleService.removeSchedule(tutorId, scheduleId);
-    }
-
-    @PutMapping("{scheduleId}/tutors/{tutorId}")
-    public ResponseEntity<?> updateSchedule(
-            @PathVariable Integer scheduleId,
-            @PathVariable Integer tutorId,
-            @RequestParam boolean status) {
-        return scheduleService.updateScheduleStatus(tutorId, scheduleId, status);
-    }
+//    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
+//    public ResponseEntity<?> deleteSchedule(
+//            @PathVariable Integer scheduleId,
+//            @PathVariable Integer tutorId) {
+//        return scheduleService.removeSchedule(tutorId, scheduleId);
+//    }
+//
+//    @PutMapping("{scheduleId}/tutors/{tutorId}")
+//    public ResponseEntity<?> updateSchedule(
+//            @PathVariable Integer scheduleId,
+//            @PathVariable Integer tutorId,
+//            @RequestParam boolean status) {
+//        return scheduleService.updateScheduleStatus(tutorId, scheduleId, status);
+//    }
 
 }

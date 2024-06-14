@@ -30,14 +30,14 @@ public class TimeslotDto {
 
     private LocalTime endTime;
     
-    private boolean isOccupied;
+//    private boolean isOccupied;
     
     public static TimeslotDto mapToDto(WeeklySchedule timeslot) {
         return new TimeslotDto(
             timeslot.getId(),
             timeslot.getStartTime(),
-            timeslot.getEndTime(),
-            timeslot.isOccupied()
+            timeslot.getEndTime()
+//            timeslot.isOccupied()
         );
     }
 }

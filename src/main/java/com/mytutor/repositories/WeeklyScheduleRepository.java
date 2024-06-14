@@ -23,6 +23,7 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
                                        @Param("endTime") LocalTime endTime);
 
     @Query("SELECT w FROM WeeklySchedule w " +
-            "WHERE w.account.id = :tutorId ")
-    List<WeeklySchedule> findByTutorId(Integer tutorId);
+            "WHERE w.account.id = :tutorId " +
+            "AND w.dayOfWeek = :dayOfWeek ")
+    List<WeeklySchedule> findByTutorIdAnDayOfWeek(Integer tutorId, Integer dayOfWeek);
 }

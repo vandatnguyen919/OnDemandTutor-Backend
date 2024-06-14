@@ -28,4 +28,10 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
 //                                                         @Param("startDate") LocalDate startDate,
 //                                                         @Param("endDate") LocalDate endDate,
 //                                                         @Param("dayOfWeek") Integer dayOfWeek);
+
+    // tìm timeslot có weeklyid = w.getId và isOccupied = true
+    @Query(
+            "SELECT t FROM Timeslot t WHERE t.weeklySchedule.id = :weeklyScheduleId AND t.isOccupied = true"
+    )
+    Timeslot findOccupiedTimeslotByWeeklySchedule(@Param("weeklyScheduleId") Integer weeklyScheduleId);
 }

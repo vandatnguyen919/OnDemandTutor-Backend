@@ -14,7 +14,7 @@ import java.util.List;
 public interface ScheduleService {
     ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputWeeklyScheduleDto> tutorScheduleDto);
 //    ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId);
-    ResponseEntity<?> updateScheduleStatus(Integer tutorId, Integer scheduleId, Boolean status);
-    ResponseEntity<?> removeSchedule(Integer tutorId, Integer scheduleId);
+//    ResponseEntity<?> updateScheduleStatus(Integer tutorId, Integer scheduleId, Boolean status);
+//    ResponseEntity<?> removeSchedule(Integer tutorId, Integer scheduleId);
     ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId);
 }

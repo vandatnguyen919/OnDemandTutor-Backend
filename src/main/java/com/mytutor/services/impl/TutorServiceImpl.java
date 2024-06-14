@@ -293,6 +293,7 @@ public class TutorServiceImpl implements TutorService {
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
         tutorDetail.setAccount(account);
+        account.setTutorDetail(tutorDetail);
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
