@@ -20,7 +20,7 @@ public class ScheduleController {
     ScheduleService scheduleService;
 
     // allow tutor role only
-    @PostMapping("/tutors/{tutorId}/timeslots")
+    @PostMapping("/tutors/{tutorId}")
     public ResponseEntity<?> addNewSchedule(
             @PathVariable Integer tutorId,
             @RequestBody List<InputWeeklyScheduleDto> tutorScheduleDto) {
@@ -41,12 +41,11 @@ public class ScheduleController {
 //        return scheduleService.removeSchedule(tutorId, scheduleId);
 //    }
 //
-//    @PutMapping("{scheduleId}/tutors/{tutorId}")
-//    public ResponseEntity<?> updateSchedule(
-//            @PathVariable Integer scheduleId,
-//            @PathVariable Integer tutorId,
-//            @RequestParam boolean status) {
-//        return scheduleService.updateScheduleStatus(tutorId, scheduleId, status);
-//    }
+    @PutMapping("tutors/{tutorId}")
+    public ResponseEntity<?> updateSchedule(
+            @PathVariable Integer tutorId,
+            @RequestBody List<InputWeeklyScheduleDto> newTutorScheduleDto) {
+        return scheduleService.updateSchedule(tutorId, newTutorScheduleDto);
+    }
 
 }

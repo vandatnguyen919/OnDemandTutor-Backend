@@ -33,4 +33,7 @@ public class WeeklySchedule {
     @OneToMany(mappedBy = "weeklySchedule")
     private List<Timeslot> timeslots;
 
+    @Column
+    private boolean isUsing = true;
+
 }

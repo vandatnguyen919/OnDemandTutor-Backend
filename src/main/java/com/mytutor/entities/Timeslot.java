@@ -39,6 +39,7 @@ public class Timeslot {
     @Column(name="is_occupied")
     private boolean isOccupied;
 
+
     // người dùng ấn book => add timeslot của appointment đó, Java tính toán scheduleDate từ weeklySchedule
     // + update timeslot thành isOccupied = true
 

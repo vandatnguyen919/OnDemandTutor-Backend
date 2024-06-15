@@ -125,15 +125,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
         for (Integer i : appointmentDto.getTimeslotIds()) {
             WeeklySchedule w = weeklyScheduleRepository.findById(i).get();
-            Timeslot t = new Timeslot();
-            t.setWeeklySchedule(w);
-            t.setScheduleDate(calculateDateFromDayOfWeek(w.getDayOfWeek()));
-            // tìm timeslot có weeklyid = w.getId và isOccupied = true
-            if (timeslotRepository.findOccupiedTimeslotByWeeklySchedule(w.getId()) != null) {
+            LocalDate bookDate = calculateDateFromDayOfWeek(w.getDayOfWeek());
+            if (timeslotRepository.findTimeslotWithDateAndWeeklySchedule(w.getId(), bookDate) != null) {
                 throw new ConflictTimeslotException("Cannot book because " +
                         "some timeslots are occupied!");
             }
             else {
+                Timeslot t = new Timeslot();
+                t.setWeeklySchedule(w);
+                t.setScheduleDate(bookDate);
                 t.setOccupied(true);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);

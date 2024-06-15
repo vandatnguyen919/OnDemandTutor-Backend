@@ -16,4 +16,6 @@ public class InputWeeklyScheduleDto {
 
     private Integer dayOfWeek;
 
+    private boolean isUsing;
+
 }

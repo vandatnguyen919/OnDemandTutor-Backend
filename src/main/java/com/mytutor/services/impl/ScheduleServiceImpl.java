@@ -1,10 +1,12 @@
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.timeslot.InputWeeklyScheduleDto;
 import com.mytutor.dto.timeslot.ScheduleDto;
 import com.mytutor.dto.timeslot.ScheduleItemDto;
 import com.mytutor.dto.timeslot.TimeslotDto;
 import com.mytutor.entities.Account;
+import com.mytutor.entities.Timeslot;
 import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.TimeslotValidationException;
@@ -22,6 +24,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author vothimaihoa
@@ -70,16 +74,21 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    private List<WeeklySchedule> saveValidTimeslotAndGetOverlapTimeslot(List<InputWeeklyScheduleDto> inputWeeklyScheduleDtos,
+    private List<WeeklySchedule> saveValidTimeslotAndGetOverlapTimeslot
+            (List<InputWeeklyScheduleDto> inputWeeklyScheduleDtos,
             Account account)
             throws TimeslotValidationException {
         List<WeeklySchedule> overlapSchedules = new ArrayList<>();
         List<WeeklySchedule> validatedSchedules = new ArrayList<>();
             for (InputWeeklyScheduleDto inputWeeklyScheduleDto : inputWeeklyScheduleDtos) {
                 WeeklySchedule schedule = modelMapper.map(inputWeeklyScheduleDto, WeeklySchedule.class);
-                if (weeklyScheduleRepository.findOverlapSchedule(account.getId(), inputWeeklyScheduleDto.getDayOfWeek(),
-                        inputWeeklyScheduleDto.getStartTime(), inputWeeklyScheduleDto.getEndTime()).isEmpty()) {
+                if (weeklyScheduleRepository.findOverlapSchedule(
+                        account.getId(),
+                        inputWeeklyScheduleDto.getDayOfWeek(),
+                        inputWeeklyScheduleDto.getStartTime(),
+                        inputWeeklyScheduleDto.getEndTime()).isEmpty()) {
                     schedule.setAccount(account);
+                    schedule.setUsing(true);
                     validatedSchedules.add(schedule);
                 } else {
                     overlapSchedules.add(schedule);
@@ -89,42 +98,72 @@ public class ScheduleServiceImpl implements ScheduleService {
         return overlapSchedules;
     }
 
-    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek, int weekNo) {
-        LocalDate today = LocalDate.now();
-        int day = today.getDayOfWeek().getValue() + 1;
-        int distance = dayOfWeek > day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
-        return today.plusDays(distance + (weekNo * 7L) );
+    // update schedule => kiem tra slot can them da có trong db chua (dayOfWeek, startTime, endTime trung)
+    // co roi thi de nguyen,
+    // chua co thi them vao,
+    // old schedule co ma new ko co => xoa di
+    @Override
+    public ResponseEntity<?> updateSchedule(Integer tutorId, List<InputWeeklyScheduleDto> newSchedules) {
+
+        Account account = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        // Fetch existing schedules for the tutor
+        List<WeeklySchedule> existingSchedules = weeklyScheduleRepository.findByTutorId(tutorId);
+
+        // Create maps for quick lookup
+        Map<String, InputWeeklyScheduleDto> newScheduleMap = newSchedules.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getDayOfWeek()
+                                + "-" + s.getStartTime()
+                                + "-" + s.getEndTime(),
+                        s -> s
+                ));
+
+        Map<String, WeeklySchedule> existingScheduleMap = existingSchedules.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getDayOfWeek()
+                                + "-" + s.getStartTime()
+                                + "-" + s.getEndTime(),
+                        s -> s
+                ));
+
+        // Add or update schedules
+        for (InputWeeklyScheduleDto newSchedule : newSchedules) {
+            String key = newSchedule.getDayOfWeek() + "-"
+                    + newSchedule.getStartTime() + "-"
+                    + newSchedule.getEndTime();
+            if (!existingScheduleMap.containsKey(key)) {
+                // Schedule does not exist, add it
+                WeeklySchedule newScheduleDB = modelMapper.map(newSchedule, WeeklySchedule.class);
+                newScheduleDB.setAccount(account);
+                newScheduleDB.setUsing(true); // Ensure new schedules are marked as using
+                weeklyScheduleRepository.save(newScheduleDB);
+            } else {
+                // Schedule exists, ensure it's marked as using
+                WeeklySchedule existingSchedule = existingScheduleMap.get(key);
+                existingSchedule.setUsing(true);
+                weeklyScheduleRepository.save(existingSchedule);
+            }
+        }
+
+        // Mark old schedules that are not in the new schedules as not using
+        for (WeeklySchedule existingSchedule : existingSchedules) {
+            String key = existingSchedule.getDayOfWeek() + "-"
+                    + existingSchedule.getStartTime()
+                    + "-" + existingSchedule.getEndTime();
+            if (!newScheduleMap.containsKey(key)) {
+                if (!existingSchedule.getTimeslots().isEmpty()) {
+                    existingSchedule.setUsing(false);
+                    weeklyScheduleRepository.save(existingSchedule);
+                }
+                else {
+                    weeklyScheduleRepository.delete(existingSchedule);
+                }
+            }
+        }
+
+        return ResponseEntity.ok().body("Schedule updated successfully");
     }
-
-//    @Override
-//    public ResponseEntity<?> updateScheduleStatus(Integer tutorId, Integer scheduleId, Boolean status) {
-//        WeeklySchedule weeklySchedule = weeklyScheduleRepository.findById(scheduleId).orElseThrow(
-//                () -> new TimeslotValidationException("Schedule not found!"));
-//        if (!Objects.equals(weeklySchedule.getAccount().getId(), tutorId)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body("This schedule is not belongs to this tutor!");
-//        }
-//        weeklySchedule.setOccupied(status);
-//        weeklyScheduleRepository.save(weeklySchedule);
-//        return ResponseEntity.status(HttpStatus.OK)
-//                .body(modelMapper.map(weeklySchedule, ResponseWeeklyScheduleDto.class));
-//    }
-
-//    @Override
-//    public ResponseEntity<?> removeSchedule(Integer tutorId, Integer scheduleId) {
-//        WeeklySchedule weeklySchedule = weeklyScheduleRepository.findById(scheduleId).orElseThrow(
-//                () -> new TimeslotValidationException("Schedule not found!"));
-//        if (!Objects.equals(weeklySchedule.getAccount().getId(), tutorId)) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                    .body("This schedule is not belongs to this tutor!");
-//        }
-//        if (!weeklySchedule.getTimeslots().isEmpty()) {
-//            throw new TimeslotValidationException("This schedule is occupied!");
-//        }
-//        ResponseWeeklyScheduleDto dto = modelMapper.map(weeklySchedule, ResponseWeeklyScheduleDto.class);
-//        weeklyScheduleRepository.delete(weeklySchedule);
-//        return ResponseEntity.status(HttpStatus.OK).body(dto);
-//    }
 
     // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
     // Tính timeslots dựa theo schedule và xuất ra
@@ -140,11 +179,24 @@ public class ScheduleServiceImpl implements ScheduleService {
         int today = startDate.getDayOfWeek().getValue() - 1;
         for (int i = 0; i < 7; i++) {
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
-            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository.findByTutorIdAnDayOfWeek(tutorId, d);
+            LocalTime startTime = LocalTime.now().plusHours(12);
+            int currentDayOfWeek = today;
+            if (LocalTime.now().isAfter(LocalTime.NOON)) {
+                startTime = LocalTime.MIDNIGHT;
+                currentDayOfWeek += 1;
+            }
+            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
+                    .findByTutorIdAnDayOfWeek(tutorId, d, startTime, currentDayOfWeek);
             LocalDate date = startDate.plusDays(i);
+            removeBookedSlot(weeklySchedules, date);
+
+            if(weeklySchedules.isEmpty()) {
+                weeklySchedules = new ArrayList<>();
+            }
             String dayOfWeek = date.getDayOfWeek().toString().substring(0, 3);
             int dayOfMonth = date.getDayOfMonth();
-            List<TimeslotDto> timeslotDtos = weeklySchedules.stream().map(t -> TimeslotDto.mapToDto(t)).toList();
+            List<TimeslotDto> timeslotDtos = weeklySchedules.stream()
+                    .map(t -> TimeslotDto.mapToDto(t)).toList();
 
             ScheduleItemDto scheduleItemDto = new ScheduleItemDto(dayOfWeek, dayOfMonth, timeslotDtos);
             items.add(scheduleItemDto);
@@ -156,7 +208,10 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
-
+    private void removeBookedSlot(List<WeeklySchedule> weeklySchedules, LocalDate date) {
+        weeklySchedules.removeIf(weeklySchedule ->
+                timeslotRepository.findTimeslotWithDateAndWeeklySchedule(weeklySchedule.getId(), date) != null);
+    }
 
 
 
