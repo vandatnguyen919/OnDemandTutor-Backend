@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  *
@@ -25,26 +26,22 @@ public class Timeslot {
     private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tutor_id")
-    private Account account;
-
-    @Column(name="start_time")
-    private Time startTime;
-
-    @Column(name="end_time")
-    private Time endTime;
-
-    @Column(name="day_of_week")
-    private Integer dayOfWeek;
+    @JoinColumn(name = "weekly_schedule_id")
+    WeeklySchedule weeklySchedule;
 
     @Column(name="schedule_date")
     private LocalDate scheduleDate;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
+
     @Column(name="is_occupied")
-    private boolean isOccupied = false;
-
-    @Column(name="appointment_id")
-    private Integer appointmentId;
+    private boolean isOccupied;
 
 
+    // người dùng ấn book => add timeslot của appointment đó, Java tính toán scheduleDate từ weeklySchedule
+    // + update timeslot thành isOccupied = true
+
+    // người dùng không thanh toán kịp = rollback: xóa appointment + xóa timeslot + isOccupied weekly = false
 }

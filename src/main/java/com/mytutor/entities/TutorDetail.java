@@ -41,8 +41,11 @@ public class TutorDetail {
     @Column(name = "video_introduction_link")
     private String videoIntroductionLink;
 
+    @Column(name = "percentage")
+    private Integer percentage = 15;
+
     @OneToOne
-    @JoinColumn(name = "account_id") // Tên cột tham chiếu khóa ngoại trong bảng Tutor_Detail
+    @JoinColumn(name = "account_id")
     private Account account;
 
 }

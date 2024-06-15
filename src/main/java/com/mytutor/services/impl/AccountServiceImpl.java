@@ -5,12 +5,12 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Role;
+import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.RoleRepository;
 
 import com.mytutor.services.AccountService;
 
@@ -34,9 +34,6 @@ public class AccountServiceImpl implements AccountService {
     private AccountRepository accountRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -46,14 +43,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity<?> changeRole(Integer accountId, String roleName) {
-        Role role = roleRepository.findByRoleName(roleName).get();
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new RuntimeException("Account not found"));
+                () -> new AccountNotFoundException("Account not found"));
 
         // Set the role to the account
-        Set<Role> roles = new HashSet<>();
-        roles.add(role);
-        account.setRoles(roles);
+        account.setRole(Role.getRole(roleName));
         account.setStatus(AccountStatus.PROCESSING);
 
         accountRepository.save(account);
@@ -74,17 +68,16 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-        updateAccountDetailsDto.setFullName(accountDB.getFullName());
         updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
-        if (!checkCurrentAccount(principal, accountId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
-        }
+//        if (!checkCurrentAccount(principal, accountId)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
+//        }
         modelMapper.map(updateAccountDetailsDto, accountDB);
 
         accountRepository.save(accountDB);
 
-        return ResponseEntity.status(HttpStatus.OK).body("Updated successfully!");
+        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(accountDB, ResponseAccountDetailsDto.class));
     }
 
     @Override
@@ -95,5 +88,13 @@ public class AccountServiceImpl implements AccountService {
         }
         return account.getId() == accountId;
     }
+
+    public ResponseEntity<?> readAccountById(Integer id) {
+        Account account = getAccountById(id);
+        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
+        modelMapper.map(account, dto);
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
 
 }

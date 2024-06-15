@@ -4,7 +4,10 @@
  */
 package com.mytutor.entities;
 
+import com.mytutor.constants.DegreeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,7 +17,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  *
@@ -23,7 +25,6 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor
 @Data
-@ToString
 @Table(name = "Education")
 public class Education {
     @Id
@@ -40,11 +41,12 @@ public class Education {
 
     private String universityName;
 
-    private String degreeType;
+    @Enumerated(EnumType.STRING)
+    private DegreeType degreeType;
 
-    private int startYear;
+    private Integer startYear;
 
-    private int endYear;
+    private Integer endYear;
 
     private String diplomaUrl;
 

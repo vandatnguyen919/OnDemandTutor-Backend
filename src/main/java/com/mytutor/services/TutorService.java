@@ -17,13 +17,20 @@ import org.springframework.http.ResponseEntity;
  */
 public interface TutorService {
 
-    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo, int pageSize);
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
+                                                                    int pageSize,
+                                                                    String subjects,
+                                                                    double priceMin,
+                                                                    double priceMax,
+                                                                    String tutorLevel,
+                                                                    String sortBy,
+                                                                    String keyword);
 
     public ResponseEntity<TutorInfoDto> getTutorById(Integer id);
 
-    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId);
+    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
 
-    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId);
+    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified);
 
     public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos);
 
