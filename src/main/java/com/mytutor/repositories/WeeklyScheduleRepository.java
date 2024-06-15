@@ -27,12 +27,9 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
     @Query("SELECT w FROM WeeklySchedule w " +
             " WHERE w.account.id = :tutorId " +
             " AND w.isUsing = true " +
-            " AND w.dayOfWeek = :dayOfWeek " +
-            " AND NOT (w.startTime < :startTime AND w.dayOfWeek = :currentDayOfWeek) ")
+            " AND w.dayOfWeek = :dayOfWeek ")
     List<WeeklySchedule> findByTutorIdAnDayOfWeek(@Param("tutorId")Integer tutorId,
-                                                  @Param("dayOfWeek")Integer dayOfWeek,
-                                                  @Param("startTime")LocalTime startTime,
-                                                  @Param("currentDayOfWeek")Integer currentDayOfWeek);
+                                                  @Param("dayOfWeek")Integer dayOfWeek);
 
     @Query("SELECT w FROM WeeklySchedule w " +
             " WHERE w.account.id = :tutorId " )

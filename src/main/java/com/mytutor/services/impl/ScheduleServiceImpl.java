@@ -179,14 +179,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         int today = startDate.getDayOfWeek().getValue() - 1;
         for (int i = 0; i < 7; i++) {
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
-            LocalTime startTime = LocalTime.now().plusHours(12);
-            int currentDayOfWeek = today;
-            if (LocalTime.now().isAfter(LocalTime.NOON)) {
-                startTime = LocalTime.MIDNIGHT;
-                currentDayOfWeek += 1;
-            }
             List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
-                    .findByTutorIdAnDayOfWeek(tutorId, d, startTime, currentDayOfWeek);
+                    .findByTutorIdAnDayOfWeek(tutorId, d);
             LocalDate date = startDate.plusDays(i);
             removeBookedSlot(weeklySchedules, date);
 
