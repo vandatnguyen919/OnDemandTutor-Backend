@@ -26,6 +26,6 @@ public class RegisterDto {
     @Pattern(regexp = RegexConsts.PHONE_NUMBER_REGEX, message = "Invalid phone number format")
     private String phoneNumber;
     
-    @Pattern(regexp = RegexConsts.PASSWORD_REGEX, message = "Password must be at least 8 characters, contains both numbers and letters")
+    @Pattern(regexp = RegexConsts.PASSWORD_REGEX, message = "Password must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase , and 1 special character")
     private String password;
 }

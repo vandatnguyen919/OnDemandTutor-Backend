@@ -29,5 +29,5 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    Page<Account> findByRole(Role role, Pageable pageable);
+//    Page<Account> findByRole(Role role, Pageable pageable);
 }

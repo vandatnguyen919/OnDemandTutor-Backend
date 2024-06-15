@@ -1,0 +1,9 @@
+email,password
+"sdfsedfwebrf35325r",Password123.
+"test@.com",Password123.
+"test@com",Password123.
+"test@domain",Password123.
+"test@domain.",Password123.
+"test@domain..com",Password123.
+"test@domain.com@",Password123.
+"test@domain..com",Password123

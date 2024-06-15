@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,7 +23,9 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
+@Builder
 @Table(name = "Account")
 public class Account {
 
@@ -29,6 +33,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(length = 1000)
     private String fullName;
 
     @Column(unique = true)
