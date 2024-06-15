@@ -30,7 +30,7 @@ public class Validator {
     }
 
     public static void validateFullName(String fullName) {
-        if (fullName == null) {
+        if (fullName == null || fullName.trim().isEmpty()) {
             throw new InvalidInputException("Full name is required");
         }
         if (fullName.isEmpty() || fullName.length() > 1000) {
@@ -38,6 +38,15 @@ public class Validator {
         }
         if (!isValidFullName(fullName)) {
             throw new InvalidInputException("Invalid full name");
+        }
+    }
+
+    public static void validatePhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new InvalidInputException("Phone number is required");
+        }
+        if (!isValidPhoneNumber(phoneNumber)) {
+            throw new InvalidInputException("Invalid phone number");
         }
     }
 
@@ -61,5 +70,10 @@ public class Validator {
         String normalized = Normalizer.normalize(fullName, Normalizer.Form.NFC);
         // Match the normalized name against the pattern
         return pattern.matcher(normalized).matches();
+    }
+
+    public static boolean isValidPhoneNumber(String phoneNumber) {
+        Pattern pattern = Pattern.compile(RegexConsts.PHONE_NUMBER_REGEX);
+        return pattern.matcher(phoneNumber).matches();
     }
 }

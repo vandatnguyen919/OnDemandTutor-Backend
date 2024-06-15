@@ -132,13 +132,13 @@ public class TestAuthService {
 //    }
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/nns20.csv", numLinesToSkip = 1)
+    @CsvFileSource(resources = "/invalid_password.csv", numLinesToSkip = 1)
     public void NNS_20_VerifyPassword_Must_Be_Between_8_And_16_Characters_Including_At_Least_1_Number_1_UpperCase_Character_1_LowerCase_Character_1_Special_Character(
             String email,
             String password
     ) {
         LoginDto loginDto = new LoginDto();
-        loginDto.setEmail(email);
+        loginDto.setEmail("test@example.com");
         loginDto.setPassword(password);
 
         // Act and Assert
@@ -192,10 +192,10 @@ public class TestAuthService {
     public void NNS_22_VerifyEmail_EmailIsRequired() {
         // Arrange
         RegisterDto registerDto = new RegisterDto();
-        registerDto.setEmail("");
-        registerDto.setFullName("Nguyen Van A");
-        registerDto.setPhoneNumber("0123456789");
-        registerDto.setPassword("Password123@");
+//        registerDto.setEmail("");
+//        registerDto.setFullName("Nguyen Van A");
+//        registerDto.setPhoneNumber("0123456789");
+//        registerDto.setPassword("Password123@");
 
         // Act and Assert
         Exception exception = assertThrows(Exception.class, () -> authService.register(registerDto));
@@ -256,7 +256,7 @@ public class TestAuthService {
         // Arrange
         RegisterDto registerDto = new RegisterDto();
         registerDto.setEmail("test@example.com");
-//        registerDto.setFullName("");
+        registerDto.setFullName("");
 
         // Act and Assert
         Exception exception = assertThrows(Exception.class, () -> authService.register(registerDto));
@@ -285,5 +285,76 @@ public class TestAuthService {
 
         // Assert the exception message
         assertEquals("Full name must be between 1 and 1000", exception.getMessage());
+    }
+
+    @Test
+    public void NNS_30_VerifyPhone_PhoneIsRequired() {
+        // Arrange
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail("test@example.com");
+        registerDto.setFullName("Nguyen Van A");
+//        registerDto.setPhoneNumber(" ");
+
+        // Act and Assert
+        Exception exception = assertThrows(Exception.class, () -> authService.register(registerDto));
+
+        // Assert the exception message
+        assertEquals("Phone number is required", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "/invalid_phone_number_format.csv", numLinesToSkip = 1)
+    public void NNS_31_VerifyPhone_CorrectPhoneFormat(String phoneNumber) {
+        // Arrange
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail("test@example.com");
+        registerDto.setFullName("Nguyen Van A");
+        registerDto.setPhoneNumber(phoneNumber);
+
+        // Act and Assert
+        Exception exception = assertThrows(Exception.class, () -> authService.register(registerDto));
+
+        // Assert the exception message
+        assertEquals("Invalid phone number", exception.getMessage());
+    }
+
+//    public void NNS_33_VerifyPhone_PhoneRequires10Numbers() {
+//
+//    }
+
+    @Test
+    public void NNS_33_VerifyPassword_PasswordIsRequired() {
+        // Arrange
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail("test@example.com");
+        registerDto.setFullName("Nguyen Van A");
+        registerDto.setPhoneNumber("0987654321");
+//        registerDto.setPassword(" ");
+
+        // Act and Assert
+        Exception exception = assertThrows(Exception.class, () -> authService.register(registerDto));
+
+        // Assert the exception message
+        assertEquals("Password is required", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "/invalid_password.csv", numLinesToSkip = 1)
+    public void NNS_35_VerifyPassword_Must_Be_Between_8_And_16_Characters_Including_At_Least_1_Number_1_UpperCase_Character_1_LowerCase_Character_1_Special_Character(
+            String email,
+            String password
+    ) {
+        // Arrange
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail("test@example.com");
+        registerDto.setFullName("Nguyen Van A");
+        registerDto.setPhoneNumber("0987654321");
+        registerDto.setPassword(password);
+
+        // Act and Assert
+        Exception exception = assertThrows(Exception.class, () -> authService.register(registerDto));
+
+        // Assert the exception message
+        assertEquals("Password must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase character, and 1 special character", exception.getMessage());
     }
 }

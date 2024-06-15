@@ -92,6 +92,7 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<?> register(RegisterDto registerDto) {
         Validator.validateEmail(registerDto.getEmail());
         Validator.validateFullName(registerDto.getFullName());
+        Validator.validatePhoneNumber(registerDto.getPhoneNumber());
         Validator.validatePassword(registerDto.getPassword());
 
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
