@@ -13,6 +13,7 @@ public interface PaymentService {
                                     Integer appointmentId);
 
     ResponseEntity<?> checkVNPayPayment(
+            Principal principal,
             HttpServletRequest req,
             String vnp_TxnRef,
             String vnp_TransDate
