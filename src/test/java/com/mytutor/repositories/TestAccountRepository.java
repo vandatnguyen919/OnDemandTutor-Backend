@@ -1,7 +1,6 @@
-package com.mytutor.repository;
+package com.mytutor.repositories;
 
 import com.mytutor.entities.Account;
-import com.mytutor.repositories.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
