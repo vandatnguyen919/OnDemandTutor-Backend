@@ -123,7 +123,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
+        appointmentDto.setStudentId(studentId);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
+
         for (Integer i : appointmentDto.getTimeslotIds()) {
             Timeslot t = timeslotRepository.findById(i).get();
             if (t.isOccupied()) {
