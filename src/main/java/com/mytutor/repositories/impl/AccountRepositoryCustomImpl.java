@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Repository
@@ -68,15 +67,17 @@ public class AccountRepositoryCustomImpl implements AccountRepositoryCustom {
         }
 
         //Filter by keyword tutor's name or profile's description
-        Predicate fullNamePredicate = cb.like(account.get("fullName"), "%" + keyword + "%");
-//        Predicate backgroundDescriptionPredicate = cb.like(tutorDetailJoin.get("backgroundDescription"), "%" + keyword + "%");
-//
-//        predicates.add(cb.or(fullNamePredicate, backgroundDescriptionPredicate));
-        predicates.add(fullNamePredicate);
+        predicates.add(cb.or(
+                cb.like(account.get("fullName"), "%" + keyword + "%")
+//                cb.like(tutorDetailJoin.get("backgroundDescription"), "%" + keyword + "%")
+        ));
 
         //Join with Feedback to get the rating
         Join<Account, Feedback> feedbackJoin = account.join("feedbacks", JoinType.LEFT);
-        predicates.add(feedbackJoin.get("type").in(FeedbackType.REVIEW));
+        predicates.add(cb.or(
+                cb.equal(feedbackJoin.get("type"), FeedbackType.REVIEW),
+                cb.isNull(feedbackJoin.get("type"))
+        ));
 
         Expression<Double> avgRating = cb.avg(feedbackJoin.get("rating"));
 

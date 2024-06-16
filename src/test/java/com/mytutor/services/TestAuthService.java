@@ -389,6 +389,7 @@ public class TestAuthService {
         assertEquals("Email is required", exception.getMessage());
     }
 
+    @Test
     public void ForgotPassword_NNS_39_VerifyEmail_FirstCharacterCannotHaveSpace() {
         // Arrange
         ForgotPasswordDto forgotPasswordDto = new ForgotPasswordDto();
@@ -399,5 +400,24 @@ public class TestAuthService {
 
         // Assert
         assertEquals("First character can not have space", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "/invalid_otp_code.csv", numLinesToSkip = 1)
+    public void OTP_NNS_40_VerifyOTP_OnlyNumericalValues(String otp) {
+        // Arrange
+        String email = "test@example.com";
+
+        // Act
+        Exception exception = assertThrows(Exception.class, () -> otpService.verifyOtp(email, otp));
+
+        // Assert
+        assertEquals("Numerical values only", exception.getMessage());
+    }
+
+    public void OTP_NNS_41_VerifyOTP_Only6Numbers(String otp) {
+        // Arrange
+
+        // Act
     }
 }
