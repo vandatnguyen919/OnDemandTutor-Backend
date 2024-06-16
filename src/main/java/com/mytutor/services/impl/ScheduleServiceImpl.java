@@ -54,7 +54,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     .body("All timeslots are saved successfully");
             } else {
                 // return overlapped timeslot to FE to show to the customer
-                // FE will show annoucement that timeslots saved, except these slots are overlap...
+                // FE will show announcement that timeslots saved, except these slots are overlap...
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(overlapTimeslots);
             }

@@ -90,7 +90,7 @@ public class TestAuthService {
     }
 
     @Test
-    public void NNS_17_VerifyEmail_FirstCharacterCannotHaveSpace() {
+    public void Login_NNS_17_VerifyEmail_FirstCharacterCannotHaveSpace() {
 
         // Arrange
         LoginDto loginDto = new LoginDto();
@@ -319,7 +319,7 @@ public class TestAuthService {
         assertEquals("Invalid phone number", exception.getMessage());
     }
 
-//    public void NNS_33_VerifyPhone_PhoneRequires10Numbers() {
+//    public void Register_NNS_32_VerifyPhone_PhoneRequires10Numbers() {
 //
 //    }
 
@@ -387,5 +387,17 @@ public class TestAuthService {
 
         // Assert (Expected value)
         assertEquals("Email is required", exception.getMessage());
+    }
+
+    public void ForgotPassword_NNS_39_VerifyEmail_FirstCharacterCannotHaveSpace() {
+        // Arrange
+        ForgotPasswordDto forgotPasswordDto = new ForgotPasswordDto();
+        forgotPasswordDto.setEmail(" test@example.com");
+
+        // Act and Assert
+        Exception exception = assertThrows(Exception.class, () -> authService.forgotPassword(forgotPasswordDto));
+
+        // Assert
+        assertEquals("First character can not have space", exception.getMessage());
     }
 }
