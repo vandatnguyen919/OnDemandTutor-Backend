@@ -35,8 +35,8 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
             "OR (t.startTime <= :startTime AND t.endTime >= :endTime))")
     List<Timeslot> findOverlapTimeslot(@Param("tutorId") Integer tutorId,
                                  @Param("date") LocalDate date,
-                                 @Param("startTime") LocalTime startTime,
-                                 @Param("endTime") LocalTime endTime);
+                                 @Param("startTime") Time startTime,
+                                 @Param("endTime") Time endTime);
     
     @Query("SELECT t FROM Timeslot t " +
             "WHERE t.account.id = :tutorId " +

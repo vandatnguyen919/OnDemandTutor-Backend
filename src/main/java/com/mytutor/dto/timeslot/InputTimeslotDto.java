@@ -2,6 +2,7 @@ package com.mytutor.dto.timeslot;
 
 import lombok.Data;
 
+import java.sql.Time;
 import java.time.LocalTime;
 
 /**
@@ -10,9 +11,9 @@ import java.time.LocalTime;
  */
 @Data
 public class InputTimeslotDto {
-    private LocalTime startTime;
+    private Time startTime;
 
-    private LocalTime endTime;
+    private Time endTime;
 
     private Integer dayOfWeek;
 
