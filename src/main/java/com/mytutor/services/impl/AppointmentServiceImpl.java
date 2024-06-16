@@ -6,14 +6,12 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
-import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.exceptions.AppointmentNotFoundException;
-import com.mytutor.exceptions.ConflictTimeslotException;
-import com.mytutor.exceptions.InvalidAppointmentStatusException;
+import com.mytutor.exceptions.*;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.services.AppointmentService;
+import com.mytutor.services.PaymentService;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -47,6 +47,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     ModelMapper modelMapper;
+
     @Autowired
     private AccountRepository accountRepository;
 
@@ -111,7 +112,12 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // student create appointment (not paid yet)
     @Override
+    @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
+        if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId, AppointmentStatus.PENDING_PAYMENT)
+                .isEmpty()) {
+            throw new PaymentFailedException("This student is having another booking in pending payment status!");
+        }
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
@@ -123,6 +129,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             else {
                 t.setOccupied(true);
                 appointment.getTimeslots().add(t);
+                t.setAppointment(appointment);
             }
         }
         Account tutor = accountRepository.findById(appointmentDto.getTutorId())
@@ -131,6 +138,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
                 * calculateTotalHours(appointment.getTimeslots()));
 
+        timeslotRepository.saveAll(appointment.getTimeslots());
         appointmentRepository.save(appointment);
 
         // response
@@ -148,24 +156,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
         return totalHours;
-    }
-
-    // is called after receiving a payment status from payment system
-    @Override
-    public ResponseEntity<?> updatePaidAppointment(Integer appointmentId) {
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
-        appointment.setStatus(AppointmentStatus.PAID);
-        for (Timeslot t : appointment.getTimeslots()) {
-            t.setAppointment(appointment);
-        }
-        timeslotRepository.saveAll(appointment.getTimeslots());
-        appointmentRepository.save(appointment);
-        AppointmentDto dto = modelMapper.map(appointment, AppointmentDto.class);
-        for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslotIds().add(t.getId());
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
     // tutor update appointment status: DONE from PAID or CANCELED from PAID
@@ -198,9 +188,22 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.ok("Appointment status updated successfully");
     }
 
+    // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
+    @Override
+    public void rollbackAppointment(Appointment appointment) {
+        for (Timeslot t : appointment.getTimeslots()) {
+            t.setOccupied(false);
+            t.setAppointment(null);
+        }
+        appointmentRepository.delete(appointment);
+    }
+
     // student update appointment status (canceled)
 
     // sau khi hết 15p do vnpay đếm,
     // mọi thứ trong hàm create appointment sẽ bị roll back về trạng thái trước khi create appointment
     // ...
+
+
+
 }

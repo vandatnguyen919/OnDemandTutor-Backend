@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -34,8 +35,8 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
             "OR (t.startTime <= :startTime AND t.endTime >= :endTime))")
     List<Timeslot> findOverlapTimeslot(@Param("tutorId") Integer tutorId,
                                  @Param("date") LocalDate date,
-                                 @Param("startTime") Time startTime,
-                                 @Param("endTime") Time endTime);
+                                 @Param("startTime") LocalTime startTime,
+                                 @Param("endTime") LocalTime endTime);
     
     @Query("SELECT t FROM Timeslot t " +
             "WHERE t.account.id = :tutorId " +

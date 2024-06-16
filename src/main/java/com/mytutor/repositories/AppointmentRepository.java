@@ -43,4 +43,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             " WHERE t IN :timeslots " +
             " AND a.id != :appointmentId")
     List<Appointment> findAppointmentsWithOverlappingTimeslots(@Param("timeslots") List<Timeslot> timeslots, @Param("appointmentId") Integer appointmentId);
+
+    @Query("SELECT a FROM Appointment a WHERE a.status = :status AND a.student.id = :studentId")
+    List<Appointment> findAppointmentsWithPendingPayment(@Param("studentId") Integer studentId, @Param("status") AppointmentStatus status);
+
+
 }

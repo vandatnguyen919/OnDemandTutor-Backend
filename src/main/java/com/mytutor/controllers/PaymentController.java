@@ -16,7 +16,7 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    @PostMapping("/create-payment")
+    @GetMapping("/create-payment")
     public ResponseEntity<?> createPayment(
             Principal principal,
             HttpServletRequest req,
@@ -27,11 +27,12 @@ public class PaymentController {
 
     @GetMapping("/check-payment/vnpay")
     public ResponseEntity<?> checkPayment(
+            Principal principal,
             HttpServletRequest req,
             @RequestParam(name = "vnp_TxnRef") String vnp_TxnRef,
             @RequestParam(name = "vnp_PayDate") String vnp_TransDate
     ) throws IOException {
-        return paymentService.checkVNPayPayment(req, vnp_TxnRef, vnp_TransDate);
+        return paymentService.checkVNPayPayment(principal, req, vnp_TxnRef, vnp_TransDate);
     }
 
 //    @GetMapping("/refund-payment")

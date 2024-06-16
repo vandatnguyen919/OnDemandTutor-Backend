@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
  *
  * @author vothimaihoa
  */
-
 @Entity
 @Data
 @NoArgsConstructor
@@ -31,6 +30,12 @@ public class Payment {
 
     @Column
     private LocalDateTime transactionTime;
+
+    @Column
+    private String transactionDate;
+
+    @Column
+    private String transactionId;
 
     @ManyToOne
     @JoinColumn(name="appointment_id")
