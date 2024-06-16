@@ -15,8 +15,7 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.Set;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -72,9 +71,12 @@ public class AccountServiceImpl implements AccountService {
 //        if (!checkCurrentAccount(principal, accountId)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
 //        }
+        if (accountDB.getPhoneNumber() == null) {
+            accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+        }
 
-        if (updateAccountDetailsDto.getDayOfBirth() != null && !updateAccountDetailsDto.getDayOfBirth().toString().isEmpty()) {
-            accountDB.setDateOfBirth(updateAccountDetailsDto.getDayOfBirth());
+        if (updateAccountDetailsDto.getDateOfBirth() != null && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
+            accountDB.setDateOfBirth(updateAccountDetailsDto.getDateOfBirth());
         }
         if (updateAccountDetailsDto.getGender() != null && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
             accountDB.setGender(updateAccountDetailsDto.getGender());
