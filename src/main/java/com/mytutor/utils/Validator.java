@@ -1,6 +1,7 @@
 package com.mytutor.utils;
 
 import com.mytutor.constants.RegexConsts;
+import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.exceptions.InvalidInputException;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -10,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Validator {
-
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z\\s]+$");
     public static void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             throw new BadCredentialsException("Email is required");
@@ -75,5 +76,51 @@ public class Validator {
     public static boolean isValidPhoneNumber(String phoneNumber) {
         Pattern pattern = Pattern.compile(RegexConsts.PHONE_NUMBER_REGEX);
         return pattern.matcher(phoneNumber).matches();
+    }
+    public static void validateEducation(EducationDto educationDto) throws Exception {
+        if (educationDto.getUniversityName().trim().isEmpty()) {
+            throw new Exception("University name cannot be blank");
+        }
+        if (!NAME_PATTERN.matcher(educationDto.getUniversityName()).matches()) {
+            throw new Exception("University name cannot contain numbers or special characters");
+        }
+        if (educationDto.getUniversityName().charAt(0) == ' ') {
+            throw new Exception("University name cannot start with a space");
+        }
+
+        if (educationDto.getDegreeType() == null || !isValidDegreeType(educationDto.getDegreeType())) {
+            throw new Exception("Invalid degree type");
+        }
+
+        if (educationDto.getMajorName().trim().isEmpty()) {
+            throw new Exception("Major name cannot be blank");
+        }
+        if (!NAME_PATTERN.matcher(educationDto.getMajorName()).matches()) {
+            throw new Exception("Major name cannot contain numbers or special characters");
+        }
+        if (educationDto.getMajorName().charAt(0) == ' ') {
+            throw new Exception("Major name cannot start with a space");
+        }
+
+        if (educationDto.getSpecialization().trim().isEmpty()) {
+            throw new Exception("Specialization cannot be blank");
+        }
+        if (!NAME_PATTERN.matcher(educationDto.getSpecialization()).matches()) {
+            throw new Exception("Specialization cannot contain numbers or special characters");
+        }
+        if (educationDto.getSpecialization().charAt(0) == ' ') {
+            throw new Exception("Specialization cannot start with a space");
+        }
+        if (educationDto.getStartYear() == 0) {
+            throw new Exception("Start Year must not be blank");
+        }
+
+        if (educationDto.getEndYear() == 0) {
+            throw new Exception("End Year must not be blank");
+        }
+    }
+
+    public static boolean isValidDegreeType(String degreeType) {
+        return degreeType.equals("BACHELOR") || degreeType.equals("MASTER") || degreeType.equals("DOCTORATE");
     }
 }
