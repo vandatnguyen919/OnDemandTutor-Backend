@@ -53,6 +53,7 @@ public class SecurityUtil {
 
         Consumer<Map<String, Object>> claimsConsumer = c -> {
             c.put("id", account.getId());
+            c.put("email", account.getEmail());
             c.put("fullName", account.getFullName());
             c.put("avatarUrl", account.getAvatarUrl());
             c.put("createdAt", RegexConsts.sdf.format(account.getCreatedAt()));
