@@ -65,8 +65,6 @@ import java.util.Map;
     @Autowired
     private OtpService otpService;
 
-    private static final String URL_CLIENT = "http://localhost:5173";
-
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
         try {
@@ -158,28 +156,15 @@ import java.util.Map;
         }
 
         if (account.getStatus().equals(AccountStatus.BANNED)) {
-            //Create uri with token for redirect
-            String url = URL_CLIENT + "/" + "?success=false&message=You%20are%20banned";
-            URI uri = URI.create(url);
-
-            return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
 
         // Generate JWT after authentication succeed
         String token = securityUtil.createToken(oAuth2AuthenticationToken);
 
-        //Create uri with token for redirect
-        String url = URL_CLIENT + "/" + "?success=true&accessToken=" + token;
-        URI uri = URI.create(url);
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
 
-        // REMOVE JSESSIONID
-        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
-        Cookie cookie = new Cookie("JSESSIONID", "");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-
-        return ResponseEntity.status(HttpStatus.FOUND).location(uri).build();
+        return ResponseEntity.status(HttpStatus.FOUND).body(authenticationResponseDto);
     }
 
     @Override

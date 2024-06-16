@@ -133,9 +133,10 @@ public class PaymentServiceImpl implements PaymentService {
         Account payer = accountRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        List<Appointment> appointments = appointmentRepository
+        List<Appointment> appointment = appointmentRepository
                 .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
-        Appointment currentAppointment = appointments.get(0);
+
+        Appointment currentAppointment = appointment.get(0);
 
         if (!"00".equals(resCode)) {
             appointmentService.rollbackAppointment(currentAppointment);
