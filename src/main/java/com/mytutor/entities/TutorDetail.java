@@ -43,9 +43,4 @@ public class TutorDetail {
 
     @Column(name = "percentage")
     private Integer percentage = 15;
-
-    @OneToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
-
 }
