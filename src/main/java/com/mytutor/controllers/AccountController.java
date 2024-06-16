@@ -7,6 +7,7 @@ package com.mytutor.controllers;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.services.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ public class AccountController {
     @PutMapping("/{accountId}/update-details")
     public ResponseEntity<?> updateAccountDetails(
             @PathVariable Integer accountId,
-            @RequestBody UpdateAccountDetailsDto updateAccountDetails,
+            @Valid @RequestBody UpdateAccountDetailsDto updateAccountDetails,
             Principal principal) {
         return accountService.updateAccountDetails(principal, accountId, updateAccountDetails);
     }

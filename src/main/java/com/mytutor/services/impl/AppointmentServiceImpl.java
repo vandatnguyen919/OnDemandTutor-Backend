@@ -117,7 +117,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
-        if (appointmentRepository.findAppointmentsWithPendingPayment(studentId, AppointmentStatus.PENDING_PAYMENT)!=null) {
+        if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId, AppointmentStatus.PENDING_PAYMENT)
+                .isEmpty()) {
             throw new PaymentFailedException("This student is having another booking in pending payment status!");
         }
         appointmentDto.setCreatedAt(LocalDateTime.now());
