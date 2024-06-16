@@ -133,20 +133,22 @@ public class PaymentServiceImpl implements PaymentService {
         Account payer = accountRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Appointment appointment = appointmentRepository
+        List<Appointment> appointment = appointmentRepository
                 .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
 
+        Appointment currentAppointment = appointment.get(0);
+
         if (!"00".equals(resCode)) {
-            appointmentService.rollbackAppointment(appointment);
+            appointmentService.rollbackAppointment(currentAppointment);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
         }
 
         if (!"00".equals(resTranStatus)) {
-            appointmentService.rollbackAppointment(appointment);
+            appointmentService.rollbackAppointment(currentAppointment);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
         }
 //        return ResponseEntity.status(responseCode).body("Payment succeed");
-        return processToDatabase(appointment, vnp_TxnRef, vnp_TransDate);
+        return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate);
     }
 
     public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
