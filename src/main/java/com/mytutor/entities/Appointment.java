@@ -37,7 +37,7 @@ public class Appointment {
     @JoinColumn(name = "tutor_id")
     private Account tutor;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "student_id")
     private Account student;
 
