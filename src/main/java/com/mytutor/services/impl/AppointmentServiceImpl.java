@@ -116,12 +116,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
-        if (appointmentRepository.findAppointmentsWithPendingPayment(studentId, AppointmentStatus.PENDING_PAYMENT)!=null) {
+        Account tutor = accountRepository.findById(appointmentDto.getTutorId())
+                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+
+        if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId,
+                AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
             throw new PaymentFailedException("This student is having another booking in pending payment status!");
         }
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
+        appointmentDto.setStudentId(studentId);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
+
         for (Integer i : appointmentDto.getTimeslotIds()) {
             Timeslot t = timeslotRepository.findById(i).get();
             if (t.isOccupied()) {
@@ -133,8 +139,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 t.setAppointment(appointment);
             }
         }
-        Account tutor = accountRepository.findById(appointmentDto.getTutorId())
-                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+
 
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
                 * calculateTotalHours(appointment.getTimeslots()));
