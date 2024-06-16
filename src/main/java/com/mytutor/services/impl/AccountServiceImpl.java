@@ -71,23 +71,29 @@ public class AccountServiceImpl implements AccountService {
 //        if (!checkCurrentAccount(principal, accountId)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
 //        }
-        if (accountDB.getPhoneNumber() == null) {
-            accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
-        }
 
-        if (updateAccountDetailsDto.getDateOfBirth() != null && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
+        // chỉ cập nhật khi điền vào != null và khác rỗng
+        accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+
+        if (updateAccountDetailsDto.getDateOfBirth() != null
+                && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
             accountDB.setDateOfBirth(updateAccountDetailsDto.getDateOfBirth());
         }
-        if (updateAccountDetailsDto.getGender() != null && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
+
+        if (updateAccountDetailsDto.getGender() != null
+                && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
             accountDB.setGender(updateAccountDetailsDto.getGender());
         }
-        if (updateAccountDetailsDto.getAddress() != null && !updateAccountDetailsDto.getAddress().isEmpty()) {
+        if (updateAccountDetailsDto.getAddress() != null
+                && !updateAccountDetailsDto.getAddress().isBlank()) {
             accountDB.setAddress(updateAccountDetailsDto.getAddress());
         }
-        if (updateAccountDetailsDto.getAvatarUrl() != null && !updateAccountDetailsDto.getAvatarUrl().isEmpty()) {
+        if (updateAccountDetailsDto.getAvatarUrl() != null
+                && !updateAccountDetailsDto.getAvatarUrl().isBlank()) {
             accountDB.setAvatarUrl(updateAccountDetailsDto.getAvatarUrl());
         }
-        if (updateAccountDetailsDto.getFullName() != null && !updateAccountDetailsDto.getFullName().isEmpty()) {
+        if (updateAccountDetailsDto.getFullName() != null
+                && !updateAccountDetailsDto.getFullName().isBlank()) {
             accountDB.setFullName(updateAccountDetailsDto.getFullName());
         }
 
