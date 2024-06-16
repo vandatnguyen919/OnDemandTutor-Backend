@@ -68,12 +68,26 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-        updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
 //        if (!checkCurrentAccount(principal, accountId)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
 //        }
-        modelMapper.map(updateAccountDetailsDto, accountDB);
+
+        if (updateAccountDetailsDto.getDayOfBirth() != null && !updateAccountDetailsDto.getDayOfBirth().toString().isEmpty()) {
+            accountDB.setDateOfBirth(updateAccountDetailsDto.getDayOfBirth());
+        }
+        if (updateAccountDetailsDto.getGender() != null && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
+            accountDB.setGender(updateAccountDetailsDto.getGender());
+        }
+        if (updateAccountDetailsDto.getAddress() != null && !updateAccountDetailsDto.getAddress().isEmpty()) {
+            accountDB.setAddress(updateAccountDetailsDto.getAddress());
+        }
+        if (updateAccountDetailsDto.getAvatarUrl() != null && !updateAccountDetailsDto.getAvatarUrl().isEmpty()) {
+            accountDB.setAvatarUrl(updateAccountDetailsDto.getAvatarUrl());
+        }
+        if (updateAccountDetailsDto.getFullName() != null && !updateAccountDetailsDto.getFullName().isEmpty()) {
+            accountDB.setFullName(updateAccountDetailsDto.getFullName());
+        }
 
         accountRepository.save(accountDB);
 
