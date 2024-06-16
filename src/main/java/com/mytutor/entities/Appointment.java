@@ -33,7 +33,7 @@ public class Appointment {
     @Column(name = "status")
     private AppointmentStatus status;
 
-    @ManyToOne
+    @ManyToOne(cascade=CascadeType.MERGE)
     @JoinColumn(name = "tutor_id")
     private Account tutor;
 
