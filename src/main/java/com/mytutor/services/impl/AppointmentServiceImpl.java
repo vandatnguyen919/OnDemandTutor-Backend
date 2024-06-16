@@ -20,8 +20,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Objects;
@@ -154,7 +156,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     private double calculateTotalHours(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            Duration duration = Duration.between((Temporal) t.getStartTime(), (Temporal) t.getEndTime());
+            LocalTime startLocalTime = t.getStartTime().toLocalTime();
+            LocalTime endLocalTime = t.getEndTime().toLocalTime();
+            Duration duration = Duration.between(startLocalTime, endLocalTime);
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
         return totalHours;

@@ -30,10 +30,10 @@ public class Timeslot {
     private Account account;
 
     @Column(name="start_time")
-    private LocalTime startTime;
+    private Time startTime;
 
     @Column(name="end_time")
-    private LocalTime endTime;
+    private Time endTime;
 
     @Column(name="day_of_week")
     private Integer dayOfWeek;
