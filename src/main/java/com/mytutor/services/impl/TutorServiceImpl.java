@@ -18,8 +18,10 @@ import com.mytutor.exceptions.EducationNotFoundException;
 import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
+import com.mytutor.utils.Validator;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -60,7 +62,11 @@ public class TutorServiceImpl implements TutorService {
 
     @Autowired
     private TutorDetailRepository tutorDetailRepository;
-
+    public TutorServiceImpl(AccountRepository accountRepository, EducationRepository educationRepository, ModelMapper modelMapper) {
+        this.accountRepository = accountRepository;
+        this.educationRepository = educationRepository;
+        this.modelMapper = modelMapper;
+    }
     @Override
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
                                                                     int pageSize,
@@ -151,28 +157,54 @@ public class TutorServiceImpl implements TutorService {
         return ResponseEntity.status(HttpStatus.OK).body(certificateDtos);
     }
 
-    @Override
-    public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos) {
 
-        Account tutor = accountRepository.findById(tutorId).orElseThrow(
-                () -> new AccountNotFoundException("Account not found"));
+//    @Override
+//    public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos) {
+//
+//        Account tutor = accountRepository.findById(tutorId).orElseThrow(
+//                () -> new AccountNotFoundException("Account not found"));
+//
+//        for (EducationDto educationDto : educationDtos) {
+//
+//            Education education = modelMapper.map(educationDto, Education.class);
+//            education.setAccount(tutor);
+//            education.setVerified(false);
+//            education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
+//
+//            educationRepository.save(education);
+//        }
+//
+//        List<Education> educations = educationRepository.findByAccountId(tutorId);
+//        List<EducationDto> educationResponse = educations.stream()
+//                .map(e -> modelMapper.map(e, EducationDto.class)).toList();
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
+//    }
+@Override
+public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos) {
+    Optional<Account> optionalTutor = accountRepository.findById(tutorId);
+    if (optionalTutor.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tutor not found");
+    }
 
+    Account tutor = optionalTutor.get();
+
+    try {
         for (EducationDto educationDto : educationDtos) {
+            Validator.validateEducation(educationDto);
 
             Education education = modelMapper.map(educationDto, Education.class);
             education.setAccount(tutor);
-            education.setVerified(false);
-            education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
-
             educationRepository.save(education);
         }
-
-        List<Education> educations = educationRepository.findByAccountId(tutorId);
-        List<EducationDto> educationResponse = educations.stream()
-                .map(e -> modelMapper.map(e, EducationDto.class)).toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(educationResponse);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
+
+    return ResponseEntity.status(HttpStatus.OK).body("Education details added successfully");
+}
+
+
 
     @Override
     public ResponseEntity<?> addAllCertificates(Integer tutorId, List<CertificateDto> certificateDtos) {

@@ -358,3 +358,4 @@ public class TestAuthService {
         assertEquals("Password must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase character, and 1 special character", exception.getMessage());
     }
 }
+
