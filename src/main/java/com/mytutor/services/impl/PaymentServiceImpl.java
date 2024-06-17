@@ -134,6 +134,9 @@ public class PaymentServiceImpl implements PaymentService {
 
         List<Appointment> appointments = appointmentRepository
                 .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+        if (appointments == null || appointments.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
+        }
 
         Appointment currentAppointment = appointments.get(0);
 
