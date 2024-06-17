@@ -79,7 +79,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @NotNull
-    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId,
+                                                                                         AppointmentStatus status,
+                                                                                         Integer pageNo,
+                                                                                         Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
