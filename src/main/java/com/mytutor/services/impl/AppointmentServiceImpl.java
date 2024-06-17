@@ -80,7 +80,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @NotNull
-    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId,
+                                                                                         AppointmentStatus status,
+                                                                                         Integer pageNo,
+                                                                                         Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -126,7 +129,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         appointmentDto.setCreatedAt(LocalDateTime.now());
         appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
+        appointmentDto.setStudentId(studentId);
         Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
+
         for (Integer i : appointmentDto.getTimeslotIds()) {
             Timeslot t = timeslotRepository.findById(i).get();
             if (t.isOccupied()) {

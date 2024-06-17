@@ -20,11 +20,17 @@ import java.util.List;
 @AllArgsConstructor
 public class AppointmentDto {
     private Integer id;
+
     private LocalDateTime createdAt;
+
     private String description;
+
     private AppointmentStatus status;
+
     private Integer tutorId;
+
     private Integer studentId;
+
     private List<Integer> timeslotIds = new ArrayList<>();
 }
 
