@@ -17,6 +17,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -79,7 +80,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @NotNull
-    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId,
+                                                                                         AppointmentStatus status,
+                                                                                         Integer pageNo,
+                                                                                         Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -198,12 +202,24 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
     @Override
+    @Transactional
     public void rollbackAppointment(Appointment appointment) {
         for (Timeslot t : appointment.getTimeslots()) {
             t.setOccupied(false);
             t.setAppointment(null);
         }
         appointmentRepository.delete(appointment);
+    }
+
+    @Transactional
+    @Scheduled(fixedRate = 60000) // Run to check every minute
+    public void checkPendingAppointments() {
+        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+        List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo);
+
+        for (Appointment appointment : pendingAppointments) {
+            rollbackAppointment(appointment);
+        }
     }
 
     // student update appointment status (canceled)
