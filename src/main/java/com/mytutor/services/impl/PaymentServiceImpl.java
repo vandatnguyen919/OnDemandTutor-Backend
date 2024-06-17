@@ -127,7 +127,6 @@ public class PaymentServiceImpl implements PaymentService {
         JsonObject jsonObject = JsonParser.parseString(String.valueOf(response)).getAsJsonObject();
         String resCode = jsonObject.get("vnp_ResponseCode").getAsString();
         String resMessage = jsonObject.get("vnp_Message").getAsString();
-        String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
 
         // get current payment
         Account payer = accountRepository.findByEmail(principal.getName())
@@ -142,6 +141,7 @@ public class PaymentServiceImpl implements PaymentService {
             appointmentService.rollbackAppointment(currentAppointment);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
         }
+        String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
 
         if (!"00".equals(resTranStatus)) {
             appointmentService.rollbackAppointment(currentAppointment);
