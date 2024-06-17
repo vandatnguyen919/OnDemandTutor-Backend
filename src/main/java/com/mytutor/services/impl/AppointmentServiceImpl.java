@@ -212,7 +212,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 60000) // Run every minute
+    @Scheduled(fixedRate = 60000) // Run to check every minute
     public void checkPendingAppointments() {
         LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
         List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo);
