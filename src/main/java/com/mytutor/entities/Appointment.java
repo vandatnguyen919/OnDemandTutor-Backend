@@ -1,10 +1,13 @@
 package com.mytutor.entities;
 
+import com.mytutor.constants.AppointmentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -18,7 +21,7 @@ public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -30,20 +33,24 @@ public class Appointment {
     @Column(name = "status")
     private AppointmentStatus status;
 
-    @ManyToOne
+    @ManyToOne(cascade=CascadeType.MERGE)
     @JoinColumn(name = "tutor_id")
     private Account tutor;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "student_id")
     private Account student;
 
-    public enum AppointmentStatus {
-        PROCESSING,
-        CONFIRMED,
-        CANCELED,
-        SUCCESS,
-        FAILED
-    }
+    @OneToMany(mappedBy = "appointment")
+    private List<Timeslot> timeslots = new ArrayList<>();
+
+    @Column(name = "tuition")
+    private Double tuition;
+
+    @OneToMany(mappedBy = "appointment")
+    List<Payment> payments = new ArrayList<>();
+
+    private String meetingLink;
+
 }
 

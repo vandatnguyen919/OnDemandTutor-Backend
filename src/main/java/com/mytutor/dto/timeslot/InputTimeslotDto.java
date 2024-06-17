@@ -3,10 +3,11 @@ package com.mytutor.dto.timeslot;
 import lombok.Data;
 
 import java.sql.Time;
+import java.time.LocalTime;
 
 /**
- * @author vothimaihoa
  *
+ * @author vothimaihoa
  */
 @Data
 public class InputTimeslotDto {

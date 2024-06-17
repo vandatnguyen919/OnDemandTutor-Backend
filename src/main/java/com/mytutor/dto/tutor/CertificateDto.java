@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto.tutor;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -13,17 +14,21 @@ import lombok.Data;
 @Data
 public class CertificateDto {
     
-    private int id;
-    
+    private Integer id;
+
+    @NotBlank(message = "Certificate name must not be blank!")
     private String certificateName;
 
     private String description;
 
     private String issuedBy;
 
-    private int issuedYear;
+    private Integer issuedYear;
 
+    @NotBlank(message = "Certificate URL must not be blank!")
     private String certificateUrl;
+
+    private String subject;
 
     private boolean isVerified;
 }

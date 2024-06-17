@@ -4,7 +4,6 @@
  */
 package com.mytutor.services;
 
-import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import org.springframework.http.ResponseEntity;
@@ -24,4 +23,6 @@ public interface AccountService {
     ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
 
     boolean checkCurrentAccount(Principal principal, Integer accountId);
+
+    ResponseEntity<?> readAccountById(Integer accountId);
 }

@@ -51,7 +51,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
             if (overlapTimeslots.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body("All timeslots are saved successfully");
+                    .body("All timeslots are saved successfully");
             } else {
                 // return overlapped timeslot to FE to show to the customer
                 // FE will show annoucement that timeslots saved, except these slots are overlap...
@@ -97,7 +97,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         LocalDate today = LocalDate.now();
         int day = today.getDayOfWeek().getValue() + 1;
         int distance = dayOfWeek > day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
-        return today.plusDays(distance + (weekNo * 7L));
+        return today.plusDays(distance + (weekNo * 7L) );
     }
 
     @Override

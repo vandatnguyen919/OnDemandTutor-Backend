@@ -5,15 +5,17 @@
 
 package com.mytutor.entities;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import java.util.Date;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 /**
  *
@@ -21,15 +23,25 @@ import lombok.ToString;
  */
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
-@Table(name="Role")
-@ToString
-public class Role {
-    
+public class Reply {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     
-    @Column(name="role_name")
-    private String roleName;
+    private String content;
+    
+    private Date createdAt;
+
+    private Date modifiedAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private Account createdBy;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "feedback_id")
+    private Feedback feedback;
 }

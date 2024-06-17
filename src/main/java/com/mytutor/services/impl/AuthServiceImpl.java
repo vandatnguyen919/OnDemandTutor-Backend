@@ -7,58 +7,51 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Role;
 import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
+import com.mytutor.security.SecurityUtil;
 import com.mytutor.services.AuthService;
-import jakarta.transaction.Transactional;
 
+import java.net.URI;
 import java.util.Date;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
-import com.mytutor.constants.RoleName;
+import com.mytutor.constants.Role;
 import com.mytutor.services.OtpService;
-import com.mytutor.utils.PasswordGenerator;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collections;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Map;
 
 /**
  *
  * @author Nguyen Van Dat
  */
 @Service
-public class AuthServiceImpl implements AuthService {
+ public class AuthServiceImpl implements AuthService {
 
     @Autowired
-    private final AccountRepository accountRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
-    private JwtProvider JwtProvider;
+    private SecurityUtil securityUtil;
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
@@ -72,17 +65,6 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private OtpService otpService;
 
-    private final GoogleIdTokenVerifier verifier;
-
-    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
-        NetHttpTransport transport = new NetHttpTransport();
-        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(clientId))
-                .build();
-    }
-
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
         try {
@@ -95,12 +77,10 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // Generate JWT after authentication succeed
-            UserDetails userDetails = userDetailsService.loadUserByUsername(loginDto.getEmail());
-            String token = JwtProvider.generateToken(userDetails);
-            long expirationTime = JwtProvider.JWT_EXPIRATION;
+            String token = securityUtil.createToken(authentication);
 
             // Response ACCESS TOKEN and EXPIRATION TIME
-            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
 
             return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
         } catch (AuthenticationException e) {
@@ -127,19 +107,11 @@ public class AuthServiceImpl implements AuthService {
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         account.setStatus(AccountStatus.UNVERIFIED);
-        Role role = getRole(RoleName.STUDENT);
-        account.setRoles(Collections.singleton(role));
+        account.setRole(Role.STUDENT);
         account.setCreatedAt(new Date());
 
         Account newAccount = accountRepository.save(account);
 
-//        // Generate JWT after authentication succeed
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
-//        String token = JwtProvider.generateToken(userDetails);
-//        long expirationTime = JwtProvider.JWT_EXPIRATION;
-//
-//        // Response ACCESS TOKEN and EXPIRATION TIME
-//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
         otpService.sendOtp(newAccount.getEmail());
 
         AccountResponse accountResponse = new AccountResponse(newAccount.getEmail(), "REGISTRATION");
@@ -150,89 +122,49 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> findByEmail(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
         ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<?> loginOAuthGoogle(IdTokenRequestDto idTokenRequestDto) {
-        Account account = parseIdToken(idTokenRequestDto.getIdToken());
-        if (account == null) {
-            return new ResponseEntity<>("id token is invalid", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> loginOAuthGoogle(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+        Map<String, Object> userOAuth = oAuth2AuthenticationToken.getPrincipal().getAttributes();
+        if (userOAuth == null) {
+            return new ResponseEntity<>("Credentials are invalid!", HttpStatus.BAD_REQUEST);
         }
+        String email = (String) userOAuth.get("email");
+        String fullName = (String) userOAuth.get("name");
+        String avatar = (String) userOAuth.get("picture");
         // Check user has already logged in before or new user
-        account = createOrUpdateUser(account);
+        Account account = accountRepository.findByEmail(email).orElse(null);
+
+        if (account == null) {
+            Account newAccount = new Account();
+            newAccount.setEmail(email);
+            newAccount.setFullName(fullName);
+            newAccount.setAvatarUrl(avatar);
+            newAccount.setStatus(AccountStatus.ACTIVE);
+            newAccount.setCreatedAt(new Date());
+            newAccount.setRole(Role.STUDENT);
+            account = accountRepository.save(newAccount);
+        }
+
+        // Using advantage of login with gg to verify true email
+        if (account.getStatus() == AccountStatus.UNVERIFIED) {
+            account.setStatus(AccountStatus.ACTIVE);
+        }
+
+        if (account.getStatus().equals(AccountStatus.BANNED)) {
+            return ResponseEntity.status(HttpStatus.FOUND).build();
+        }
 
         // Generate JWT after authentication succeed
-        UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
-        String token = JwtProvider.generateToken(userDetails);
-        long expirationTime = JwtProvider.JWT_EXPIRATION;
+        String token = securityUtil.createToken(oAuth2AuthenticationToken);
 
-        // Response ACCESS TOKEN and EXPIRATION TIME
-        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
 
-        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
-    }
-
-    @Transactional
-    private Account createOrUpdateUser(Account account) {
-        Account existingAccount = accountRepository.findByEmail(account.getEmail()).orElse(null);
-
-        // User first time login with google in the application
-        if (existingAccount == null) {
-            Role role = getRole(RoleName.STUDENT);
-            account.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
-            account.setRoles(Collections.singleton(role));
-            account.setCreatedAt(new Date());
-            account.setStatus(AccountStatus.ACTIVE);
-            // Store user info in the database
-            return accountRepository.save(account);
-        }
-        // Otherwise, update user info in the database
-        existingAccount.setFullName(account.getFullName());
-        existingAccount.setAvatarUrl(account.getAvatarUrl());
-
-        // Instead of wainting for user to enter OTP code to verify true email.
-        // Using advantage of login with gg to verify true email
-        if (existingAccount.getStatus() == AccountStatus.UNVERIFIED) {
-            existingAccount.setStatus(AccountStatus.ACTIVE);
-        }
-        return accountRepository.save(existingAccount);
-    }
-
-    private Account parseIdToken(String idToken) {
-        try {
-            // Verify token id
-            GoogleIdToken idTokenObj = verifier.verify(idToken);
-
-            // Extract user info payload from id token
-            GoogleIdToken.Payload payload = idTokenObj.getPayload();
-            String email = (String) payload.get("email");
-            String fullName = (String) payload.get("name");
-            String avatarUrl = (String) payload.get("picture");
-            Account account = new Account();
-            account.setEmail(email);
-            account.setFullName(fullName);
-            account.setAvatarUrl(avatarUrl);
-            return account;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private Role getRole(RoleName roleName) {
-        // Get a role from the database
-        Role role = roleRepository.findByRoleName(roleName.name()).orElse(null);
-        // Create a new role if it is not in the database
-        if (role == null) {
-            role = new Role();
-            role.setRoleName(roleName.name());
-            roleRepository.save(role);
-            role = roleRepository.findByRoleName(roleName.name()).get();
-        }
-        return role;
+        return ResponseEntity.status(HttpStatus.FOUND).body(authenticationResponseDto);
     }
 
     @Override

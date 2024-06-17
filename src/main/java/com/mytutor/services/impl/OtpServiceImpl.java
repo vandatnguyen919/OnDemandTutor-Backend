@@ -13,11 +13,15 @@ import com.mytutor.repositories.OtpRepository;
 import com.mytutor.services.OtpService;
 import com.mytutor.utils.PasswordGenerator;
 import java.time.LocalDateTime;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -56,11 +60,89 @@ public class OtpServiceImpl implements OtpService {
         otpRepository.save(otpEntity);
 
         // Send otp to the receiver
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(receiverEmail);
-        message.setSubject("Your OTP Code");
-        message.setText("Your OTP code is: " + otp);
-
+        String content = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>OTP Verification</title>\n" +
+                "    <style>\n" +
+                "        body {\n" +
+                "            font-family: Arial, sans-serif;\n" +
+                "            background-color: #f3f2f7;\n" +
+                "            margin: 0;\n" +
+                "            padding: 0;\n" +
+                "            color: #333;\n" +
+                "        }\n" +
+                "        .container {\n" +
+                "            width: 100%;\n" +
+                "            max-width: 600px;\n" +
+                "            margin: 5px auto;\n" +
+                "            background-color: #ffffff;\n" +
+                "            padding: 20px;\n" +
+                "            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important; \n" +
+                "        }\n" +
+                "        .header {\n" +
+                "            background: linear-gradient(90deg, #672DEF 0%, #FA6EAD 100%);\n" +
+                "            color: #ffffff;\n" +
+                "            padding: 10px 0;\n" +
+                "            text-align: center;\n" +
+                "            border-radius: 5px;\n" +
+                "        }\n" +
+                "        .content {\n" +
+                "            margin: 20px 0;\n" +
+                "        }\n" +
+                "        .otp {\n" +
+                "            font-size: 24px;\n" +
+                "            font-weight: bold;\n" +
+                "            color: #672DEF;\n" +
+                "        }\n" +
+                "        .footer {\n" +
+                "            margin-top: 20px;\n" +
+                "            text-align: center;\n" +
+                "            color: #777;\n" +
+                "            font-size: 12px;\n" +
+                "        }\n" +
+                "        .button {\n" +
+                "            display: inline-block;\n" +
+                "            padding: 10px 20px;\n" +
+                "            margin-top: 10px;\n" +
+                "            font-size: 16px;\n" +
+                "            color: #ffffff !important;\n" +
+                "            background: linear-gradient(90deg, #672DEF 0%, #FA6EAD 100%);\n" +
+                "            text-decoration: none;\n" +
+                "            border-radius: 5px;\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "    <div class=\"container\">\n" +
+                "        <div class=\"header\">\n" +
+                "            <h1>OTP Verification</h1>\n" +
+                "        </div>\n" +
+                "        <div class=\"content\">\n" +
+                "            <p>Dear User,</p>\n" +
+                "            <p>Thank you for signing up. To complete your registration, please use the following One Time Password (OTP):</p>\n" +
+                "            <p class=\"otp\">" + otp +"</p>\n" +
+                "            <p>This OTP is valid for the next " + EXPIRATION_TIME + " minutes. Please do not share this OTP with anyone.</p>\n" +
+                "            <p>If you did not request this, please ignore this email.</p>\n" +
+                "        </div>\n" +
+                "        <div class=\"footer\">\n" +
+                "            <p>© 2024 My Tutor. All rights reserved.</p>\n" +
+                "            <p><a href=\"https://www.yourcompany.com\" class=\"button\">Visit Our Website</a></p>\n" +
+                "        </div>\n" +
+                "    </div>\n" +
+                "</body>\n" +
+                "</html>\n";
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo(receiverEmail);
+            helper.setSubject("Your OTP Code");
+            helper.setText(content, true);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
         mailSender.send(message);
         
         return ResponseEntity.status(HttpStatus.OK).body(receiverEmail);

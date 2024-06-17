@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.sql.Time;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  *
@@ -43,8 +44,7 @@ public class Timeslot {
     @Column(name="is_occupied")
     private boolean isOccupied = false;
 
-    @Column(name="appointment_id")
-    private Integer appointmentId;
-
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
 }

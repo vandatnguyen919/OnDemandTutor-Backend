@@ -9,13 +9,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  *
  * @author vothimaihoa
  */
 @Repository
-public interface EducationRepository extends JpaRepository<Education, Long> {
+public interface EducationRepository extends JpaRepository<Education, Integer> {
 
-    List<Education> findByAccountId(Integer tutorId);
+    @Query("SELECT e FROM Education e WHERE e.account.id = :accountId ORDER BY e.degreeType DESC")
+    List<Education> findByAccountId(@Param("accountId") Integer tutorId);
+
+    @Query("SELECT e FROM Education e WHERE e.account.id = :accountId AND e.isVerified = :isVerified ORDER BY e.degreeType DESC")
+    List<Education> findByAccountId(@Param("accountId") Integer tutorId, @Param("isVerified") boolean isVerified);
 }
