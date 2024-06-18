@@ -16,20 +16,11 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppointmentDto {
-    private Integer id;
-
-    private LocalDateTime createdAt;
+public class InputAppointmentDto {
 
     private String description;
 
-    private AppointmentStatus status;
-
     private Integer tutorId;
-
-    private Integer studentId;
-
-    private Double tuition;
 
     private List<Integer> timeslotIds = new ArrayList<>();
 }

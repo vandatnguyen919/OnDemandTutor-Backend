@@ -4,6 +4,7 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.QuestionDto;
 import com.mytutor.services.StudentService;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -22,10 +23,14 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @Hidden
+//    @Hidden
     @GetMapping("/students")
-    public ResponseEntity<?> getAllStudents() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public ResponseEntity<?> getAllStudents(
+        @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+        @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+        @RequestParam(value = "status", required = false) String status
+        ) {
+        return studentService.getAllStudents(pageNo, pageSize, status);
     }
 
 
