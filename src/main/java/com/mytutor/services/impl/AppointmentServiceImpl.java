@@ -1,8 +1,9 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.AppointmentDto;
+import com.mytutor.dto.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.ResponseAppointmentDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
@@ -11,8 +12,6 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.services.AppointmentService;
-import com.mytutor.services.PaymentService;
-import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,12 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
-import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,21 +51,25 @@ public class AppointmentServiceImpl implements AppointmentService {
     private AccountRepository accountRepository;
 
     @Override
-    public ResponseEntity<AppointmentDto> getAppointmentById(Integer appointmentId) {
+    public ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
-        AppointmentDto dto = modelMapper.map(appointment, AppointmentDto.class);
-        for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslotIds().add(t.getId());
-        }
+        ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
+        convertTimeslotsToIds(appointment, dto);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
+    private void convertTimeslotsToIds(Appointment appointment, ResponseAppointmentDto dto) {
+        for (Timeslot t : appointment.getTimeslots()) {
+            dto.getTimeslotIds().add(t.getId());
+        }
+    }
+
     @Override
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
-                                                                                  AppointmentStatus status,
-                                                                                  Integer pageNo,
-                                                                                  Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
+                                                                                       AppointmentStatus status,
+                                                                                       Integer pageNo,
+                                                                                       Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -81,10 +81,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudentId(Integer studentId,
-                                                                                    AppointmentStatus status,
-                                                                                    Integer pageNo,
-                                                                                    Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudentId(Integer studentId,
+                                                                                         AppointmentStatus status,
+                                                                                         Integer pageNo,
+                                                                                         Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -96,7 +96,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointments(AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointments(AppointmentStatus status, Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -107,18 +107,21 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
-    private PaginationDto<AppointmentDto> getPaginationDto(Page<Appointment> appointments) {
+    // convert from Page to PaginationDto
+    private PaginationDto<ResponseAppointmentDto> getPaginationDto(Page<Appointment> appointments) {
         List<Appointment> listOfAppointments = appointments.getContent();
 
-        List<AppointmentDto> content = listOfAppointments.stream()
+        List<ResponseAppointmentDto> content = listOfAppointments.stream()
                 .map(a -> {
                     Appointment appointment = appointmentRepository.findById(a.getId())
                             .orElse(new Appointment());
-                    return modelMapper.map(appointment, AppointmentDto.class);
+                    ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
+                    convertTimeslotsToIds(appointment, dto);
+                    return dto;
                 })
                 .collect(Collectors.toList());
 
-        PaginationDto<AppointmentDto> appointmentResponseDto = new PaginationDto<>();
+        PaginationDto<ResponseAppointmentDto> appointmentResponseDto = new PaginationDto<>();
         appointmentResponseDto.setContent(content);
         appointmentResponseDto.setPageNo(appointments.getNumber());
         appointmentResponseDto.setPageSize(appointments.getSize());
@@ -132,20 +135,27 @@ public class AppointmentServiceImpl implements AppointmentService {
     // student create appointment (not paid yet)
     @Override
     @Transactional
-    public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
-        Account tutor = accountRepository.findById(appointmentDto.getTutorId())
+    public ResponseEntity<?> createAppointment(Integer studentId, InputAppointmentDto inputAppointmentDto) {
+        Account tutor = accountRepository.findById(inputAppointmentDto.getTutorId())
                 .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
 
+        // forbid a student make a booking when haven't finished payment for another
         if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId,
                 AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
-            throw new PaymentFailedException("This student is having another booking in pending payment status!");
+            throw new PaymentFailedException("This student is having another booking " +
+                    "in pending payment status!");
         }
-        appointmentDto.setCreatedAt(LocalDateTime.now());
-        appointmentDto.setStatus(AppointmentStatus.PENDING_PAYMENT);
-        appointmentDto.setStudentId(studentId);
-        Appointment appointment = modelMapper.map(appointmentDto, Appointment.class);
 
-        for (Integer i : appointmentDto.getTimeslotIds()) {
+        // create appointment instance
+        Appointment appointment = new Appointment();
+        appointment.setStudent(accountRepository.findById(studentId).get());
+        appointment.setTutor(tutor);
+        appointment.setDescription(inputAppointmentDto.getDescription());
+        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setStatus(AppointmentStatus.PENDING_PAYMENT);
+
+        // get timeslots by ids and set timeslots
+        for (Integer i : inputAppointmentDto.getTimeslotIds()) {
             Timeslot t = timeslotRepository.findById(i).get();
             if (t.isOccupied()) {
                 throw new ConflictTimeslotException("Cannot book because some timeslots are occupied!");
@@ -157,15 +167,16 @@ public class AppointmentServiceImpl implements AppointmentService {
             }
         }
 
-
+        // calculate and set tuition = total hours * teach price per hour
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
                 * calculateTotalHours(appointment.getTimeslots()));
 
+        // save entities
         timeslotRepository.saveAll(appointment.getTimeslots());
         appointmentRepository.save(appointment);
 
         // response
-        AppointmentDto dto = modelMapper.map(appointment, AppointmentDto.class);
+        ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
         for (Timeslot t : appointment.getTimeslots()) {
             dto.getTimeslotIds().add(t.getId());
         }

@@ -1,10 +1,6 @@
 package com.mytutor.dto.payment;
 
-import com.mytutor.dto.AppointmentDto;
-import com.mytutor.entities.Appointment;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import com.mytutor.dto.InputAppointmentDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,5 +21,5 @@ public class ResponseTransactionDto {
 
     private String transactionId;
 
-    private AppointmentDto appointment;
+    private InputAppointmentDto appointment;
 }
