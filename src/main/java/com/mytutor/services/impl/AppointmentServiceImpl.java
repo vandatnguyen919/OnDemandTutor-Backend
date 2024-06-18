@@ -178,8 +178,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     private double calculateTotalHours(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            LocalTime startLocalTime = t.getStartTime().toLocalTime();
-            LocalTime endLocalTime = t.getEndTime().toLocalTime();
+            LocalTime startLocalTime = t.getWeeklySchedule().getStartTime().toLocalTime();
+            LocalTime endLocalTime = t.getWeeklySchedule().getEndTime().toLocalTime();
             Duration duration = Duration.between(startLocalTime, endLocalTime);
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }

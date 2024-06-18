@@ -25,15 +25,15 @@ public class Timeslot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tutor_id")
-    private Account account;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "tutor_id")
+//    private Account account;
 
-    @Column(name="start_time")
-    private Time startTime;
-
-    @Column(name="end_time")
-    private Time endTime;
+//    @Column(name="start_time")
+//    private Time startTime;
+//
+//    @Column(name="end_time")
+//    private Time endTime;
 
     @Column(name="day_of_week")
     private Integer dayOfWeek;
