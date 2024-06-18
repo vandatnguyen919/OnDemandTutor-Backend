@@ -13,6 +13,7 @@ import com.mytutor.services.OtpService;
 
 import java.security.Principal;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -49,8 +50,9 @@ public class AuthController {
     }
 
     @GetMapping("/callback/google/redirect")
-    public ResponseEntity<?> loginWithGoogleSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
-        return authService.loginOAuthGoogle(oAuth2AuthenticationToken);
+    public ResponseEntity<?> loginWithGoogleSuccess() {
+//        return authService.loginOAuthGoogle(oAuth2AuthenticationToken);
+        return null;
     }
 
     @PostMapping("/forgot-password")

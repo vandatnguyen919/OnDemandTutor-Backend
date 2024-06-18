@@ -39,7 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 || account.getStatus() == AccountStatus.PROCESSING) {
             return new User(account.getEmail(), account.getPassword(), mapRolesToAuthorities(account.getRole()));
         }
-        throw new UsernameNotFoundException("This acount can not be trusted");
+        throw new UsernameNotFoundException("This account can not be trusted");
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(Role role) {

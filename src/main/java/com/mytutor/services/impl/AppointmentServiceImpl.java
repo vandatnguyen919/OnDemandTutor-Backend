@@ -18,11 +18,16 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
+import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -80,7 +85,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @NotNull
-    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId, AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    private ResponseEntity<PaginationDto<AppointmentDto>> getPaginationDtoResponseEntity(Integer accountId,
+                                                                                         AppointmentStatus status,
+                                                                                         Integer pageNo,
+                                                                                         Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -117,8 +125,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
-        if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId, AppointmentStatus.PENDING_PAYMENT)
-                .isEmpty()) {
+        Account tutor = accountRepository.findById(appointmentDto.getTutorId())
+                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+
+        if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId,
+                AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
             throw new PaymentFailedException("This student is having another booking in pending payment status!");
         }
         appointmentDto.setCreatedAt(LocalDateTime.now());
@@ -142,11 +153,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                 t.setAppointment(appointment);
             }
         }
-        Account tutor = accountRepository.findById(appointmentDto.getTutorId())
-                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
-        timeslotRepository.saveAll(appointment.getTimeslots());
+
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
                 * calculateTotalHours(appointment.getTimeslots()));
+
+        timeslotRepository.saveAll(appointment.getTimeslots());
         appointmentRepository.save(appointment);
 
         // response
@@ -167,9 +178,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     private double calculateTotalHours(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            System.out.println(t.getWeeklySchedule().getStartTime());
-            Duration duration = Duration.between( t.getWeeklySchedule().getStartTime(), t.getWeeklySchedule().getEndTime());
-
+            LocalTime startLocalTime = t.getStartTime().toLocalTime();
+            LocalTime endLocalTime = t.getEndTime().toLocalTime();
+            Duration duration = Duration.between(startLocalTime, endLocalTime);
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
         return totalHours;
@@ -207,8 +218,22 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
     @Override
+    @Transactional
     public void rollbackAppointment(Appointment appointment) {
         appointmentRepository.delete(appointment);
+    }
+
+    @Transactional
+    @Scheduled(fixedRate = 60000) // Run to check every minute
+    public void checkPendingAppointments() {
+        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+        List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
+                AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
+        );
+
+        for (Appointment appointment : pendingAppointments) {
+            rollbackAppointment(appointment);
+        }
     }
 
     // student update appointment status (canceled)
