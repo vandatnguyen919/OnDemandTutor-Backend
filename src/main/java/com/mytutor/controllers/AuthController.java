@@ -5,15 +5,17 @@
 package com.mytutor.controllers;
 
 import com.mytutor.dto.ForgotPasswordDto;
-import com.mytutor.dto.IdTokenRequestDto;
 import com.mytutor.dto.LoginDto;
 import com.mytutor.dto.RegisterDto;
 import com.mytutor.dto.ResetPasswordDto;
 import com.mytutor.services.AuthService;
 import com.mytutor.services.OtpService;
+
 import java.security.Principal;
+
+import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @RestController
@@ -44,20 +45,21 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterDto registerDto) {
         return authService.register(registerDto);
     }
 
-    @GetMapping("/login-with-google")
-    public ResponseEntity<?> loginWithGoogleSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
-        return authService.loginOAuthGoogle( oAuth2AuthenticationToken);
+    @GetMapping("/callback/google/redirect")
+    public ResponseEntity<?> loginWithGoogleSuccess() {
+//        return authService.loginOAuthGoogle(oAuth2AuthenticationToken);
+        return null;
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
         return authService.forgotPassword(forgotPasswordDto);
     }
-    
+
     @PutMapping("/reset-password")
     public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
         return authService.resetPassword(resetPasswordDto);

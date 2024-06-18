@@ -21,8 +21,14 @@ public class TutorController {
     @GetMapping("")
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        return tutorService.getAllTutors(pageNo, pageSize);
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "specialty", defaultValue = "all", required = false) String subjects,
+            @RequestParam(value = "priceMin", defaultValue = "0", required = false) double priceMin,
+            @RequestParam(value = "priceMax", defaultValue = "9999999999", required = false) double priceMax,
+            @RequestParam(value = "tutorLevel", defaultValue = "all", required = false) String tutorLevel,
+            @RequestParam(value = "sortBy", defaultValue = "price", required = false) String sortBy,
+            @RequestParam(value = "searchKeyword", defaultValue = "", required = false) String keyword) {
+        return tutorService.getAllTutors(pageNo, pageSize, subjects, priceMin, priceMax, tutorLevel, sortBy, keyword);
     }
 
     @GetMapping("/{tutorId}")
@@ -33,14 +39,16 @@ public class TutorController {
 
     @GetMapping("/{tutorId}/educations")
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(
-            @PathVariable Integer tutorId) {
-        return tutorService.getListOfEducationsByTutorId(tutorId);
+            @PathVariable Integer tutorId,
+            @RequestParam(value = "isVerified", defaultValue = "", required = false) String isVerified) {
+        return tutorService.getListOfEducationsByTutorId(tutorId, isVerified);
     }
 
     @GetMapping("/{tutorId}/certificates")
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(
-            @PathVariable Integer tutorId) {
-        return tutorService.getListOfCertificatesByTutorId(tutorId);
+            @PathVariable Integer tutorId,
+            @RequestParam(value = "isVerified", defaultValue = "", required = false) String isVerified) {
+        return tutorService.getListOfCertificatesByTutorId(tutorId, isVerified);
     }
 
     @PostMapping("/{tutorId}/educations")

@@ -4,20 +4,13 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.QuestionDto;
 import com.mytutor.services.StudentService;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  *
@@ -30,18 +23,31 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @Hidden
+//    @Hidden
     @GetMapping("/students")
-    public ResponseEntity<?> getAllStudents() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public ResponseEntity<?> getAllStudents(
+        @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+        @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+        @RequestParam(value = "status", required = false) String status
+        ) {
+        return studentService.getAllStudents(pageNo, pageSize, status);
     }
+
 
     @GetMapping("/questions")
     public ResponseEntity<?> getAllQuestions(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestParam(value = "type", defaultValue = "all", required = false) String type) {
-        return studentService.getAllQuestion(pageNo, pageSize, type);
+            @RequestParam(value = "type", defaultValue = "all", required = false) String type,
+            @RequestParam(value = "subjects", defaultValue = "all", required = false) String subjects,
+            @RequestParam(value = "questionContent", defaultValue = "", required = false) String questionContent) {
+        return studentService.getAllQuestion(pageNo, pageSize, type, subjects, questionContent);
+    }
+
+    @GetMapping("/questions/{questionId}")
+    public ResponseEntity<?> getQuestionById(
+            @PathVariable("questionId") int questionId) {
+        return studentService.getQuestionById(questionId);
     }
 
     @PostMapping("/students/{studentId}/questions")
@@ -65,4 +71,5 @@ public class StudentController {
             @PathVariable Integer questionId) {
         return studentService.deleteQuestion(studentId, questionId);
     }
+
 }

@@ -5,8 +5,8 @@
 package com.mytutor.dto;
 
 import com.mytutor.constants.FeedbackType;
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Feedback;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,7 +24,9 @@ import lombok.NoArgsConstructor;
 public class FeedbackDto {
 
     private int id;
-    private int createdBy;
+    private int createdById;
+    private String createdBy;
+    private String avatarUrl;
     private int tutorId;
     private Integer rating;
     private String content;
@@ -41,19 +43,18 @@ public class FeedbackDto {
 
         FeedbackDto feedbackDto = new FeedbackDto();
         feedbackDto.setId(feedback.getId());
-        feedbackDto.setCreatedBy(feedback.getCreatedBy().getId());
+        feedbackDto.setCreatedById(feedback.getCreatedBy().getId());
+        feedbackDto.setCreatedBy(feedback.getCreatedBy().getEmail());
+        feedbackDto.setAvatarUrl(feedback.getCreatedBy().getAvatarUrl());
         feedbackDto.setTutorId(feedback.getTutor().getId());
         feedbackDto.setRating(feedback.getRating());
         feedbackDto.setContent(feedback.getContent());
         
-        // Create a SimpleDateFormat object with the desired format
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
-        feedbackDto.setCreatedAt(sdf.format(feedback.getCreatedAt()));
-        feedbackDto.setModifiedAt(sdf.format(feedback.getModifiedAt()));
+        feedbackDto.setCreatedAt(RegexConsts.sdf.format(feedback.getCreatedAt()));
+        feedbackDto.setModifiedAt(RegexConsts.sdf.format(feedback.getModifiedAt()));
         feedbackDto.setIsBanned(feedback.getIsBanned());
         feedbackDto.setType(feedback.getType());
-        feedbackDto.setReplies(feedback.getReplies().stream().map(r -> ReplyDto.mapToDto(r)).collect(Collectors.toList()));
+        feedbackDto.setReplies(feedback.getReplies().stream().map(ReplyDto::mapToDto).collect(Collectors.toList()));
 
         return feedbackDto;
     }

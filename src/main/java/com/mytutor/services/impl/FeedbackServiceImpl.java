@@ -42,7 +42,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Feedback> feedbacks = feedbackRepository.findFeedbackByType(FeedbackType.REVIEW, pageable);
         List<Feedback> listOfFeedback = feedbacks.getContent();
-        List<FeedbackDto> content = listOfFeedback.stream().map(f -> FeedbackDto.mapToDto(f)).toList();
+        List<FeedbackDto> content = listOfFeedback.stream().map(FeedbackDto::mapToDto).toList();
 
         PaginationDto<FeedbackDto> feedbackResponseDto = new PaginationDto<>();
         feedbackResponseDto.setContent(content);
@@ -63,7 +63,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Feedback> feedbacks = feedbackRepository.findFeedbackByTypeAndTutorId(FeedbackType.REVIEW, tutor, pageable);
         List<Feedback> listOfFeedback = feedbacks.getContent();
-        List<FeedbackDto> content = listOfFeedback.stream().map(f -> FeedbackDto.mapToDto(f)).toList();
+        List<FeedbackDto> content = listOfFeedback.stream().map(FeedbackDto::mapToDto).toList();
 
         PaginationDto<FeedbackDto> feedbackResponseDto = new PaginationDto<>();
         feedbackResponseDto.setContent(content);
@@ -97,7 +97,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
 
-        Account creator = accountRepository.findById(feedbackDto.getCreatedBy()).orElseThrow(() -> new AccountNotFoundException("Creator not found"));
+        Account creator = accountRepository.findById(feedbackDto.getCreatedById()).orElseThrow(() -> new AccountNotFoundException("Creator not found"));
 
         // Map FeedbackDto to Feedback entity
         Feedback feedback = new Feedback();

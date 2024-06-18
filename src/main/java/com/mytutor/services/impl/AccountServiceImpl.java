@@ -5,19 +5,17 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Role;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.RoleRepository;
 
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.Set;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,9 +33,6 @@ public class AccountServiceImpl implements AccountService {
     private AccountRepository accountRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -47,14 +42,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity<?> changeRole(Integer accountId, String roleName) {
-        Role role = roleRepository.findByRoleName(roleName).get();
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new AccountNotFoundException("Account not found"));
 
         // Set the role to the account
-        Set<Role> roles = new HashSet<>();
-        roles.add(role);
-        account.setRoles(roles);
+        account.setRole(Role.getRole(roleName));
         account.setStatus(AccountStatus.PROCESSING);
 
         accountRepository.save(account);
@@ -75,12 +67,35 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-        updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
 //        if (!checkCurrentAccount(principal, accountId)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
 //        }
-        modelMapper.map(updateAccountDetailsDto, accountDB);
+
+        // chỉ cập nhật khi điền vào != null và khác rỗng
+        accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+
+        if (updateAccountDetailsDto.getDateOfBirth() != null
+                && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
+            accountDB.setDateOfBirth(updateAccountDetailsDto.getDateOfBirth());
+        }
+
+        if (updateAccountDetailsDto.getGender() != null
+                && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
+            accountDB.setGender(updateAccountDetailsDto.getGender());
+        }
+        if (updateAccountDetailsDto.getAddress() != null
+                && !updateAccountDetailsDto.getAddress().isBlank()) {
+            accountDB.setAddress(updateAccountDetailsDto.getAddress());
+        }
+        if (updateAccountDetailsDto.getAvatarUrl() != null
+                && !updateAccountDetailsDto.getAvatarUrl().isBlank()) {
+            accountDB.setAvatarUrl(updateAccountDetailsDto.getAvatarUrl());
+        }
+        if (updateAccountDetailsDto.getFullName() != null
+                && !updateAccountDetailsDto.getFullName().isBlank()) {
+            accountDB.setFullName(updateAccountDetailsDto.getFullName());
+        }
 
         accountRepository.save(accountDB);
 

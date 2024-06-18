@@ -23,4 +23,18 @@ public enum DegreeType {
     public int getRanking() {
         return ranking;
     }
+
+    public static DegreeType getDegreeType(String degreeType) {
+        if (degreeType == null) return null;
+        if (degreeType.equalsIgnoreCase(ASSOCIATE.toString())) {
+            return ASSOCIATE;
+        } else if (degreeType.equalsIgnoreCase(BACHELOR.toString())) {
+            return BACHELOR;
+        } else if (degreeType.equalsIgnoreCase(MASTER.toString())) {
+            return MASTER;
+        } else if (degreeType.equalsIgnoreCase(DOCTORAL.toString())) {
+            return DOCTORAL;
+        }
+        return null;
+    }
 }
