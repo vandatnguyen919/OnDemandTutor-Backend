@@ -29,6 +29,8 @@ public class AppointmentDto {
 
     private Integer studentId;
 
+    private Double tuition;
+
     private List<Integer> timeslotIds = new ArrayList<>();
 }
 

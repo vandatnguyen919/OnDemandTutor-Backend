@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.AppointmentDto;
 import com.mytutor.dto.payment.ResponsePaymentDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
@@ -16,6 +17,7 @@ import com.mytutor.repositories.PaymentRepository;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +51,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private AppointmentService appointmentService;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
@@ -170,7 +175,7 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(payment);
         appointmentRepository.save(appointment);
 
-        return ResponseEntity.status(HttpStatus.OK).body(payment);
+        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(appointment, AppointmentDto.class));
     }
 
     private ResponseEntity<?> createPaymentWithVNPay(long amountParam, HttpServletRequest req) {
