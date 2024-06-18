@@ -40,7 +40,7 @@ public class AuthController {
     private OtpService otpService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
     }
 
