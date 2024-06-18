@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResetPasswordDto {
 
-    @Email(message = "invalid email format", regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
+    @Email(message = "invalid email format", regexp = RegexConsts.EMAIL_REGEX)
     @NotNull
     private String email;
 
