@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-package com.mytutor.dto;
+package com.mytutor.dto.auth;
 
 import com.mytutor.constants.RegexConsts;
 import jakarta.validation.constraints.Email;
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginDto {
 
-    @Email(message = "invalid email format")
+    @Email(message = "invalid email format", regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
     @NotNull
     private String email;
 
