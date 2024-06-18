@@ -14,6 +14,6 @@ import lombok.Data;
 @Data
 public class ErrorObject {
     private int statusCode;
-    private String message;
+    private Object message;
     private Date timestamp;
 }

@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
  * @author vothimaihoa
  */
 public interface RegexConsts {
-    String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@$!%*?&]{8,}$";
+    String PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[.@#$%^&+=!])(?=\\S+$).{8,16}";
     String PHONE_NUMBER_REGEX = "^(0|\\+?84)(3|5|7|8|9)[0-9]{8}$";
 
     // Create a SimpleDateFormat object with the desired format
