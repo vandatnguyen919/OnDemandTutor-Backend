@@ -4,20 +4,18 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.dto.ForgotPasswordDto;
-import com.mytutor.dto.LoginDto;
-import com.mytutor.dto.RegisterDto;
-import com.mytutor.dto.ResetPasswordDto;
+import com.mytutor.dto.auth.ForgotPasswordDto;
+import com.mytutor.dto.auth.LoginDto;
+import com.mytutor.dto.auth.RegisterDto;
+import com.mytutor.dto.auth.ResetPasswordDto;
 import com.mytutor.services.AuthService;
 import com.mytutor.services.OtpService;
 
 import java.security.Principal;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;

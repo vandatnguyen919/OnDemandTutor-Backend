@@ -6,6 +6,10 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
+import com.mytutor.dto.auth.ForgotPasswordDto;
+import com.mytutor.dto.auth.LoginDto;
+import com.mytutor.dto.auth.RegisterDto;
+import com.mytutor.dto.auth.ResetPasswordDto;
 import com.mytutor.entities.Account;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.repositories.AccountRepository;
@@ -13,17 +17,13 @@ import com.mytutor.security.CustomUserDetailsService;
 import com.mytutor.security.SecurityUtil;
 import com.mytutor.services.AuthService;
 
-import java.net.URI;
 import java.util.Date;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -32,8 +32,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.stereotype.Service;
 import com.mytutor.constants.Role;
 import com.mytutor.services.OtpService;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Map;
 

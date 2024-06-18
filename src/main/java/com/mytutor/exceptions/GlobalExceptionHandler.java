@@ -4,20 +4,16 @@
  */
 package com.mytutor.exceptions;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.*;
 
 /**
  *
@@ -33,11 +29,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorObject> handleCredentialsException(Exception ex) {
         ErrorObject errorObject = new ErrorObject();
 
-        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorObject.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
-        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorObject, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(value = {
@@ -106,14 +102,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorObject> handleBindException(MethodArgumentNotValidException ex) {
         ErrorObject errorObject = new ErrorObject();
-        Map<String, String> errors = new HashMap<>();
+        List<String> errors = new ArrayList<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            errors.add(fieldName + ": " + errorMessage);
         });
         errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        errorObject.setMessage(errors.toString());
+        errorObject.setMessage(errors);
         errorObject.setTimestamp(new Date());
 
         return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
