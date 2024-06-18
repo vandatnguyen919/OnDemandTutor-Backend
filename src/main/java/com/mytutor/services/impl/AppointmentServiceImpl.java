@@ -96,7 +96,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointments(AppointmentStatus status, Integer pageNo, Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointments(AppointmentStatus status,
+                                                                                 Integer pageNo,
+                                                                                 Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         if (status == null) {
@@ -135,7 +137,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     // student create appointment (not paid yet)
     @Override
     @Transactional
-    public ResponseEntity<?> createAppointment(Integer studentId, InputAppointmentDto inputAppointmentDto) {
+    public ResponseEntity<?> createAppointment(Integer studentId,
+                                               InputAppointmentDto inputAppointmentDto) {
         Account tutor = accountRepository.findById(inputAppointmentDto.getTutorId())
                 .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
 
