@@ -5,6 +5,7 @@
 
 package com.mytutor.dto.auth;
 
+import com.mytutor.constants.RegexConsts;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,6 @@ import lombok.NoArgsConstructor;
 public class ForgotPasswordDto {
 
     @NotNull
-    @Email(message = "invalid email format", regexp = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
+    @Email(message = "invalid email format", regexp = RegexConsts.EMAIL_REGEX)
     private String email;
 }
