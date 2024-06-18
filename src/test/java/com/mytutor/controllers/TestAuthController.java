@@ -6,6 +6,8 @@ import com.mytutor.dto.LoginDto;
 import com.mytutor.services.AuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
@@ -38,12 +41,13 @@ public class TestAuthController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Test
-    public void login_CorrectEmailFormat() throws Exception {
+    @ParameterizedTest
+    @CsvFileSource(resources = "/invalid_emails.csv", numLinesToSkip = 1)
+    public void Login_InvalidEmailFormat(String email, String description) throws Exception {
         // Given
         LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("");
-        loginDto.setPassword("password123");
+        loginDto.setEmail(email);
+        loginDto.setPassword("Password123.");
 
         // When
         ResultActions response = mockMvc.perform(post("/api/auth/login")
@@ -55,4 +59,26 @@ public class TestAuthController {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.statusCode").value(400))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
+
+//    @Test
+//    public void Login_ValidEmailFormat() throws Exception {
+//        // Given
+//        LoginDto loginDto = new LoginDto();
+//        loginDto.setEmail("test@example.com");
+//        loginDto.setPassword("Password123.");
+//
+//        ResponseEntity<?> res = authService.login(loginDto);
+//
+//        when(authService.login(loginDto)).thenReturn(res);
+//
+//        // When
+//        ResultActions response = mockMvc.perform(post("/api/auth/login")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(objectMapper.writeValueAsString(loginDto)));
+//
+//        // Then
+//        response.andExpect(MockMvcResultMatchers.status().isBadRequest())
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.statusCode").value(400))
+//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+//    }
 }
