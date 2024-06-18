@@ -1,5 +1,6 @@
 package com.mytutor.services.impl;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
@@ -129,8 +130,19 @@ public class PaymentServiceImpl implements PaymentService {
         System.out.println(response);
 
         JsonObject jsonObject = JsonParser.parseString(String.valueOf(response)).getAsJsonObject();
+
         String resCode = jsonObject.get("vnp_ResponseCode").getAsString();
         String resMessage = jsonObject.get("vnp_Message").getAsString();
+
+        if (!"00".equals(resCode)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);  // message "Request is duplicated", if there are multiple requests to check payment
+        }
+
+        String resTranStatus = jsonObject.get("vnp_TransactionStatus").getAsString();
+
+        if (!"00".equals(resTranStatus)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
+        }
 
         // get current payment
         Account payer = accountRepository.findByEmail(principal.getName())
@@ -144,17 +156,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         Appointment currentAppointment = appointments.get(0);
 
-        if (!"00".equals(resCode)) {
-            appointmentService.rollbackAppointment(currentAppointment);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
-        }
-        String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
-
-        if (!"00".equals(resTranStatus)) {
-            appointmentService.rollbackAppointment(currentAppointment);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
-        }
-//        return ResponseEntity.status(responseCode).body("Payment succeed");
         return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate);
     }
 
