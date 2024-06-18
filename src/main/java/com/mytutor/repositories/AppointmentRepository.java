@@ -38,6 +38,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             " AND a.status = :status")
     Page<Appointment> findAppointmentByStudentId(Integer studentId, AppointmentStatus status, Pageable pageable);
 
+    @Query("SELECT a FROM Appointment a "
+            + " WHERE a.status = :status")
+    Page<Appointment> findAppointments(AppointmentStatus status, Pageable pageable);
+
 
     @Query("SELECT DISTINCT a " +
             " FROM Appointment a JOIN a.timeslots t " +
@@ -49,5 +53,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findAppointmentsWithPendingPayment(@Param("studentId") Integer studentId, @Param("status") AppointmentStatus status);
 
     List<Appointment> findByStatusAndCreatedAtBefore(AppointmentStatus status, LocalDateTime dateTime);
+
+
 
 }

@@ -25,12 +25,13 @@ public class ResponseAccountDetailsDto {
 
     private int id;
     private Date dateOfBirth;
-    private Boolean gender; // male: false, female: true
+    private String gender; // male: false, female: true
     private String address;
     private String avatarUrl;
     private String email;
     private String fullName;
     private String phoneNumber;
+    private String status;
     private Role role;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
@@ -41,12 +42,13 @@ public class ResponseAccountDetailsDto {
         return ResponseAccountDetailsDto.builder()
                 .id(account.getId())
                 .dateOfBirth(account.getDateOfBirth())
-                .gender(account.getGender())
+                .gender(account.getGender() ? "female" : "male")
                 .address(account.getAddress())
                 .avatarUrl(account.getAvatarUrl())
                 .email(account.getEmail())
                 .fullName(account.getFullName())
                 .phoneNumber(account.getPhoneNumber())
+                .status(account.getStatus().toString())
                 .role(account.getRole())
                 .build();
     }
