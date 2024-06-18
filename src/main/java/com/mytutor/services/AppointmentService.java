@@ -19,4 +19,5 @@ public interface AppointmentService {
     ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointment);
     ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status);
     void rollbackAppointment(Appointment appointment);
+    ResponseEntity<PaginationDto<AppointmentDto>> getAppointments(AppointmentStatus status, Integer pageNo, Integer pageSize);
 }

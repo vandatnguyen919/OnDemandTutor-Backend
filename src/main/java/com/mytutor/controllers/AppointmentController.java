@@ -25,6 +25,15 @@ public class AppointmentController {
         return appointmentService.getAppointmentById(appointmentId);
     }
 
+    // lay ra tat ca appointment theo trang thai
+    @GetMapping("")
+    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointments(
+            @RequestParam(value = "status", required = false) AppointmentStatus status,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
+        return appointmentService.getAppointments(status, pageNo, pageSize);
+    }
+
     // lay ra tat ca appointment cua mot tutor theo trang thai
     @GetMapping("/tutors/{tutorId}")
     public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutor(

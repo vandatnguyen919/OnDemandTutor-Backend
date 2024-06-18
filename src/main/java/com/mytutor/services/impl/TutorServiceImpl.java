@@ -286,7 +286,7 @@ public class TutorServiceImpl implements TutorService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
-
+//        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
