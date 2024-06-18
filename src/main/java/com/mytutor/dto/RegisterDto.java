@@ -11,21 +11,23 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Data
 public class RegisterDto {
 
-    @Email(message = "Please enter a valid email")
+    @Email(message = "invalid email format")
     private String email;
-    
-    @Size(min = 2, max = 255, message = "Name must be between 2 and 255 characters")
+
+    @Size(message = "must be between 1 and 255 characters",
+            min = 1, max = 255)
     private String fullName;
-    
-    @Pattern(regexp = RegexConsts.PHONE_NUMBER_REGEX, message = "Invalid phone number format")
+
+    @Pattern(message = "invalid phone number format",
+            regexp = RegexConsts.PHONE_NUMBER_REGEX)
     private String phoneNumber;
-    
-    @Pattern(regexp = RegexConsts.PASSWORD_REGEX, message = "Password must be at least 8 characters, contains both numbers and letters")
+
+    @Pattern(message = "must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase character, and 1 special character",
+            regexp = RegexConsts.PASSWORD_REGEX)
     private String password;
 }
