@@ -38,11 +38,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.Map;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Service
- public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AccountRepository accountRepository;
@@ -67,27 +66,20 @@ import java.util.Map;
 
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
-        try {
+        // Authenticate username(email) and password
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getEmail(),
+                        loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Authenticate username(email) and password
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginDto.getEmail(),
-                            loginDto.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Generate JWT after authentication succeed
+        String token = securityUtil.createToken(authentication);
 
-            // Generate JWT after authentication succeed
-            String token = securityUtil.createToken(authentication);
+        // Response ACCESS TOKEN and EXPIRATION TIME
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
 
-            // Response ACCESS TOKEN and EXPIRATION TIME
-            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
-
-            return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
-        } catch (AuthenticationException e) {
-
-            // If Authentication failed
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
-        }
+        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
     @Override
@@ -173,9 +165,9 @@ import java.util.Map;
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         otpService.sendOtp(account.getEmail());
-        
+
         AccountResponse accountResponse = new AccountResponse(account.getEmail(), "FORGOT_PASSWORD");
-        
+
         return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
     }
 
@@ -193,5 +185,6 @@ import java.util.Map;
         return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
     }
 
-    private record AccountResponse(String email, String status) {}
+    private record AccountResponse(String email, String status) {
+    }
 }
