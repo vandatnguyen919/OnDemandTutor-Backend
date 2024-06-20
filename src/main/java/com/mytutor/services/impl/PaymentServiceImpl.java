@@ -139,23 +139,25 @@ public class PaymentServiceImpl implements PaymentService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);  // message "Request is duplicated", if there are multiple requests to check payment
         }
 
-        String resTranStatus = jsonObject.get("vnp_TransactionStatus").getAsString();
-
-        if (!"00".equals(resTranStatus)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
-        }
-
         // get current payment
         Account payer = accountRepository.findByEmail(principal.getName())
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         List<Appointment> appointments = appointmentRepository
                 .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+
         if (appointments == null || appointments.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("There is no pending payment");
         }
 
         Appointment currentAppointment = appointments.get(0);
+
+        String resTranStatus = jsonObject.get("vnp_TransactionStatus").getAsString();
+
+        if (!"00".equals(resTranStatus)) {
+            appointmentService.rollbackAppointment(currentAppointment);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
+        }
 
         return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate);
     }
