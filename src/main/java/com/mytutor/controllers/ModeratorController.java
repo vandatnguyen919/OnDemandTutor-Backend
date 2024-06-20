@@ -33,6 +33,14 @@ public class ModeratorController {
         return moderatorService.checkACertificate(certificateId, status);
     }
 
+    // duyet cau hoi
+    @PutMapping("/questions/{questionId}")
+    public ResponseEntity<?> checkQuestions(
+            @PathVariable int questionId,
+            @RequestParam String status) {
+        return moderatorService.checkAQuestion(questionId, status);
+    }
+
     // duyet tutor description
     @PutMapping("/tutors/{tutorId}")
     public ResponseEntity<?> checkTutor(
