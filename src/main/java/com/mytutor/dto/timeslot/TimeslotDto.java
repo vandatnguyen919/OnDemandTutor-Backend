@@ -26,9 +26,9 @@ public class TimeslotDto {
 
     private int id;
     
-    private LocalTime startTime;
+    private Time startTime;
 
-    private LocalTime endTime;
+    private Time endTime;
     
 //    private boolean isOccupied;
     

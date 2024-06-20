@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Time;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -21,8 +22,8 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
             "OR (w.startTime <= :startTime AND w.endTime >= :endTime))")
     List<WeeklySchedule> findOverlapSchedule(@Param("tutorId") Integer tutorId,
                                        @Param("dayOfWeek") Integer dayOfWeek,
-                                       @Param("startTime") LocalTime startTime,
-                                       @Param("endTime") LocalTime endTime);
+                                       @Param("startTime") Time startTime,
+                                       @Param("endTime") Time endTime);
 
     @Query("SELECT w FROM WeeklySchedule w " +
             " WHERE w.account.id = :tutorId " +

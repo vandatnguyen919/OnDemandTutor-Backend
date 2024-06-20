@@ -20,7 +20,7 @@ public class ScheduleController {
     ScheduleService scheduleService;
 
     // allow tutor role only
-    @PostMapping("/tutors/{tutorId}")
+    @PostMapping("/tutors/{tutorId}/timeslots")
     public ResponseEntity<?> addNewSchedule(
             @PathVariable Integer tutorId,
             @RequestBody List<InputWeeklyScheduleDto> tutorScheduleDto) {

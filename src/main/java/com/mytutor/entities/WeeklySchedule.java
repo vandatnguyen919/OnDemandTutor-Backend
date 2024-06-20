@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Time;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -25,10 +26,10 @@ public class WeeklySchedule {
     private Account account;
 
     @Column(name="start_time")
-    private LocalTime startTime;
+    private Time startTime;
 
     @Column(name="end_time")
-    private LocalTime endTime;
+    private Time endTime;
 
     @OneToMany(mappedBy = "weeklySchedule")
     private List<Timeslot> timeslots;
