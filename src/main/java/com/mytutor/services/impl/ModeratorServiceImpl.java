@@ -40,6 +40,10 @@ public class ModeratorServiceImpl implements ModeratorService {
 
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private TimeslotRepository timeslotRepository;
+    @Autowired
+    private SubjectRepository subjectRepository;
 
     @Override
     public ResponseEntity<?> checkAnEducation(int educationId, String status) {
@@ -87,10 +91,11 @@ public class ModeratorServiceImpl implements ModeratorService {
                 tutor.setTutorDetail(null); // Unlink the tutor detail before deleting
                 tutorDetailRepository.delete(tutorDetail);
             }
+            tutor.setSubjects(null);
             educationRepository.deleteEducationByTutorId(tutorId);
             certificateRepository.deleteCertificateByTutorId(tutorId);
+            timeslotRepository.deleteTimeslotsOfRejectedTutor(tutorId);
             accountRepository.save(tutor);
-            // xóa timeslot của tutor đó nữa
             return ResponseEntity.status(HttpStatus.OK).body("Rejected tutor!");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Status not allowed!");

@@ -238,11 +238,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.delete(appointment);
     }
 
+    // sau khi hết 15p do FE đếm và 15p do vnpay đếm (total 30p)
+    // mọi thứ trong hàm create appointment sẽ bị roll back về trạng thái trước khi create appointment
     @Transactional
     @Scheduled(fixedRate = 60000) // Run to check every minute
     public void checkPendingAppointments() {
         LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
-        List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo);
+        List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
+                AppointmentStatus.PENDING_PAYMENT,
+                thirtyMinutesAgo);
 
         for (Appointment appointment : pendingAppointments) {
             rollbackAppointment(appointment);
@@ -251,8 +255,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // student update appointment status (canceled)
 
-    // sau khi hết 15p do vnpay đếm,
-    // mọi thứ trong hàm create appointment sẽ bị roll back về trạng thái trước khi create appointment
+
     // ...
 
 

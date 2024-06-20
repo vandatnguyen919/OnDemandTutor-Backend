@@ -53,5 +53,9 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
 
     @Modifying
     @Query("DELETE FROM Timeslot t WHERE t.startTime < :currentDateTime AND t.isOccupied = false")
-    void deletePastUnusedTimeslots(LocalDateTime currentDateTime);
+    void deletePastUnusedTimeslots(@Param("currentDateTime") LocalDateTime currentDateTime);
+
+    @Modifying
+    @Query("DELETE FROM Timeslot t WHERE t.account.id = :tutorId")
+    void deleteTimeslotsOfRejectedTutor(@Param("tutorId") Integer tutorId);
 }

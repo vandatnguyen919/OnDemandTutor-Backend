@@ -112,7 +112,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> findByEmail(String email) {
-        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
         ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
