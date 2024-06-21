@@ -76,6 +76,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @Query("SELECT distinct a.student FROM Appointment a WHERE a.tutor.id = :tutorId")
     List<Account> findTotalTaughtStudent(@Param("tutorId") Integer tutorId);
 
-    @Query("SELECT distinct a.subject FROM Appointment a WHERE a.student.id = :tutorId")
+    @Query("SELECT distinct a.subject FROM Appointment a WHERE a.tutor.id = :tutorId")
     List<Subject> findTotalTaughtSubjects(@Param("tutorId") Integer tutorId);
 }
