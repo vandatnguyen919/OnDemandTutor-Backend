@@ -4,19 +4,24 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.dto.ForgotPasswordDto;
-import com.mytutor.dto.LoginDto;
-import com.mytutor.dto.RegisterDto;
-import com.mytutor.dto.ResetPasswordDto;
+import com.mytutor.constants.RegexConsts;
+import com.mytutor.dto.auth.ForgotPasswordDto;
+import com.mytutor.dto.auth.LoginDto;
+import com.mytutor.dto.auth.RegisterDto;
+import com.mytutor.dto.auth.ResetPasswordDto;
 import com.mytutor.services.AuthService;
 import com.mytutor.services.OtpService;
 
 import java.security.Principal;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -39,7 +44,7 @@ public class AuthController {
     private OtpService otpService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto) {
         return authService.login(loginDto);
     }
 
@@ -49,27 +54,38 @@ public class AuthController {
     }
 
     @GetMapping("/callback/google/redirect")
-    public ResponseEntity<?> loginWithGoogleSuccess(OAuth2AuthenticationToken oAuth2AuthenticationToken) {
-        return authService.loginOAuthGoogle(oAuth2AuthenticationToken);
+    public ResponseEntity<?> loginWithGoogleSuccess() {
+//        return authService.loginOAuthGoogle(oAuth2AuthenticationToken);
+        return null;
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordDto forgotPasswordDto) {
         return authService.forgotPassword(forgotPasswordDto);
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto resetPasswordDto) {
         return authService.resetPassword(resetPasswordDto);
     }
 
     @PostMapping("/send-otp")
-    public ResponseEntity<?> sendOtp(@RequestParam String receiverEmail) {
+    public ResponseEntity<?> sendOtp(
+            @RequestParam
+            @Email(message = "invalid email format", regexp = RegexConsts.EMAIL_REGEX)
+            String receiverEmail
+    ) {
         return otpService.sendOtp(receiverEmail);
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+    public ResponseEntity<?> verifyOtp(
+            @RequestParam
+            @Email(message = "invalid email format", regexp = RegexConsts.EMAIL_REGEX)
+            String email,
+            @RequestParam
+            @Pattern(regexp = RegexConsts.OTP_CODE_REGEX)
+            String otp) {
         return otpService.verifyOtp(email, otp);
     }
 

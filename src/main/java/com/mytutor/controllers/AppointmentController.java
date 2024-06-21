@@ -1,8 +1,10 @@
 package com.mytutor.controllers;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.AppointmentDto;
+import com.mytutor.dto.InputAppointmentDto;
+import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.ResponseAppointmentDto;
 import com.mytutor.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +22,23 @@ public class AppointmentController {
 
     // lay ra 1 appointment bat ky
     @GetMapping("/{appointmentId}")
-    public ResponseEntity<AppointmentDto> getAppointmentById(
+    public ResponseEntity<ResponseAppointmentDto> getAppointmentById(
             @PathVariable Integer appointmentId) {
         return appointmentService.getAppointmentById(appointmentId);
     }
 
+    // lay ra tat ca appointment theo trang thai
+    @GetMapping("")
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointments(
+            @RequestParam(value = "status", required = false) AppointmentStatus status,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
+        return appointmentService.getAppointments(status, pageNo, pageSize);
+    }
+
     // lay ra tat ca appointment cua mot tutor theo trang thai
     @GetMapping("/tutors/{tutorId}")
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByTutor(
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutor(
             @PathVariable Integer tutorId,
             @RequestParam(value = "status", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
@@ -37,7 +48,7 @@ public class AppointmentController {
 
     // lay ra tat ca appointment cua mot student theo trang thai
     @GetMapping("/students/{studentId}")
-    public ResponseEntity<PaginationDto<AppointmentDto>> getAppointmentsByStudent(
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudent(
             @PathVariable Integer studentId,
             @RequestParam(value = "status", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
@@ -49,7 +60,7 @@ public class AppointmentController {
     @PostMapping("/students/{studentId}")
     public ResponseEntity<?> createAppointment(
             @PathVariable Integer studentId,
-            @RequestBody AppointmentDto appointment
+            @RequestBody InputAppointmentDto appointment
     ){
         return appointmentService.createAppointment(studentId, appointment);
     }
@@ -64,4 +75,14 @@ public class AppointmentController {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
 
+    // lay ra so lieu ve appointment cua mot student
+    @GetMapping("/{studentId}/learn-statistics")
+    public ResponseEntity<LessonStatisticDto> getStudentLearntStatistic(@PathVariable Integer studentId) {
+        return appointmentService.getStudentStatistics(studentId);
+    }
+
+    @GetMapping("/{tutorId}/teach-statistics")
+    public ResponseEntity<LessonStatisticDto> getTutorTaughtStatistic(@PathVariable Integer tutorId) {
+        return appointmentService.getTutorStatistics(tutorId);
+    }
 }

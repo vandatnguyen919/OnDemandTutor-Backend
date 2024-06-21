@@ -4,9 +4,12 @@
  */
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.QuestionStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Question;
 import com.mytutor.entities.Subject;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +55,36 @@ public class StudentServiceImpl implements StudentService {
 
     @Autowired
     SubjectRepository subjectRepository;
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @Override
+    public ResponseEntity<?> getAllStudents(int pageNo, int pageSize, String status) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Account> students;
+        if (status == null || status.isBlank()) {
+            students = accountRepository.findByRole(Role.STUDENT, pageable);
+        }
+        else {
+            students = accountRepository.findRoleAndStatus(
+                Role.STUDENT,
+                AccountStatus.valueOf(status.toUpperCase()),
+                pageable);
+        }
+        List<Account> studentList = students.getContent();
+
+        List<ResponseAccountDetailsDto> content = studentList.stream()
+                .map(s -> modelMapper.map(s, ResponseAccountDetailsDto.class)).toList();
+        PaginationDto<ResponseAccountDetailsDto> studentListResponseDto = new PaginationDto<>();
+        studentListResponseDto.setContent(content);
+        studentListResponseDto.setPageNo(students.getNumber());
+        studentListResponseDto.setPageSize(students.getSize());
+        studentListResponseDto.setTotalElements(students.getTotalElements());
+        studentListResponseDto.setTotalPages(students.getTotalPages());
+        studentListResponseDto.setLast(students.isLast());
+
+        return ResponseEntity.status(HttpStatus.OK).body(studentListResponseDto);
+    }
 
     @Override
     public ResponseEntity<?> getAllQuestion(int pageNo, int pageSize, String type, String subjects, String questionContent) {

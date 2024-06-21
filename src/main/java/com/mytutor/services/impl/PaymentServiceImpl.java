@@ -1,10 +1,12 @@
 package com.mytutor.services.impl;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.payment.ResponsePaymentDto;
+import com.mytutor.dto.payment.ResponseTransactionDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Payment;
@@ -16,6 +18,7 @@ import com.mytutor.repositories.PaymentRepository;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +52,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private AppointmentService appointmentService;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
@@ -125,9 +131,13 @@ public class PaymentServiceImpl implements PaymentService {
         System.out.println(response);
 
         JsonObject jsonObject = JsonParser.parseString(String.valueOf(response)).getAsJsonObject();
+
         String resCode = jsonObject.get("vnp_ResponseCode").getAsString();
         String resMessage = jsonObject.get("vnp_Message").getAsString();
-        String resTranStatus =  jsonObject.get("vnp_TransactionStatus").getAsString();
+
+        if (!"00".equals(resCode)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);  // message "Request is duplicated", if there are multiple requests to check payment
+        }
 
         // get current payment
         Account payer = accountRepository.findByEmail(principal.getName())
@@ -135,24 +145,24 @@ public class PaymentServiceImpl implements PaymentService {
 
         List<Appointment> appointments = appointmentRepository
                 .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+
+        if (appointments == null || appointments.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("There is no pending payment");
+        }
+
         Appointment currentAppointment = appointments.get(0);
 
-        if (!"00".equals(resCode)) {
-            appointmentService.rollbackAppointment(currentAppointment);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resMessage);
-        }
+        String resTranStatus = jsonObject.get("vnp_TransactionStatus").getAsString();
 
         if (!"00".equals(resTranStatus)) {
             appointmentService.rollbackAppointment(currentAppointment);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
         }
-//        return ResponseEntity.status(responseCode).body("Payment succeed");
+
         return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate);
     }
 
     public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
-
-        System.out.println(appointment.getDescription());
         appointment.setStatus(AppointmentStatus.PAID);
         Payment payment = new Payment();
         payment.setMoneyAmount(appointment.getTuition());
@@ -166,7 +176,8 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(payment);
         appointmentRepository.save(appointment);
 
-        return ResponseEntity.status(HttpStatus.OK).body(payment);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(modelMapper.map(payment, ResponseTransactionDto.class));
     }
 
     private ResponseEntity<?> createPaymentWithVNPay(long amountParam, HttpServletRequest req) {
