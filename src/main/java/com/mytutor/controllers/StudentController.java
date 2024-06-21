@@ -4,10 +4,10 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StudentService;
-import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +22,9 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private AppointmentService appointmentService;
 
 //    @Hidden
     @GetMapping("/students")
