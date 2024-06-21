@@ -46,11 +46,6 @@ public class TestAuthController {
         loginDto.setEmail(email);
         loginDto.setPassword("Password123.");
 
-//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto("dummy-token");
-//        ResponseEntity<?> responseEntity = ResponseEntity.status(HttpStatus.OK).body(authenticationResponseDto);
-//
-//        doReturn(responseEntity).when(authService).login(loginDto);
-
         // When
         ResultActions response = mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
