@@ -4,9 +4,11 @@
  */
 package com.mytutor.dto;
 
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.constants.Role;
 import com.mytutor.entities.Account;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -26,7 +28,7 @@ import lombok.NoArgsConstructor;
 public class ResponseAccountDetailsDto {
 
     private int id;
-    private Date dateOfBirth;
+    private String dateOfBirth;
     private String gender; // male: false, female: true
     private String address;
     private String avatarUrl;
@@ -35,7 +37,7 @@ public class ResponseAccountDetailsDto {
     private String phoneNumber;
     private String status;
     private Role role;
-    private Date createAt;
+    private String createAt;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
         if (account == null) {
@@ -44,7 +46,7 @@ public class ResponseAccountDetailsDto {
 
         return ResponseAccountDetailsDto.builder()
                 .id(account.getId())
-                .dateOfBirth(account.getDateOfBirth())
+                .dateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()))
                 .gender(account.getGender() ? "female" : "male")
                 .address(account.getAddress())
                 .avatarUrl(account.getAvatarUrl())
@@ -53,7 +55,7 @@ public class ResponseAccountDetailsDto {
                 .phoneNumber(account.getPhoneNumber())
                 .status(account.getStatus().toString())
                 .role(account.getRole())
-                .createAt(account.getCreatedAt())
+                .createAt(RegexConsts.sdf.format(account.getCreatedAt()))
                 .build();
     }
 
