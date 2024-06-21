@@ -47,7 +47,8 @@ public class ScheduleServiceImpl implements ScheduleService {
             Account account = accountRepository.findById(tutorId)
                     .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
 
-            List<Timeslot> overlapTimeslots = saveValidTimeslotAndGetOverlapTimeslot(timeslotDtos, account, numberOfWeeks);
+            List<Timeslot> overlapTimeslots = saveValidTimeslotAndGetOverlapTimeslot
+                    (timeslotDtos, account, numberOfWeeks);
 
             if (overlapTimeslots.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.OK)
