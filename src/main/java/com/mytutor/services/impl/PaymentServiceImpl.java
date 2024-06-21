@@ -52,6 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private AppointmentService appointmentService;
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -162,8 +163,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
-
-        System.out.println(appointment.getDescription());
         appointment.setStatus(AppointmentStatus.PAID);
         Payment payment = new Payment();
         payment.setMoneyAmount(appointment.getTuition());
@@ -177,7 +176,8 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.save(payment);
         appointmentRepository.save(appointment);
 
-        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(payment, ResponseTransactionDto.class));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(modelMapper.map(payment, ResponseTransactionDto.class));
     }
 
     private ResponseEntity<?> createPaymentWithVNPay(long amountParam, HttpServletRequest req) {

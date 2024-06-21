@@ -1,6 +1,6 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.timeslot.InputTimeslotDto;
+import com.mytutor.dto.timeslot.InputWeeklyScheduleDto;
 import com.mytutor.services.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,31 +23,29 @@ public class ScheduleController {
     @PostMapping("/tutors/{tutorId}/timeslots")
     public ResponseEntity<?> addNewSchedule(
             @PathVariable Integer tutorId,
-            @RequestBody List<InputTimeslotDto> tutorScheduleDto,
-            @RequestParam(defaultValue = "1", required = false) Integer numberOfWeeks ) {
-        return scheduleService.addNewSchedule(tutorId, tutorScheduleDto, numberOfWeeks);
+            @RequestBody List<InputWeeklyScheduleDto> tutorScheduleDto) {
+        return scheduleService.addNewSchedule(tutorId, tutorScheduleDto);
     }
 
     // everyone
     @GetMapping("/tutors/{tutorId}")
     public ResponseEntity<?> getNext7DaysSchedulesOfATutor(
             @PathVariable Integer tutorId) {
-        return scheduleService.getNext7DaysSchedulesByTutorId(tutorId);
+        return scheduleService.getTutorWeeklySchedule(tutorId);
     }
 
-    @DeleteMapping("/tutors/{tutorId}/timeslots/{timeslotId}")
-    public ResponseEntity<?> deleteSchedule(
-            @PathVariable Integer tutorId,
-            @PathVariable Integer timeslotId) {
-        return scheduleService.removeTimeslot(tutorId, timeslotId);
-    }
-
-    @PutMapping("/tutors/{tutorId}/timeslots/{timeslotId}")
+//    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
+//    public ResponseEntity<?> deleteSchedule(
+//            @PathVariable Integer scheduleId,
+//            @PathVariable Integer tutorId) {
+//        return scheduleService.removeSchedule(tutorId, scheduleId);
+//    }
+//
+    @PutMapping("tutors/{tutorId}")
     public ResponseEntity<?> updateSchedule(
             @PathVariable Integer tutorId,
-            @PathVariable Integer timeslotId,
-            @RequestParam boolean status) {
-        return scheduleService.updateTimeslotStatus(tutorId, timeslotId, status);
+            @RequestBody List<InputWeeklyScheduleDto> newTutorScheduleDto) {
+        return scheduleService.updateSchedule(tutorId, newTutorScheduleDto);
     }
 
 }

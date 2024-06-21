@@ -33,7 +33,7 @@ public class RegisterDto {
             regexp = RegexConsts.PHONE_NUMBER_REGEX)
     private String phoneNumber;
 
-    @Pattern(message = "must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase character, and 1 special character",
-            regexp = RegexConsts.PASSWORD_REGEX)
+//    @Pattern(message = "must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase character, and 1 special character",
+//            regexp = RegexConsts.PASSWORD_REGEX)
     private String password;
 }

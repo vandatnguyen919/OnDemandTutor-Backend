@@ -286,6 +286,8 @@ public class TutorServiceImpl implements TutorService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
+
+        account.setTutorDetail(tutorDetail);
 //        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
@@ -305,7 +307,9 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
         TutorDetail tutorDetail = tutor.getTutorDetail();
 
 
