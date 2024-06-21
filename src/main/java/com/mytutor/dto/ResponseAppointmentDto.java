@@ -23,6 +23,8 @@ public class ResponseAppointmentDto {
 
     private String description;
 
+    private String subjectName;
+
     private AppointmentStatus status;
 
     private Integer tutorId;

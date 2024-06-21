@@ -50,6 +50,10 @@ public class Appointment {
     @OneToMany(mappedBy = "appointment")
     List<Payment> payments = new ArrayList<>();
 
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
+
     private String meetingLink;
 
 }
