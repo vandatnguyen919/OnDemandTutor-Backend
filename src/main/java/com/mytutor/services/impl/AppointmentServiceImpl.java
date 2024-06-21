@@ -134,7 +134,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId, AppointmentDto appointmentDto) {
         Account tutor = accountRepository.findById(appointmentDto.getTutorId())
-                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+                .orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
 
         if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId,
                 AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
@@ -148,7 +148,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         for (Integer i : appointmentDto.getTimeslotIds()) {
             Timeslot t = timeslotRepository.findById(i).get();
             if (t.isOccupied()) {
-                throw new ConflictTimeslotException("Cannot book because some timeslots are occupied!");
+                throw new ConflictTimeslotException("Cannot book because some timeslots are occupied");
             }
             else {
                 t.setOccupied(true);
