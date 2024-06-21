@@ -1,6 +1,6 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.timeslot.InputWeeklyScheduleDto;
+import com.mytutor.dto.timeslot.RequestWeeklyScheduleDto;
 import com.mytutor.services.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class ScheduleController {
     @PostMapping("/tutors/{tutorId}/timeslots")
     public ResponseEntity<?> addNewSchedule(
             @PathVariable Integer tutorId,
-            @RequestBody List<InputWeeklyScheduleDto> tutorScheduleDto) {
+            @RequestBody List<RequestWeeklyScheduleDto> tutorScheduleDto) {
         return scheduleService.addNewSchedule(tutorId, tutorScheduleDto);
     }
 
@@ -44,7 +44,7 @@ public class ScheduleController {
     @PutMapping("tutors/{tutorId}")
     public ResponseEntity<?> updateSchedule(
             @PathVariable Integer tutorId,
-            @RequestBody List<InputWeeklyScheduleDto> newTutorScheduleDto) {
+            @RequestBody List<RequestWeeklyScheduleDto> newTutorScheduleDto) {
         return scheduleService.updateSchedule(tutorId, newTutorScheduleDto);
     }
 
