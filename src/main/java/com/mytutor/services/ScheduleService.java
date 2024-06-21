@@ -1,7 +1,6 @@
 package com.mytutor.services;
 
-import com.mytutor.dto.timeslot.InputWeeklyScheduleDto;
-import com.mytutor.entities.WeeklySchedule;
+import com.mytutor.dto.timeslot.RequestWeeklyScheduleDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +12,9 @@ import java.util.List;
  */
 @Service
 public interface ScheduleService {
-    ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputWeeklyScheduleDto> tutorScheduleDto);
+    ResponseEntity<?> addNewSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> tutorScheduleDto);
 //    ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId);
-    ResponseEntity<?> updateSchedule(Integer tutorId, List<InputWeeklyScheduleDto> newSchedules);
+    ResponseEntity<?> updateSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> newSchedules);
 //    ResponseEntity<?> removeSchedule(Integer tutorId, Integer scheduleId);
     ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId);
 }
