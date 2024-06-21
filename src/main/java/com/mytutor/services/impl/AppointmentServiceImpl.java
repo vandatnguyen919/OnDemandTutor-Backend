@@ -9,12 +9,15 @@ import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
 import com.mytutor.entities.Timeslot;
+import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.*;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.repositories.TimeslotRepository;
+import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -52,6 +56,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private WeeklyScheduleRepository weeklyScheduleRepository;
 
     @Autowired
     private SubjectRepository subjectRepository;
@@ -194,13 +201,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setCreatedAt(LocalDateTime.now());
         appointment.setStatus(AppointmentStatus.PENDING_PAYMENT);
 
-        // get timeslots by ids and set timeslots
         for (Integer i : inputAppointmentDto.getTimeslotIds()) {
-            Timeslot t = timeslotRepository.findById(i).get();
-            if (t.isOccupied()) {
-                throw new ConflictTimeslotException("Cannot book because some timeslots are occupied!");
+            WeeklySchedule w = weeklyScheduleRepository.findById(i).get();
+            LocalDate bookDate = calculateDateFromDayOfWeek(w.getDayOfWeek());
+            if (timeslotRepository.findTimeslotWithDateAndWeeklySchedule(w.getId(), bookDate) != null) {
+                throw new ConflictTimeslotException("Cannot book because " +
+                        "some timeslots are occupied!");
             }
             else {
+                Timeslot t = new Timeslot();
+                t.setWeeklySchedule(w);
+                t.setScheduleDate(bookDate);
                 t.setOccupied(true);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
@@ -224,11 +235,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
+        LocalDate today = LocalDate.now();
+        int day = today.getDayOfWeek().getValue() + 1;
+        int distance = dayOfWeek >= day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
+        return today.plusDays(distance);
+    }
+
     private double calculateTotalHours(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            LocalTime startLocalTime = t.getStartTime().toLocalTime();
-            LocalTime endLocalTime = t.getEndTime().toLocalTime();
+            LocalTime startLocalTime = t.getWeeklySchedule().getStartTime().toLocalTime();
+            LocalTime endLocalTime = t.getWeeklySchedule().getEndTime().toLocalTime();
             Duration duration = Duration.between(startLocalTime, endLocalTime);
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
@@ -269,10 +287,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public void rollbackAppointment(Appointment appointment) {
-        for (Timeslot t : appointment.getTimeslots()) {
-            t.setOccupied(false);
-            t.setAppointment(null);
-        }
         appointmentRepository.delete(appointment);
     }
 
@@ -280,7 +294,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Scheduled(fixedRate = 60000) // Run to check every minute
     public void checkPendingAppointments() {
         LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
-        List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo);
+        List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
+                AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
+        );
 
         for (Appointment appointment : pendingAppointments) {
             rollbackAppointment(appointment);

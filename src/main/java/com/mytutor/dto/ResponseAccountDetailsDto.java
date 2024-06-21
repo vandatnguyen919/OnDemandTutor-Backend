@@ -6,6 +6,8 @@ package com.mytutor.dto;
 
 import com.mytutor.constants.Role;
 import com.mytutor.entities.Account;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -33,6 +35,7 @@ public class ResponseAccountDetailsDto {
     private String phoneNumber;
     private String status;
     private Role role;
+    private Date createAt;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
         if (account == null) {
@@ -50,6 +53,7 @@ public class ResponseAccountDetailsDto {
                 .phoneNumber(account.getPhoneNumber())
                 .status(account.getStatus().toString())
                 .role(account.getRole())
+                .createAt(account.getCreatedAt())
                 .build();
     }
 
