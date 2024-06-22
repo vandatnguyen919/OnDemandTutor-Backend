@@ -4,6 +4,7 @@ import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAppointmentDto;
+import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.entities.Appointment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,4 +22,7 @@ public interface AppointmentService {
     ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status);
     void rollbackAppointment(Appointment appointment);
     ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointments(AppointmentStatus status, Integer pageNo, Integer pageSize);
+    ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId);
+    ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer accountId);
+
 }

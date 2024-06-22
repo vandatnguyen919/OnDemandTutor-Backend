@@ -20,6 +20,8 @@ public class InputAppointmentDto {
 
     private String description;
 
+    private String subjectName;
+
     private Integer tutorId;
 
     private List<Integer> timeslotIds = new ArrayList<>();

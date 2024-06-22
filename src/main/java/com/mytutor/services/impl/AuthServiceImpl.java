@@ -183,6 +183,6 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
     }
 
-    private record AccountResponse(String email, String status) {
+    public record AccountResponse(String email, String status) {
     }
 }

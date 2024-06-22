@@ -113,9 +113,7 @@ public class AccountServiceImpl implements AccountService {
 
     public ResponseEntity<?> readAccountById(Integer id) {
         Account account = getAccountById(id);
-        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
-        modelMapper.map(account, dto);
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
 
 

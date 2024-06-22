@@ -4,13 +4,16 @@ import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAppointmentDto;
+import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
+import com.mytutor.entities.Subject;
 import com.mytutor.entities.Timeslot;
 import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.*;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
+import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
@@ -56,6 +59,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private WeeklyScheduleRepository weeklyScheduleRepository;
+
+    @Autowired
+    private SubjectRepository subjectRepository;
 
     @Override
     public ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId) {
@@ -116,6 +122,33 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
+    @Override
+    public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(studentId);
+        List<Account> tutors = appointmentRepository.findTotalLearntTutors(studentId);
+        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(studentId);
+
+        LessonStatisticDto dto = new LessonStatisticDto();
+        dto.setAccountId(studentId);
+        dto.setSubjects(subjects);
+        dto.setTotalLessons(totalLessons);
+        dto.setTotalLearntTutor(tutors.size());
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
+    @Override
+    public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(tutorId);
+        List<Account> students = appointmentRepository.findTotalTaughtStudent(tutorId);
+        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(tutorId);
+
+        LessonStatisticDto dto = new LessonStatisticDto();
+        dto.setAccountId(tutorId);
+        dto.setSubjects(subjects);
+        dto.setTotalLessons(totalLessons);
+        dto.setTotalTaughtStudent(students.size());
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
     // convert from Page to PaginationDto
     private PaginationDto<ResponseAppointmentDto> getPaginationDto(Page<Appointment> appointments) {
         List<Appointment> listOfAppointments = appointments.getContent();
@@ -141,6 +174,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentResponseDto;
     }
 
+
+
     // student create appointment (not paid yet)
     @Override
     @Transactional
@@ -161,6 +196,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStudent(accountRepository.findById(studentId).get());
         appointment.setTutor(tutor);
         appointment.setDescription(inputAppointmentDto.getDescription());
+        appointment.setSubject(subjectRepository.findBySubjectName(
+                inputAppointmentDto.getSubjectName()).get());
         appointment.setCreatedAt(LocalDateTime.now());
         appointment.setStatus(AppointmentStatus.PENDING_PAYMENT);
 
@@ -191,6 +228,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // response
         ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
+        dto.setSubjectName(appointment.getSubject().getSubjectName());
         for (Timeslot t : appointment.getTimeslots()) {
             dto.getTimeslotIds().add(t.getId());
         }
