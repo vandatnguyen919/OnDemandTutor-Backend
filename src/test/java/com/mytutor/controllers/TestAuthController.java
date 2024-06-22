@@ -159,26 +159,26 @@ public class TestAuthController {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Bad credentials"));
     }
 
-//    @ParameterizedTest
-//    @CsvFileSource(resources = "/valid_emails.csv", numLinesToSkip = 1)
-//    public void Authentication_Register_VerifyEmail_CorrectEmailFormat(String email) throws Exception {
-//        // Given
-//        RegisterDto registerDto = new RegisterDto();
-//        registerDto.setEmail(email);
-//        registerDto.setFullName("Nguyen Van A");
-//        registerDto.setPhoneNumber("0368878548");
-//        registerDto.setPassword("Password123.");
-//
-//        // When
-//        ResultActions response = mockMvc.perform(post("/api/auth/register")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(registerDto)));
-//
-//        // Then
-//        response.andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
-//    }
-//
+    @ParameterizedTest
+    @CsvFileSource(resources = "/valid_emails.csv", numLinesToSkip = 1)
+    public void Authentication_Register_NNS_52_VerifyEmail_CorrectEmailFormat(String email) throws Exception {
+        // Given
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail(email);
+        registerDto.setFullName("Nguyen Van A");
+        registerDto.setPhoneNumber("0368878548");
+        registerDto.setPassword("Password123.");
+
+        // When
+        ResultActions response = mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerDto)));
+
+        // Then
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
+    }
+
 //    @ParameterizedTest
 //    @CsvFileSource(resources = "/invalid_emails.csv", numLinesToSkip = 1)
 //    public void Authentication_Register_VerifyEmail_InvalidEmailFormat(String email, String description) throws Exception {
