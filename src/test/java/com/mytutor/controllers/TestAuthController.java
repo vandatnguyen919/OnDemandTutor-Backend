@@ -139,27 +139,27 @@ public class TestAuthController {
 
     }
 
-//    @Test
-//    public void Authentication_Login_VerifyLogin_LoginFailure() throws Exception {
-//        // Given
-//        LoginDto loginDto = new LoginDto();
-//        loginDto.setEmail("nonexistent@example.com");
-//        loginDto.setPassword("FalsePa$$123");
-//
-//        // Mock the response from authService.login() for non-existent account
-//        doThrow(new BadCredentialsException("Bad credentials")).when(authService).login(any(LoginDto.class));
-//
-//        // When
-//        ResultActions response = mockMvc.perform(post("/api/auth/login")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(loginDto)));
-//
-//        // Then
-//        response.andExpect(status().isUnauthorized())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.statusCode").value(401))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Bad credentials"));
-//    }
-//
+    @Test
+    public void Authentication_Login_NNS_51_VerifyLogin_LoginFailure() throws Exception {
+        // Given
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("nonexistent@example.com");
+        loginDto.setPassword("FalsePa$$123");
+
+        // Mock the response from authService.login() for non-existent account
+        doThrow(new BadCredentialsException("Bad credentials")).when(authService).login(any(LoginDto.class));
+
+        // When
+        ResultActions response = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)));
+
+        // Then
+        response.andExpect(status().isUnauthorized())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.statusCode").value(401))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Bad credentials"));
+    }
+
 //    @ParameterizedTest
 //    @CsvFileSource(resources = "/valid_emails.csv", numLinesToSkip = 1)
 //    public void Authentication_Register_VerifyEmail_CorrectEmailFormat(String email) throws Exception {
