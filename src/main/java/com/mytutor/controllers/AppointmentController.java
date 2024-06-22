@@ -75,14 +75,8 @@ public class AppointmentController {
         return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
     }
 
-    // lay ra so lieu ve appointment cua mot student
-    @GetMapping("/{studentId}/learn-statistics")
-    public ResponseEntity<LessonStatisticDto> getStudentLearntStatistic(@PathVariable Integer studentId) {
-        return appointmentService.getStudentStatistics(studentId);
-    }
-
-    @GetMapping("/{tutorId}/teach-statistics")
-    public ResponseEntity<LessonStatisticDto> getTutorTaughtStatistic(@PathVariable Integer tutorId) {
-        return appointmentService.getTutorStatistics(tutorId);
+    @DeleteMapping("{appointmentId}")
+    public ResponseEntity<?> rollbackAppointment(@PathVariable Integer appointmentId) {
+        return appointmentService.rollbackAppointment(appointmentId);
     }
 }
