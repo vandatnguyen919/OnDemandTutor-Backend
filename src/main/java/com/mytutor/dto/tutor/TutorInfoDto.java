@@ -75,20 +75,24 @@ public class TutorInfoDto {
             return null;
         }
 
-        return TutorInfoDto.builder()
-                .id(account.getId())
-                .dateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()))
-                .gender(account.getGender() ? "female" : "male")
-                .address(account.getAddress())
-                .avatarUrl(account.getAvatarUrl())
-                .email(account.getEmail())
-                .fullName(account.getFullName())
-                .phoneNumber(account.getPhoneNumber())
-                .teachingPricePerHour(tutorDetail.getTeachingPricePerHour())
-                .backgroundDescription(tutorDetail.getBackgroundDescription())
-                .meetingLink(tutorDetail.getMeetingLink())
-                .videoIntroductionLink(tutorDetail.getVideoIntroductionLink())
-                .subjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()))
-                .build();
+        TutorInfoDto dto = new TutorInfoDto();
+
+        dto.setId(account.getId());
+        if (account.getDateOfBirth() != null)
+            dto.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()));
+        if (account.getGender() != null)
+            dto.setGender(account.getGender() ? "female" : "male");
+        dto.setAddress(account.getAddress());
+        dto.setAvatarUrl(account.getAvatarUrl());
+        dto.setEmail(account.getEmail());
+        dto.setFullName(account.getFullName());
+        dto.setPhoneNumber(account.getPhoneNumber());
+        dto.setTeachingPricePerHour(tutorDetail.getTeachingPricePerHour());
+        dto.setBackgroundDescription(tutorDetail.getBackgroundDescription());
+        dto.setMeetingLink(tutorDetail.getMeetingLink());
+        dto.setVideoIntroductionLink(tutorDetail.getVideoIntroductionLink());
+        dto.setSubjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()));
+
+        return dto;
     }
 }
