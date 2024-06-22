@@ -5,6 +5,7 @@ import com.mytutor.dto.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.dto.timeslot.AppointmentTimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -17,7 +18,6 @@ import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
-import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -67,16 +67,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
-        ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
-        convertTimeslotsToIds(appointment, dto);
+        ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-    private void convertTimeslotsToIds(Appointment appointment, ResponseAppointmentDto dto) {
-        for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslotIds().add(t.getId());
-        }
-    }
+
 
     @Override
     public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
@@ -157,8 +152,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(a -> {
                     Appointment appointment = appointmentRepository.findById(a.getId())
                             .orElse(new Appointment());
-                    ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
-                    convertTimeslotsToIds(appointment, dto);
+                    ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
+
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -196,11 +191,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.save(appointment);
 
         // response
-        ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
-        dto.setSubjectName(appointment.getSubject().getSubjectName());
-        for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslotIds().add(t.getId());
-        }
+        ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 

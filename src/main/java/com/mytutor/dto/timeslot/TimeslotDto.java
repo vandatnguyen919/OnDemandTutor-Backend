@@ -29,7 +29,8 @@ public class TimeslotDto {
     private Time startTime;
 
     private Time endTime;
-    
+
+
 //    private boolean isOccupied;
     
     public static TimeslotDto mapToDto(WeeklySchedule timeslot) {
