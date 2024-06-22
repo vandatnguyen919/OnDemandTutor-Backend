@@ -40,23 +40,28 @@ public class ResponseAccountDetailsDto {
     private String createAt;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
-        if (account == null) {
-            return null;
+        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
+
+        dto.setId(account.getId());
+        if (account.getDateOfBirth() != null) {
+            dto.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()));
         }
 
-        return ResponseAccountDetailsDto.builder()
-                .id(account.getId())
-                .dateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()))
-                .gender(account.getGender() ? "female" : "male")
-                .address(account.getAddress())
-                .avatarUrl(account.getAvatarUrl())
-                .email(account.getEmail())
-                .fullName(account.getFullName())
-                .phoneNumber(account.getPhoneNumber())
-                .status(account.getStatus().toString())
-                .role(account.getRole())
-                .createAt(RegexConsts.sdf.format(account.getCreatedAt()))
-                .build();
+        if (account.getGender() != null) {
+            dto.setGender(account.getGender() ? "female" : "male");
+        }
+
+        dto.setAddress(account.getAddress());
+        dto.setAvatarUrl(account.getAvatarUrl());
+        dto.setEmail(account.getEmail());
+        dto.setFullName(account.getFullName());
+        dto.setPhoneNumber(account.getPhoneNumber());
+        dto.setStatus(account.getStatus().toString());
+        dto.setRole(account.getRole());
+        dto.setCreateAt(RegexConsts.sdf.format(account.getCreatedAt()));
+
+        return dto;
+
     }
 
 }
