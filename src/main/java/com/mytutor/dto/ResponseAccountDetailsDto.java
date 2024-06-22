@@ -18,7 +18,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- *
  * @author vothimaihoa
  */
 @Data
@@ -40,17 +39,17 @@ public class ResponseAccountDetailsDto {
     private String createAt;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
+        if (account == null) {
+            return null;
+        }
+
         ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
 
         dto.setId(account.getId());
-        if (account.getDateOfBirth() != null) {
+        if (account.getDateOfBirth() != null)
             dto.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()));
-        }
-
-        if (account.getGender() != null) {
+        if (account.getGender() != null)
             dto.setGender(account.getGender() ? "female" : "male");
-        }
-
         dto.setAddress(account.getAddress());
         dto.setAvatarUrl(account.getAvatarUrl());
         dto.setEmail(account.getEmail());
@@ -61,7 +60,6 @@ public class ResponseAccountDetailsDto {
         dto.setCreateAt(RegexConsts.sdf.format(account.getCreatedAt()));
 
         return dto;
-
     }
 
 }
