@@ -7,6 +7,7 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.DegreeType;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
@@ -114,7 +115,7 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
-        Account tutor = accountRepository.findById(tutorId)
+        Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
