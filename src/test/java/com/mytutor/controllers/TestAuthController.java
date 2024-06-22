@@ -45,7 +45,7 @@ public class TestAuthController {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/valid_emails.csv", numLinesToSkip = 1)
-    public void Authentication_Login_VerifyEmail_CorrectEmailFormat(String email) throws Exception {
+    public void Authentication_Login_NNS_46_VerifyEmail_CorrectEmailFormat(String email) throws Exception {
         // Given
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail(email);
@@ -63,7 +63,7 @@ public class TestAuthController {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/invalid_emails.csv", numLinesToSkip = 1)
-    public void Authentication_Login_VerifyEmail_InvalidEmailFormat(String email, String description) throws Exception {
+    public void Authentication_Login_NNS_47_VerifyEmail_InvalidEmailFormat(String email, String description) throws Exception {
         // Given
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail(email);
@@ -81,7 +81,7 @@ public class TestAuthController {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/valid_password.csv", numLinesToSkip = 1)
-    public void Authentication_Login_VerifyPassword_ValidPasswordFormat(String password) throws Exception {
+    public void Authentication_Login_NNS_48_VerifyPassword_ValidPasswordFormat(String password) throws Exception {
         // Given
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail("test@example.com");
@@ -99,7 +99,7 @@ public class TestAuthController {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/invalid_password.csv", numLinesToSkip = 1)
-    public void Authentication_Login_VerifyPassword_InvalidPasswordFormat(String password) throws Exception {
+    public void Authentication_Login_NNS_49_VerifyPassword_InvalidPasswordFormat(String password) throws Exception {
         // Given
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail("test@example.com");
@@ -116,29 +116,29 @@ public class TestAuthController {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
-//    @Test
-//    public void Authentication_Login_VerifyLogin_LoginSuccess() throws Exception {
-//        // Given
-//        LoginDto loginDto = new LoginDto();
-//        loginDto.setEmail("test@example.com");
-//        loginDto.setPassword("Password123.");
-//
-//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto("dummy-token");
-//        ResponseEntity<?> responseEntity = ResponseEntity.status(HttpStatus.OK).body(authenticationResponseDto);
-//
-//        doReturn(responseEntity).when(authService).login(loginDto);
-//
-//        // When
-//        ResultActions response = mockMvc.perform(post("/api/auth/login")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(loginDto)));
-//
-//        // Then
-//        response.andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").exists());
-//
-//    }
-//
+    @Test
+    public void Authentication_Login_NNS_40_VerifyLogin_LoginSuccess() throws Exception {
+        // Given
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword("Password123.");
+
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto("dummy-token");
+        ResponseEntity<?> responseEntity = ResponseEntity.status(HttpStatus.OK).body(authenticationResponseDto);
+
+        doReturn(responseEntity).when(authService).login(loginDto);
+
+        // When
+        ResultActions response = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)));
+
+        // Then
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").exists());
+
+    }
+
 //    @Test
 //    public void Authentication_Login_VerifyLogin_LoginFailure() throws Exception {
 //        // Given
