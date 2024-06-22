@@ -79,24 +79,24 @@ public class TestAuthController {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
-//    @ParameterizedTest
-//    @CsvFileSource(resources = "/valid_password.csv", numLinesToSkip = 1)
-//    public void Authentication_Login_VerifyPassword_ValidPasswordFormat(String password) throws Exception {
-//        // Given
-//        LoginDto loginDto = new LoginDto();
-//        loginDto.setEmail("test@example.com");
-//        loginDto.setPassword(password);
-//
-//        // When
-//        ResultActions response = mockMvc.perform(post("/api/auth/login")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(loginDto)));
-//
-//        // Then
-//        response.andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
-//    }
-//
+    @ParameterizedTest
+    @CsvFileSource(resources = "/valid_password.csv", numLinesToSkip = 1)
+    public void Authentication_Login_VerifyPassword_ValidPasswordFormat(String password) throws Exception {
+        // Given
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("test@example.com");
+        loginDto.setPassword(password);
+
+        // When
+        ResultActions response = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)));
+
+        // Then
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
+    }
+
 //    @ParameterizedTest
 //    @CsvFileSource(resources = "/invalid_password.csv", numLinesToSkip = 1)
 //    public void Authentication_Login_VerifyPassword_InvalidPasswordFormat(String password) throws Exception {
