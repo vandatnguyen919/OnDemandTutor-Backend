@@ -136,7 +136,6 @@ public class TestAuthController {
         // Then
         response.andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").exists());
-
     }
 
     @Test
