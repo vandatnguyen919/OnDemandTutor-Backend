@@ -17,38 +17,36 @@ import org.springframework.http.ResponseEntity;
  */
 public interface TutorService {
 
-    public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
-                                                                    int pageSize,
-                                                                    String subjects,
-                                                                    double priceMin,
-                                                                    double priceMax,
-                                                                    String tutorLevel,
-                                                                    String sortBy,
-                                                                    String keyword);
+    ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
+                                                             int pageSize,
+                                                             String subjects,
+                                                             double priceMin,
+                                                             double priceMax,
+                                                             String tutorLevel,
+                                                             String sortBy,
+                                                             String keyword);
 
-    public ResponseEntity<TutorInfoDto> getTutorById(Integer id);
+    ResponseEntity<TutorInfoDto> getTutorById(Integer id);
 
-    public ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId);
+    ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
 
-    public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
+    ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified);
 
-    public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified);
+    ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos);
 
-    public ResponseEntity<?> addAllEducations(Integer tutorId, List<EducationDto> educationDtos);
+    ResponseEntity<?> addAllCertificates(Integer tutorId, List<CertificateDto> certificateDtos);
 
-    public ResponseEntity<?> addAllCertificates(Integer tutorId, List<CertificateDto> certificateDtos);
+    ResponseEntity<?> updateEducation(Integer tutorId, Integer educationId, EducationDto educationDto);
 
-    public ResponseEntity<?> updateEducation(Integer tutorId, Integer educationId, EducationDto educationDto);
+    ResponseEntity<?> updateCertificate(Integer tutorId, Integer certificateId, CertificateDto certificateDto);
 
-    public ResponseEntity<?> updateCertificate(Integer tutorId, Integer certificateId, CertificateDto certificateDto);
+    ResponseEntity<?> deleteEducation(Integer tutorId, Integer educationId);
 
-    public ResponseEntity<?> deleteEducation(Integer tutorId, Integer educationId);
+    ResponseEntity<?> deleteCertificate(Integer tutorId, Integer certificateId);
 
-    public ResponseEntity<?> deleteCertificate(Integer tutorId, Integer certificateId);
+    ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
 
-    public ResponseEntity<?> addTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
+    ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
 
-    public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto);
-
-    public ResponseEntity<?> getTutorDescriptionById(Integer accountId);
+    ResponseEntity<?> getTutorDescriptionById(Integer accountId);
 }

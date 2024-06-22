@@ -8,6 +8,8 @@ import com.mytutor.constants.QuestionStatus;
 import jakarta.persistence.*;
 
 import java.util.Date;
+
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,6 +39,7 @@ public class Question {
 
     private String questionUrl;
 
+    @Enumerated(EnumType.STRING)
     private QuestionStatus status;
 
     @ManyToOne

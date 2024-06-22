@@ -15,8 +15,7 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.Set;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -68,12 +67,35 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-        updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
 //        if (!checkCurrentAccount(principal, accountId)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
 //        }
-        modelMapper.map(updateAccountDetailsDto, accountDB);
+
+        // chỉ cập nhật khi điền vào != null và khác rỗng
+        accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+
+        if (updateAccountDetailsDto.getDateOfBirth() != null
+                && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
+            accountDB.setDateOfBirth(updateAccountDetailsDto.getDateOfBirth());
+        }
+
+        if (updateAccountDetailsDto.getGender() != null
+                && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
+            accountDB.setGender(updateAccountDetailsDto.getGender());
+        }
+        if (updateAccountDetailsDto.getAddress() != null
+                && !updateAccountDetailsDto.getAddress().isBlank()) {
+            accountDB.setAddress(updateAccountDetailsDto.getAddress());
+        }
+        if (updateAccountDetailsDto.getAvatarUrl() != null
+                && !updateAccountDetailsDto.getAvatarUrl().isBlank()) {
+            accountDB.setAvatarUrl(updateAccountDetailsDto.getAvatarUrl());
+        }
+        if (updateAccountDetailsDto.getFullName() != null
+                && !updateAccountDetailsDto.getFullName().isBlank()) {
+            accountDB.setFullName(updateAccountDetailsDto.getFullName());
+        }
 
         accountRepository.save(accountDB);
 
@@ -91,9 +113,7 @@ public class AccountServiceImpl implements AccountService {
 
     public ResponseEntity<?> readAccountById(Integer id) {
         Account account = getAccountById(id);
-        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
-        modelMapper.map(account, dto);
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
 
 

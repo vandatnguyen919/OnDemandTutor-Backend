@@ -1,8 +1,6 @@
 package com.mytutor.dto;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.timeslot.ResponseTimeslotDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,13 +16,22 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppointmentDto {
+public class ResponseAppointmentDto {
     private Integer id;
+
     private LocalDateTime createdAt;
+
     private String description;
+
+    private String subjectName;
+
     private AppointmentStatus status;
+
     private Integer tutorId;
+
     private Integer studentId;
+
+    private double tuition;
+
     private List<Integer> timeslotIds = new ArrayList<>();
 }
-

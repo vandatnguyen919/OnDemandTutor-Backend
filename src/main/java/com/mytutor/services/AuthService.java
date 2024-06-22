@@ -4,10 +4,10 @@
  */
 package com.mytutor.services;
 
-import com.mytutor.dto.ForgotPasswordDto;
-import com.mytutor.dto.LoginDto;
-import com.mytutor.dto.RegisterDto;
-import com.mytutor.dto.ResetPasswordDto;
+import com.mytutor.dto.auth.ForgotPasswordDto;
+import com.mytutor.dto.auth.LoginDto;
+import com.mytutor.dto.auth.RegisterDto;
+import com.mytutor.dto.auth.ResetPasswordDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;

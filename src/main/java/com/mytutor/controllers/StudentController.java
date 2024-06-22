@@ -5,8 +5,9 @@
 package com.mytutor.controllers;
 
 import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StudentService;
-import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +23,17 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @Hidden
+    @Autowired
+    private AppointmentService appointmentService;
+
+//    @Hidden
     @GetMapping("/students")
-    public ResponseEntity<?> getAllStudents() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public ResponseEntity<?> getAllStudents(
+        @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+        @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+        @RequestParam(value = "status", required = false) String status
+        ) {
+        return studentService.getAllStudents(pageNo, pageSize, status);
     }
 
 

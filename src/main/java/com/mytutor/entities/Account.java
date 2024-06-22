@@ -29,6 +29,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(length = 1000)
     private String fullName;
 
     @Column(unique = true)
