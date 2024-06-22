@@ -59,7 +59,7 @@ pipeline {
 //                         }
 //                         """
 //                     )
-//                   // Attach test result file to Jira issue
+                    //Attach test result file to Jira issue
                      bat """
                         curl -X POST \
                         -H "Authorization: ${jiraAuth}" \
