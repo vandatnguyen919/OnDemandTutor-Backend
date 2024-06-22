@@ -44,6 +44,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             + " WHERE a.status = :status")
     Page<Appointment> findAppointments(AppointmentStatus status, Pageable pageable);
 
+    @Query("SELECT DISTINCT a.tutor FROM Appointment a WHERE a.student.id = :studentId AND a.status = :status")
+    List<Account> findAllBookedTutorsByStudentIdAndStatus(@Param("studentId") int studentId, @Param("status") AppointmentStatus status);
 
 //    @Query("SELECT DISTINCT a " +
 //            " FROM Appointment a JOIN a.timeslots t " +

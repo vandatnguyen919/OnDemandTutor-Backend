@@ -43,8 +43,9 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<MessageDto> getMessages(String email) {
-        Account user = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+    public List<MessageDto> getMessages(Integer accountId) {
+//        Account user = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account user = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
         List<Message> messages = messageRepository.findBySenderOrReceiverWithStatus(user, MessageStatus.MESSAGE);
 
         return messages.stream().map(MessageDto::mapToDto).toList();

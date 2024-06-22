@@ -8,5 +8,5 @@ public interface MessageService {
 
     MessageDto saveMessages(MessageDto messageDto);
 
-    List<MessageDto> getMessages(String username);
+    List<MessageDto> getMessages(Integer accountId);
 }
