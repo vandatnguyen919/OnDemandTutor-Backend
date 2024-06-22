@@ -117,7 +117,7 @@ public class TestAuthController {
     }
 
     @Test
-    public void Authentication_Login_NNS_40_VerifyLogin_LoginSuccess() throws Exception {
+    public void Authentication_Login_NNS_50_VerifyLogin_LoginSuccess() throws Exception {
         // Given
         LoginDto loginDto = new LoginDto();
         loginDto.setEmail("test@example.com");
