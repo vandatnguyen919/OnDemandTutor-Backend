@@ -25,13 +25,16 @@ public class ChatController {
     @MessageMapping("/message")
     @SendTo("/chatroom/public")
     public MessageDto receiveMessage(@Payload MessageDto messageDto) {
-        return messageService.saveMessages(messageDto);
+        System.out.println(messageDto);
+//        return messageService.saveMessages(messageDto);
+        return messageDto;
     }
 
     @MessageMapping("/private-message")
     public MessageDto recMessage(@Payload MessageDto messageDto) {
+        System.out.println(messageDto);
         MessageDto savedMessage = messageService.saveMessages(messageDto);
-        simpMessagingTemplate.convertAndSendToUser(messageDto.getReceiverEmail(), "/private", savedMessage);
+        simpMessagingTemplate.convertAndSendToUser(messageDto.getReceiverId() + "", "/private", savedMessage);
         return savedMessage;
     }
 }
