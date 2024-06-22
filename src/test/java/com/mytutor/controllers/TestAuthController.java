@@ -200,26 +200,26 @@ public class TestAuthController {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
     }
 
-//    @ParameterizedTest
-//    @CsvFileSource(resources = "/valid_phone.csv", numLinesToSkip = 1)
-//    public void Authentication_Register_VerifyPhone_ValidPhoneNumber(String phoneNumber) throws Exception {
-//        // Given
-//        RegisterDto registerDto = new RegisterDto();
-//        registerDto.setEmail("test@example.com");
-//        registerDto.setFullName("Nguyen Van A");
-//        registerDto.setPhoneNumber(phoneNumber);
-//        registerDto.setPassword("Password123.");
-//
-//        // When
-//        ResultActions response = mockMvc.perform(post("/api/auth/register")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(registerDto)));
-//
-//        // Then
-//        response.andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
-//    }
-//
+    @ParameterizedTest
+    @CsvFileSource(resources = "/valid_phone.csv", numLinesToSkip = 1)
+    public void Authentication_Register_NNS_54_VerifyPhone_ValidPhoneNumber(String phoneNumber) throws Exception {
+        // Given
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail("test@example.com");
+        registerDto.setFullName("Nguyen Van A");
+        registerDto.setPhoneNumber(phoneNumber);
+        registerDto.setPassword("Password123.");
+
+        // When
+        ResultActions response = mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerDto)));
+
+        // Then
+        response.andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
+    }
+
 //    @ParameterizedTest
 //    @CsvFileSource(resources = "/invalid_phone.csv", numLinesToSkip = 1)
 //    public void Authentication_Register_VerifyPhone_InvalidPhoneNumber(String phoneNumber) throws Exception {
