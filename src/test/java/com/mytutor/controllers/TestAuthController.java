@@ -220,27 +220,27 @@ public class TestAuthController {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").doesNotExist());
     }
 
-//    @ParameterizedTest
-//    @CsvFileSource(resources = "/invalid_full_name_range.csv", numLinesToSkip = 1)
-//    public void Authentication_Register_NNS_55_VerifyFullName_0And1000CharacterFullName(String fullName) throws Exception {
-//        // Given
-//        RegisterDto registerDto = new RegisterDto();
-//        registerDto.setEmail("test@example.com");
-//        registerDto.setFullName(fullName);
-//        registerDto.setPhoneNumber("0368878548");
-//        registerDto.setPassword("Password123.");
-//
-//        // When
-//        ResultActions response = mockMvc.perform(post("/api/auth/register")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(registerDto)));
-//
-//        // Then
-//        response.andExpect(status().isBadRequest())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.statusCode").value(400))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
-//    }
-//
+    @ParameterizedTest
+    @CsvFileSource(resources = "/invalid_full_name_range.csv", numLinesToSkip = 1)
+    public void Authentication_Register_NNS_55_VerifyFullName_0And1000CharacterFullName(String fullName) throws Exception {
+        // Given
+        RegisterDto registerDto = new RegisterDto();
+        registerDto.setEmail("test@example.com");
+        registerDto.setFullName(fullName);
+        registerDto.setPhoneNumber("0368878548");
+        registerDto.setPassword("Password123.");
+
+        // When
+        ResultActions response = mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerDto)));
+
+        // Then
+        response.andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.statusCode").value(400))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+    }
+
 //    @ParameterizedTest
 //    @CsvFileSource(resources = "/valid_phone.csv", numLinesToSkip = 1)
 //    public void Authentication_Register_NNS_56_VerifyPhone_ValidPhoneNumber(String phoneNumber) throws Exception {
