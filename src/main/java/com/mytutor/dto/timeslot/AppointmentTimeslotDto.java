@@ -23,6 +23,8 @@ public class AppointmentTimeslotDto {
 
     private String scheduleDate;
 
+    private int dayOfWeek;
+
     public static AppointmentTimeslotDto mapToDto(Timeslot timeslot) {
         String scheduleDate = new SimpleDateFormat("yyyy-MM-dd")
                 .format(Date.valueOf(timeslot.getScheduleDate()));
@@ -30,7 +32,8 @@ public class AppointmentTimeslotDto {
                 timeslot.getId(),
                 timeslot.getWeeklySchedule().getStartTime(),
                 timeslot.getWeeklySchedule().getEndTime(),
-                scheduleDate
+                scheduleDate,
+                timeslot.getWeeklySchedule().getDayOfWeek()
         );
     }
 }
