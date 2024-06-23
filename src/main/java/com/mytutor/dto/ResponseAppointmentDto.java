@@ -2,6 +2,7 @@ package com.mytutor.dto;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.timeslot.AppointmentTimeslotDto;
+import com.mytutor.dto.tutor.TutorAppointmentDto;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
 import lombok.AllArgsConstructor;
@@ -32,7 +33,7 @@ public class ResponseAppointmentDto {
 
     private AppointmentStatus status;
 
-    private Integer tutorId;
+    private TutorAppointmentDto tutor;
 
     private Integer studentId;
 
@@ -53,7 +54,7 @@ public class ResponseAppointmentDto {
             dto.setSubjectName(appointment.getSubject().getSubjectName());
         }
         dto.setStatus(appointment.getStatus());
-        dto.setTutorId(appointment.getTutor().getId());
+        dto.setTutor(TutorAppointmentDto.mapToDto(appointment.getTutor()));
         dto.setStudentId(appointment.getStudent().getId());
         dto.setTuition(appointment.getTuition());
 
