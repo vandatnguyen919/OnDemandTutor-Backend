@@ -28,8 +28,10 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -94,66 +96,105 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
                 studentId, null, null);
-        List<Account> tutors = appointmentRepository.findTotalLearntTutors(
-                studentId, null, null);
-        List<Subject> subjects = appointmentRepository.findTotalSubjects(
-                studentId, null, null);
+
+        Set<Subject> subjects = getSubjectsFromAppointments(appointments);
+        Set<Account> tutors = getTutorsFromAppointments(appointments);
+
+        LessonStatisticDto dto = new LessonStatisticDto();
+        dto.setAccountId(studentId);
+
+        // total
+        dto.setTotalSubjects(subjects);
+        dto.setTotalLessons(appointments.size());
+        dto.setTotalLearntTutor(tutors.size());
 
         // current month
         LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
         LocalDateTime endDate = startDate.plusMonths(1);
-        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
-                studentId, startDate, endDate);
-        List<Account> thisMonthTutors = appointmentRepository.findTotalLearntTutors(
-                studentId, startDate, endDate);
-        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
-                studentId, startDate, endDate);
 
-        LessonStatisticDto dto = new LessonStatisticDto();
-        dto.setAccountId(studentId);
-        dto.setTotalSubjects(subjects);
-        dto.setTotalLessons(totalLessons);
-        dto.setTotalLearntTutor(tutors.size());
+        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRange(
+                studentId, startDate, endDate
+        );
+
+        Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
+        Set<Account> thisMonthTutors = getTutorsFromAppointments(appointments);
 
         dto.setThisMonthSubjects(thisMonthSubjects);
-        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthLessons(thisMonthAppointments.size());
         dto.setThisMonthTutor(thisMonthTutors.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
-                tutorId, null, null);
-        List<Account> students = appointmentRepository.findTotalTaughtStudents(
-                tutorId, null, null);
-        List<Subject> subjects = appointmentRepository.findTotalSubjects(
+
+        // total
+        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
                 tutorId, null, null);
 
-        // current month
-        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
-        LocalDateTime endDate = startDate.plusMonths(1);
-        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
-                tutorId, startDate, endDate);
-        List<Account> thisMonthStudents = appointmentRepository.findTotalTaughtStudents(
-                tutorId, startDate, endDate);
-        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
-                tutorId, startDate, endDate);
+        Set<Subject> subjects = getSubjectsFromAppointments(appointments);
+        Set<Account> students = getStudentsFromAppointments(appointments);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(tutorId);
 
         dto.setTotalSubjects(subjects);
-        dto.setTotalLessons(totalLessons);
+        dto.setTotalLessons(appointments.size());
         dto.setTotalTaughtStudent(students.size());
+        dto.setTotalIncome(getTotalIncome(appointments));
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+
+        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRange(
+                tutorId, startDate, endDate
+        );
+
+        Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
+        Set<Account> thisMonthStudents = getStudentsFromAppointments(appointments);
 
         dto.setThisMonthSubjects(thisMonthSubjects);
-        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthLessons(thisMonthAppointments.size());
         dto.setThisMonthStudent(thisMonthStudents.size());
+        dto.setTotalIncome(getTotalIncome(thisMonthAppointments));
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
+
+    private Set<Subject> getSubjectsFromAppointments(List<Appointment> appointments) {
+        Set<Subject> subjects = new HashSet<>();
+        for (Appointment a : appointments) {
+            subjects.add(a.getSubject());
+        }
+        return subjects;
+    }
+
+    private Set<Account> getStudentsFromAppointments(List<Appointment> appointments) {
+        Set<Account> students = new HashSet<>();
+        for (Appointment a : appointments) {
+            students.add(a.getStudent());
+        }
+        return students;
+    }
+
+    private Set<Account> getTutorsFromAppointments(List<Appointment> appointments) {
+        Set<Account> tutors = new HashSet<>();
+        for (Appointment a : appointments) {
+            tutors.add(a.getTutor());
+        }
+        return tutors;
+    }
+
+    private double getTotalIncome(List<Appointment> appointments) {
+        double income = 0;
+        for (Appointment a : appointments) {
+            income += a.getTuition() * (100 - a.getTutor().getTutorDetail().getPercentage());
+        }
+        return income;
+    }
+
     // convert from Page to PaginationDto
     private PaginationDto<ResponseAppointmentDto> getPaginationDto(Page<Appointment> appointments) {
         List<Appointment> listOfAppointments = appointments.getContent();

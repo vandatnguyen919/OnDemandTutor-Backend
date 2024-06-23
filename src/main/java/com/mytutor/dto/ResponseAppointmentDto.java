@@ -35,11 +35,15 @@ public class ResponseAppointmentDto {
 
     private TutorAppointmentDto tutor;
 
+//    private int tutorId;
+
     private Integer studentId;
 
     private double tuition;
 
     private Set<AppointmentTimeslotDto> timeslots = new HashSet<>();
+
+//    private Set<Integer> timeslotIds = new HashSet<>();
 
     public static ResponseAppointmentDto mapToDto(Appointment appointment) {
         if (appointment == null) {
@@ -55,9 +59,11 @@ public class ResponseAppointmentDto {
         }
         dto.setStatus(appointment.getStatus());
         dto.setTutor(TutorAppointmentDto.mapToDto(appointment.getTutor()));
+//        dto.setTutorId(appointment.getTutor().getId());
         dto.setStudentId(appointment.getStudent().getId());
         dto.setTuition(appointment.getTuition());
 
+//        convertTimeslotsToIds(appointment, dto);
         convertTimeslotsToDtos(appointment, dto);
 
         return dto;
@@ -68,4 +74,10 @@ public class ResponseAppointmentDto {
             dto.getTimeslots().add(AppointmentTimeslotDto.mapToDto(t));
         }
     }
+
+//    private static void convertTimeslotsToIds(Appointment appointment, ResponseAppointmentDto dto) {
+//        for (Timeslot t : appointment.getTimeslots()) {
+//            dto.getTimeslotIds().add(t.getId());
+//        }
+//    }
 }
