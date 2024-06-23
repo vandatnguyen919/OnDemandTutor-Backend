@@ -58,50 +58,33 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     // rollback automatically after 30 minutes
     List<Appointment> findByStatusAndCreatedAtBefore(AppointmentStatus status, LocalDateTime dateTime);
 
-    // lay ra so lesson/appointment ma mot hoc sinh book -> count
-    @Query("SELECT count(a.id) FROM Appointment a WHERE a.student.id = :studentId AND " +
+    @Query("SELECT count(a.id) FROM Appointment a WHERE (a.student.id = :id OR a.tutor.id = :id) AND " +
             "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
             "(:endDate IS NULL OR a.createdAt < :endDate)")
-    int findNoOfTotalAppointmentsByStudentId(@Param("studentId") Integer studentId,
-                                             @Param("startDate") LocalDateTime startDate,
-                                             @Param("endDate") LocalDateTime endDate);
+    int findNoOfTotalAppointmentsByStudentOrTutorId(@Param("id") Integer id,
+                                                    @Param("startDate") LocalDateTime startDate,
+                                                    @Param("endDate") LocalDateTime endDate);
 
-    // lay ra cac tutor ma hoc sinh tung book
-    @Query("SELECT distinct a.tutor FROM Appointment a WHERE a.student.id = :studentId AND " +
+    @Query("SELECT distinct a.student FROM Appointment a WHERE a.tutor.id = :id AND " +
             "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
             "(:endDate IS NULL OR a.createdAt < :endDate)")
-    List<Account> findTotalLearntTutors(@Param("studentId") Integer studentId,
-                                        @Param("startDate") LocalDateTime startDate,
-                                        @Param("endDate") LocalDateTime endDate);
-
-    // lay ra cac mon hoc ma mot hoc sinh tung hoc
-    @Query("SELECT distinct a.subject FROM Appointment a WHERE a.student.id = :studentId AND " +
-            "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
-            "(:endDate IS NULL OR a.createdAt < :endDate)")
-    List<Subject> findTotalLearntSubject(@Param("studentId") Integer studentId,
-                                         @Param("startDate") LocalDateTime startDate,
-                                         @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT distinct a.student FROM Appointment a WHERE a.tutor.id = :tutorId AND " +
-            "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
-            "(:endDate IS NULL OR a.createdAt < :endDate)")
-    List<Account> findTotalTaughtStudent(@Param("tutorId") Integer tutorId,
-                                         @Param("startDate") LocalDateTime startDate,
-                                         @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT distinct a.subject FROM Appointment a WHERE a.tutor.id = :tutorId AND " +
-            "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
-            "(:endDate IS NULL OR a.createdAt < :endDate)")
-    List<Subject> findTotalTaughtSubjects(@Param("tutorId") Integer tutorId,
+    List<Account> findTotalTaughtStudents(@Param("id") Integer id,
                                           @Param("startDate") LocalDateTime startDate,
                                           @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT count(a.id) FROM Appointment a WHERE a.tutor.id = :tutorId AND " +
+    @Query("SELECT distinct a.tutor FROM Appointment a WHERE a.student.id = :id AND " +
             "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
             "(:endDate IS NULL OR a.createdAt < :endDate)")
-    int findNoOfTotalAppointmentsByTutorId(@Param("tutorId") Integer tutorId,
-                                           @Param("startDate") LocalDateTime startDate,
-                                           @Param("endDate") LocalDateTime endDate);
+    List<Account> findTotalLearntTutors(@Param("id") Integer id,
+                                        @Param("startDate") LocalDateTime startDate,
+                                        @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT distinct a.subject FROM Appointment a WHERE (a.student.id = :id OR a.tutor.id = :id) AND " +
+            "(:startDate IS NULL OR a.createdAt >= :startDate) AND " +
+            "(:endDate IS NULL OR a.createdAt < :endDate)")
+    List<Subject> findTotalSubjects(@Param("id") Integer id,
+                                    @Param("startDate") LocalDateTime startDate,
+                                    @Param("endDate") LocalDateTime endDate);
 
 
 }

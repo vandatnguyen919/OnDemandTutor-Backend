@@ -118,21 +118,21 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
                 studentId, null, null);
         List<Account> tutors = appointmentRepository.findTotalLearntTutors(
                 studentId, null, null);
-        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(
+        List<Subject> subjects = appointmentRepository.findTotalSubjects(
                 studentId, null, null);
 
         // current month
         LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
         LocalDateTime endDate = startDate.plusMonths(1);
-        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
                 studentId, startDate, endDate);
         List<Account> thisMonthTutors = appointmentRepository.findTotalLearntTutors(
                 studentId, startDate, endDate);
-        List<Subject> thisMonthSubjects = appointmentRepository.findTotalLearntSubject(
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
                 studentId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
@@ -149,21 +149,21 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
                 tutorId, null, null);
-        List<Account> students = appointmentRepository.findTotalTaughtStudent(
+        List<Account> students = appointmentRepository.findTotalTaughtStudents(
                 tutorId, null, null);
-        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(
+        List<Subject> subjects = appointmentRepository.findTotalSubjects(
                 tutorId, null, null);
 
         // current month
         LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
         LocalDateTime endDate = startDate.plusMonths(1);
-        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
                 tutorId, startDate, endDate);
-        List<Account> thisMonthStudents = appointmentRepository.findTotalTaughtStudent(
+        List<Account> thisMonthStudents = appointmentRepository.findTotalTaughtStudents(
                 tutorId, startDate, endDate);
-        List<Subject> thisMonthSubjects = appointmentRepository.findTotalTaughtSubjects(
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
                 tutorId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
