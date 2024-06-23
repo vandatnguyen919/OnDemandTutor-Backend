@@ -31,11 +31,6 @@ public class TutorController {
         return tutorService.getAllTutors(pageNo, pageSize, subjects, priceMin, priceMax, tutorLevel, sortBy, keyword);
     }
 
-    @GetMapping("/students/{studentId}")
-    public ResponseEntity<?> getAllBookedTutorsByStudentId(@PathVariable Integer studentId) {
-        return tutorService.getAllBookedTutorsByStudentId(studentId);
-    }
-
     @GetMapping("/{tutorId}")
     public ResponseEntity<TutorInfoDto> getTutorById(
             @PathVariable Integer tutorId ) {

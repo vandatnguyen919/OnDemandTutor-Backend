@@ -8,6 +8,7 @@ import com.mytutor.dto.QuestionDto;
 import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StudentService;
+import com.mytutor.services.TutorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,9 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private TutorService tutorService;
 
     @Autowired
     private AppointmentService appointmentService;
@@ -51,6 +55,11 @@ public class StudentController {
     public ResponseEntity<?> getQuestionById(
             @PathVariable("questionId") int questionId) {
         return studentService.getQuestionById(questionId);
+    }
+
+    @GetMapping("/students/{studentId}/tutors")
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(@PathVariable Integer studentId) {
+        return tutorService.getAllBookedTutorsByStudentId(studentId);
     }
 
     @PostMapping("/students/{studentId}/questions")
