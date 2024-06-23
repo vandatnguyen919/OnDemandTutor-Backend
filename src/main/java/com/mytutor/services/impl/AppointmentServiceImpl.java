@@ -17,7 +17,6 @@ import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
-import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -67,44 +66,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
-        ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
-        convertTimeslotsToIds(appointment, dto);
+        ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-    private void convertTimeslotsToIds(Appointment appointment, ResponseAppointmentDto dto) {
-        for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslotIds().add(t.getId());
-        }
-    }
-
     @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
-                                                                                       AppointmentStatus status,
-                                                                                       Integer pageNo,
-                                                                                       Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByAccountId(Integer accountId,
+                                                                                            AppointmentStatus status,
+                                                                                            Integer pageNo,
+                                                                                            Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAppointmentByTutorId(tutorId, pageable);
-        } else {
-            appointments = appointmentRepository.findAppointmentByTutorId(tutorId, status, pageable);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
-    }
-
-    @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudentId(Integer studentId,
-                                                                                         AppointmentStatus status,
-                                                                                         Integer pageNo,
-                                                                                         Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAppointmentByStudentId(studentId, pageable);
-        } else {
-            appointments = appointmentRepository.findAppointmentByStudentId(studentId, status, pageable);
-        }
+        appointments = appointmentRepository.findAppointmentByAccountId(accountId, status, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
@@ -114,39 +87,71 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                                                  Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAll(pageable);
-        } else {
-            appointments = appointmentRepository.findAppointments(status, pageable);
-        }
+        appointments = appointmentRepository.findAppointments(status, pageable);
+
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(studentId);
-        List<Account> tutors = appointmentRepository.findTotalLearntTutors(studentId);
-        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(studentId);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                studentId, null, null);
+        List<Account> tutors = appointmentRepository.findTotalLearntTutors(
+                studentId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalSubjects(
+                studentId, null, null);
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                studentId, startDate, endDate);
+        List<Account> thisMonthTutors = appointmentRepository.findTotalLearntTutors(
+                studentId, startDate, endDate);
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
+                studentId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(studentId);
-        dto.setSubjects(subjects);
+        dto.setTotalSubjects(subjects);
         dto.setTotalLessons(totalLessons);
         dto.setTotalLearntTutor(tutors.size());
+
+        dto.setThisMonthSubjects(thisMonthSubjects);
+        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthTutor(thisMonthTutors.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(tutorId);
-        List<Account> students = appointmentRepository.findTotalTaughtStudent(tutorId);
-        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(tutorId);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                tutorId, null, null);
+        List<Account> students = appointmentRepository.findTotalTaughtStudents(
+                tutorId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalSubjects(
+                tutorId, null, null);
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                tutorId, startDate, endDate);
+        List<Account> thisMonthStudents = appointmentRepository.findTotalTaughtStudents(
+                tutorId, startDate, endDate);
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
+                tutorId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(tutorId);
-        dto.setSubjects(subjects);
+
+        dto.setTotalSubjects(subjects);
         dto.setTotalLessons(totalLessons);
         dto.setTotalTaughtStudent(students.size());
+
+        dto.setThisMonthSubjects(thisMonthSubjects);
+        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthStudent(thisMonthStudents.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
     // convert from Page to PaginationDto
@@ -157,9 +162,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(a -> {
                     Appointment appointment = appointmentRepository.findById(a.getId())
                             .orElse(new Appointment());
-                    ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
-                    convertTimeslotsToIds(appointment, dto);
-                    return dto;
+                    return ResponseAppointmentDto.mapToDto(appointment);
                 })
                 .collect(Collectors.toList());
 
@@ -181,8 +184,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public ResponseEntity<?> createAppointment(Integer studentId,
                                                InputAppointmentDto inputAppointmentDto) {
-        Account tutor = accountRepository.findById(inputAppointmentDto.getTutorId())
-                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
 
         // forbid a student make a booking when haven't finished payment for another
         if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId,
@@ -191,19 +192,44 @@ public class AppointmentServiceImpl implements AppointmentService {
                     "in pending payment status!");
         }
 
+        Appointment appointment = createAppointmentInstance(studentId, inputAppointmentDto);
+
+        // save entities
+        timeslotRepository.saveAll(appointment.getTimeslots());
+        appointmentRepository.save(appointment);
+
+        // response
+        ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    private Appointment createAppointmentInstance(Integer studentId,
+                                                  InputAppointmentDto inputAppointmentDto) {
+        Account tutor = accountRepository.findById(inputAppointmentDto.getTutorId())
+                .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
         // create appointment instance
         Appointment appointment = new Appointment();
         appointment.setStudent(accountRepository.findById(studentId).get());
         appointment.setTutor(tutor);
         appointment.setDescription(inputAppointmentDto.getDescription());
-        appointment.setSubject(subjectRepository.findBySubjectName(
-                inputAppointmentDto.getSubjectName()).get());
+        if (inputAppointmentDto.getSubjectName() == null || inputAppointmentDto.getSubjectName().isBlank()) {
+            throw new SubjectNotFoundException("Not provided subject!");
+        } else {
+            Subject s = subjectRepository.findBySubjectName(
+                            inputAppointmentDto.getSubjectName())
+                    .orElseThrow(()-> new SubjectNotFoundException("Subject not found!")
+                    );
+            appointment.setSubject(s);
+        }
         appointment.setCreatedAt(LocalDateTime.now());
         appointment.setStatus(AppointmentStatus.PENDING_PAYMENT);
 
         for (Integer i : inputAppointmentDto.getTimeslotIds()) {
-            WeeklySchedule w = weeklyScheduleRepository.findById(i).get();
+            WeeklySchedule w = weeklyScheduleRepository.findById(i)
+                    .orElseThrow(() -> new TimeslotValidationException("Schedule not found!"));
+
             LocalDate bookDate = calculateDateFromDayOfWeek(w.getDayOfWeek());
+
             if (timeslotRepository.findTimeslotWithDateAndWeeklySchedule(w.getId(), bookDate) != null) {
                 throw new ConflictTimeslotException("Cannot book because " +
                         "some timeslots are occupied!");
@@ -222,17 +248,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
                 * calculateTotalHours(appointment.getTimeslots()));
 
-        // save entities
-        timeslotRepository.saveAll(appointment.getTimeslots());
-        appointmentRepository.save(appointment);
-
-        // response
-        ResponseAppointmentDto dto = modelMapper.map(appointment, ResponseAppointmentDto.class);
-        dto.setSubjectName(appointment.getSubject().getSubjectName());
-        for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslotIds().add(t.getId());
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        return appointment;
     }
 
     private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
@@ -283,6 +299,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.ok("Appointment status updated successfully");
     }
 
+    @Override
+    @Transactional
+    public ResponseEntity<?> rollbackAppointment(int appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
+        if (!appointment.getStatus().equals(AppointmentStatus.PENDING_PAYMENT)) {
+            throw new InvalidAppointmentStatusException("This appointment cannot be rollback!");
+        }
+        rollbackAppointment(appointment);
+        return ResponseEntity.status(HttpStatus.OK).body("Appointment rollback successfully");
+    }
+
     // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
     @Override
     @Transactional
@@ -302,13 +330,5 @@ public class AppointmentServiceImpl implements AppointmentService {
             rollbackAppointment(appointment);
         }
     }
-
-    // student update appointment status (canceled)
-
-    // sau khi hết 15p do vnpay đếm,
-    // mọi thứ trong hàm create appointment sẽ bị roll back về trạng thái trước khi create appointment
-    // ...
-
-
 
 }
