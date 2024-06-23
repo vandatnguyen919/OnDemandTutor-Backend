@@ -119,9 +119,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(studentId);
-        List<Account> tutors = appointmentRepository.findTotalLearntTutors(studentId);
-        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(studentId);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(studentId, null, null);
+        List<Account> tutors = appointmentRepository.findTotalLearntTutors(studentId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(studentId, null, null);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(studentId);
@@ -133,9 +133,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(tutorId);
-        List<Account> students = appointmentRepository.findTotalTaughtStudent(tutorId);
-        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(tutorId);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(tutorId, null, null);
+        List<Account> students = appointmentRepository.findTotalTaughtStudent(tutorId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(tutorId, null, null);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(tutorId);
