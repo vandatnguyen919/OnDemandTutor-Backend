@@ -5,7 +5,6 @@ import com.mytutor.dto.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
-import com.mytutor.dto.timeslot.AppointmentTimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -119,29 +118,64 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(studentId, null, null);
-        List<Account> tutors = appointmentRepository.findTotalLearntTutors(studentId, null, null);
-        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(studentId, null, null);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(
+                studentId, null, null);
+        List<Account> tutors = appointmentRepository.findTotalLearntTutors(
+                studentId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(
+                studentId, null, null);
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(
+                studentId, startDate, endDate);
+        List<Account> thisMonthTutors = appointmentRepository.findTotalLearntTutors(
+                studentId, startDate, endDate);
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalLearntSubject(
+                studentId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(studentId);
-        dto.setSubjects(subjects);
+        dto.setTotalSubjects(subjects);
         dto.setTotalLessons(totalLessons);
         dto.setTotalLearntTutor(tutors.size());
+
+        dto.setThisMonthSubjects(thisMonthSubjects);
+        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthTutor(thisMonthTutors.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(tutorId, null, null);
-        List<Account> students = appointmentRepository.findTotalTaughtStudent(tutorId, null, null);
-        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(tutorId, null, null);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(
+                tutorId, null, null);
+        List<Account> students = appointmentRepository.findTotalTaughtStudent(
+                tutorId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(
+                tutorId, null, null);
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(
+                tutorId, startDate, endDate);
+        List<Account> thisMonthStudents = appointmentRepository.findTotalTaughtStudent(
+                tutorId, startDate, endDate);
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalTaughtSubjects(
+                tutorId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(tutorId);
-        dto.setSubjects(subjects);
+
+        dto.setTotalSubjects(subjects);
         dto.setTotalLessons(totalLessons);
         dto.setTotalTaughtStudent(students.size());
+
+        dto.setThisMonthSubjects(thisMonthSubjects);
+        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthStudent(thisMonthStudents.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
     // convert from Page to PaginationDto
