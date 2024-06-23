@@ -5,7 +5,6 @@ import com.mytutor.dto.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
-import com.mytutor.dto.timeslot.AppointmentTimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -71,35 +70,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-
-
     @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
-                                                                                       AppointmentStatus status,
-                                                                                       Integer pageNo,
-                                                                                       Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByAccountId(Integer accountId,
+                                                                                            AppointmentStatus status,
+                                                                                            Integer pageNo,
+                                                                                            Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAppointmentByTutorId(tutorId, pageable);
-        } else {
-            appointments = appointmentRepository.findAppointmentByTutorId(tutorId, status, pageable);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
-    }
-
-    @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudentId(Integer studentId,
-                                                                                         AppointmentStatus status,
-                                                                                         Integer pageNo,
-                                                                                         Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAppointmentByStudentId(studentId, pageable);
-        } else {
-            appointments = appointmentRepository.findAppointmentByStudentId(studentId, status, pageable);
-        }
+        appointments = appointmentRepository.findAppointmentByAccountId(accountId, status, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
@@ -109,39 +87,71 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                                                  Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAll(pageable);
-        } else {
-            appointments = appointmentRepository.findAppointments(status, pageable);
-        }
+        appointments = appointmentRepository.findAppointments(status, pageable);
+
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentId(studentId);
-        List<Account> tutors = appointmentRepository.findTotalLearntTutors(studentId);
-        List<Subject> subjects = appointmentRepository.findTotalLearntSubject(studentId);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                studentId, null, null);
+        List<Account> tutors = appointmentRepository.findTotalLearntTutors(
+                studentId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalSubjects(
+                studentId, null, null);
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                studentId, startDate, endDate);
+        List<Account> thisMonthTutors = appointmentRepository.findTotalLearntTutors(
+                studentId, startDate, endDate);
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
+                studentId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(studentId);
-        dto.setSubjects(subjects);
+        dto.setTotalSubjects(subjects);
         dto.setTotalLessons(totalLessons);
         dto.setTotalLearntTutor(tutors.size());
+
+        dto.setThisMonthSubjects(thisMonthSubjects);
+        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthTutor(thisMonthTutors.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByTutorId(tutorId);
-        List<Account> students = appointmentRepository.findTotalTaughtStudent(tutorId);
-        List<Subject> subjects = appointmentRepository.findTotalTaughtSubjects(tutorId);
+        int totalLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                tutorId, null, null);
+        List<Account> students = appointmentRepository.findTotalTaughtStudents(
+                tutorId, null, null);
+        List<Subject> subjects = appointmentRepository.findTotalSubjects(
+                tutorId, null, null);
+
+        // current month
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        int thisMonthLessons = appointmentRepository.findNoOfTotalAppointmentsByStudentOrTutorId(
+                tutorId, startDate, endDate);
+        List<Account> thisMonthStudents = appointmentRepository.findTotalTaughtStudents(
+                tutorId, startDate, endDate);
+        List<Subject> thisMonthSubjects = appointmentRepository.findTotalSubjects(
+                tutorId, startDate, endDate);
 
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(tutorId);
-        dto.setSubjects(subjects);
+
+        dto.setTotalSubjects(subjects);
         dto.setTotalLessons(totalLessons);
         dto.setTotalTaughtStudent(students.size());
+
+        dto.setThisMonthSubjects(thisMonthSubjects);
+        dto.setThisMonthLessons(thisMonthLessons);
+        dto.setThisMonthStudent(thisMonthStudents.size());
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
     // convert from Page to PaginationDto
@@ -152,9 +162,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(a -> {
                     Appointment appointment = appointmentRepository.findById(a.getId())
                             .orElse(new Appointment());
-                    ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
-
-                    return dto;
+                    return ResponseAppointmentDto.mapToDto(appointment);
                 })
                 .collect(Collectors.toList());
 

@@ -2,7 +2,6 @@ package com.mytutor.controllers;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.InputAppointmentDto;
-import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAppointmentDto;
 import com.mytutor.services.AppointmentService;
@@ -36,24 +35,14 @@ public class AppointmentController {
         return appointmentService.getAppointments(status, pageNo, pageSize);
     }
 
-    // lay ra tat ca appointment cua mot tutor theo trang thai
-    @GetMapping("/tutors/{tutorId}")
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutor(
-            @PathVariable Integer tutorId,
-            @RequestParam(value = "status", required = false) AppointmentStatus status,
-            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
-        return appointmentService.getAppointmentsByTutorId(tutorId, status, pageNo, pageSize);
-    }
-
     // lay ra tat ca appointment cua mot student theo trang thai
-    @GetMapping("/students/{studentId}")
+    @GetMapping("/accounts/{accountId}")
     public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudent(
-            @PathVariable Integer studentId,
+            @PathVariable Integer accountId,
             @RequestParam(value = "status", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
-        return appointmentService.getAppointmentsByStudentId(studentId, status, pageNo, pageSize);
+        return appointmentService.getAppointmentsByAccountId(accountId, status, pageNo, pageSize);
     }
 
     // student tao mot appointment moi
