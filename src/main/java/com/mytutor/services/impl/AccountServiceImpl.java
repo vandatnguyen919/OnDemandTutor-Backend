@@ -10,6 +10,7 @@ import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.exceptions.AccountNotFoundException;
+import com.mytutor.exceptions.PhoneNumberAlreadyUsedException;
 import com.mytutor.repositories.AccountRepository;
 
 import com.mytutor.services.AccountService;
@@ -73,7 +74,6 @@ public class AccountServiceImpl implements AccountService {
 //        }
 
         // chỉ cập nhật khi điền vào != null và khác rỗng
-        accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
 
         if (updateAccountDetailsDto.getDateOfBirth() != null
                 && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
@@ -84,22 +84,30 @@ public class AccountServiceImpl implements AccountService {
                 && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
             accountDB.setGender(updateAccountDetailsDto.getGender());
         }
-        if (updateAccountDetailsDto.getAddress() != null
-                && !updateAccountDetailsDto.getAddress().isBlank()) {
+        if (checkFilled(updateAccountDetailsDto.getAddress())) {
             accountDB.setAddress(updateAccountDetailsDto.getAddress());
         }
-        if (updateAccountDetailsDto.getAvatarUrl() != null
-                && !updateAccountDetailsDto.getAvatarUrl().isBlank()) {
+        if (checkFilled(updateAccountDetailsDto.getAvatarUrl())) {
             accountDB.setAvatarUrl(updateAccountDetailsDto.getAvatarUrl());
         }
-        if (updateAccountDetailsDto.getFullName() != null
-                && !updateAccountDetailsDto.getFullName().isBlank()) {
+        if (checkFilled(updateAccountDetailsDto.getFullName())) {
             accountDB.setFullName(updateAccountDetailsDto.getFullName());
         }
 
         accountRepository.save(accountDB);
+        Account existedPhoneAccount = accountRepository.findByPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+        if (existedPhoneAccount == null || existedPhoneAccount.getId() == accountDB.getId()) {
+            accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+            accountRepository.save(accountDB);
+        } else {
+            throw new PhoneNumberAlreadyUsedException("This phone number has been registered by someone else!");
+        }
 
-        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(accountDB, ResponseAccountDetailsDto.class));
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(accountDB));
+    }
+
+    private boolean checkFilled(String fieldName) {
+        return fieldName != null && !fieldName.isBlank();
     }
 
     @Override

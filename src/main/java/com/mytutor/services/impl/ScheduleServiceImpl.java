@@ -1,9 +1,6 @@
 package com.mytutor.services.impl;
 
-import com.mytutor.dto.timeslot.RequestWeeklyScheduleDto;
-import com.mytutor.dto.timeslot.ScheduleDto;
-import com.mytutor.dto.timeslot.ScheduleItemDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
+import com.mytutor.dto.timeslot.*;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.AccountNotFoundException;
@@ -57,8 +54,11 @@ public class ScheduleServiceImpl implements ScheduleService {
             } else {
                 // return overlapped timeslot to FE to show to the customer
                 // FE will show annoucement that timeslots saved, except these slots are overlap...
+                List<ResponseWeeklyScheduleDto> overlapScheduleDtos = overlapSchedules.stream()
+                        .map(schedule -> ResponseWeeklyScheduleDto.mapToDto(schedule))
+                        .toList();
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(overlapSchedules);
+                        .body(overlapScheduleDtos);
             }
 
         } catch (AccountNotFoundException | TimeslotValidationException e) {
@@ -88,6 +88,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                     schedule.setUsing(true);
                     validatedSchedules.add(schedule);
                 } else {
+                    schedule.setAccount(account);
                     overlapSchedules.add(schedule);
                 }
         }

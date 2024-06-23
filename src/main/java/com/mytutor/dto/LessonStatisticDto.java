@@ -17,8 +17,16 @@ import java.util.List;
 @NoArgsConstructor
 public class LessonStatisticDto {
     int accountId;
+
+    // total
     int totalLessons;
-    int totalLearntTutor;
-    int totalTaughtStudent;
-    List<Subject> subjects = new ArrayList<>();
+    int totalLearntTutor; // for student
+    int totalTaughtStudent; // for tutor
+    List<Subject> totalSubjects = new ArrayList<>();
+
+    // monthly
+    int thisMonthLessons;
+    int thisMonthTutor; // for student
+    int thisMonthStudent; // for tutor
+    List<Subject> thisMonthSubjects = new ArrayList<>();
 }
