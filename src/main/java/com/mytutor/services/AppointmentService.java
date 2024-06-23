@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface AppointmentService {
     ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId);
-    ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutorId(Integer tutorId, AppointmentStatus status, Integer pageNo, Integer pageSize);
-    ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudentId(Integer studentId, AppointmentStatus status, Integer pageNo, Integer pageSize);
+    ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByAccountId(Integer tutorId, AppointmentStatus status, Integer pageNo, Integer pageSize);
     ResponseEntity<?> createAppointment(Integer studentId, InputAppointmentDto appointment);
     ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status);
     ResponseEntity<?> rollbackAppointment(int appointmentId);

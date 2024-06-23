@@ -70,35 +70,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-
-
     @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByTutorId(Integer tutorId,
-                                                                                       AppointmentStatus status,
-                                                                                       Integer pageNo,
-                                                                                       Integer pageSize) {
+    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByAccountId(Integer accountId,
+                                                                                            AppointmentStatus status,
+                                                                                            Integer pageNo,
+                                                                                            Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAppointmentByTutorId(tutorId, pageable);
-        } else {
-            appointments = appointmentRepository.findAppointmentByTutorId(tutorId, status, pageable);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
-    }
-
-    @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByStudentId(Integer studentId,
-                                                                                         AppointmentStatus status,
-                                                                                         Integer pageNo,
-                                                                                         Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAppointmentByStudentId(studentId, pageable);
-        } else {
-            appointments = appointmentRepository.findAppointmentByStudentId(studentId, status, pageable);
-        }
+        appointments = appointmentRepository.findAppointmentByAccountId(accountId, status, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
@@ -108,11 +87,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                                                  Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
-        if (status == null) {
-            appointments = appointmentRepository.findAll(pageable);
-        } else {
-            appointments = appointmentRepository.findAppointments(status, pageable);
-        }
+        appointments = appointmentRepository.findAppointments(status, pageable);
+
         return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
     }
 
@@ -186,9 +162,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(a -> {
                     Appointment appointment = appointmentRepository.findById(a.getId())
                             .orElse(new Appointment());
-                    ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
-
-                    return dto;
+                    return ResponseAppointmentDto.mapToDto(appointment);
                 })
                 .collect(Collectors.toList());
 

@@ -20,36 +20,14 @@ import java.util.List;
  */
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
-
     @Query("SELECT a FROM Appointment a " +
-            " WHERE a.tutor.id = :tutorId ")
-    Page<Appointment> findAppointmentByTutorId(Integer tutorId, Pageable pageable);
-
-    @Query("SELECT a FROM Appointment a " +
-            " WHERE a.tutor.id = :tutorId " +
-            " AND a.status = :status")
-    Page<Appointment> findAppointmentByTutorId(Integer tutorId, AppointmentStatus status, Pageable pageable);
-
-
-    @Query("SELECT a FROM Appointment a " +
-            " WHERE a.student.id = :studentId ")
-    Page<Appointment> findAppointmentByStudentId(Integer studentId, Pageable pageable);
-
-    @Query("SELECT a FROM Appointment a " +
-            " WHERE a.student.id = :studentId " +
-            " AND a.status = :status")
-    Page<Appointment> findAppointmentByStudentId(Integer studentId, AppointmentStatus status, Pageable pageable);
+            " WHERE (a.tutor.id = :accountId OR a.student.id = :accountId)" +
+            " AND (:status is null OR a.status = :status)")
+    Page<Appointment> findAppointmentByAccountId(Integer accountId, AppointmentStatus status, Pageable pageable);
 
     @Query("SELECT a FROM Appointment a "
-            + " WHERE a.status = :status")
+            + " WHERE :status is null OR a.status = :status")
     Page<Appointment> findAppointments(AppointmentStatus status, Pageable pageable);
-
-
-//    @Query("SELECT DISTINCT a " +
-//            " FROM Appointment a JOIN a.timeslots t " +
-//            " WHERE t IN :timeslots " +
-//            " AND a.id != :appointmentId")
-//    List<Appointment> findAppointmentsWithOverlappingTimeslots(@Param("timeslots") List<Timeslot> timeslots, @Param("appointmentId") Integer appointmentId);
 
     @Query("SELECT a FROM Appointment a WHERE a.status = :status AND a.student.id = :studentId")
     List<Appointment> findAppointmentsWithPendingPayment(@Param("studentId") Integer studentId,
