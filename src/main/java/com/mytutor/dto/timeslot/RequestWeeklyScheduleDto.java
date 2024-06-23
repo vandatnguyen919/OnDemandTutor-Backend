@@ -1,5 +1,6 @@
 package com.mytutor.dto.timeslot;
 
+import com.mytutor.entities.WeeklySchedule;
 import lombok.Data;
 
 import java.sql.Time;
@@ -17,5 +18,6 @@ public class RequestWeeklyScheduleDto {
     private Integer dayOfWeek;
 
     private boolean isUsing;
+
 
 }
