@@ -28,10 +28,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -163,6 +160,68 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
+
+    // everytime reschedule == only reschedule a slot of the appointment
+    @Override
+    public ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, int oldTimeslotId, int newWeeklyScheduleId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayTime = LocalDateTime.now();
+
+        // if new weekly schedule has booked timeslot -> error
+        WeeklySchedule newWeeklySchedule = weeklyScheduleRepository.findById(newWeeklyScheduleId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        LocalDate newScheduleDate = calculateDateFromDayOfWeek(newWeeklySchedule.getDayOfWeek());
+        if (timeslotRepository.findTimeslotWithDateAndWeeklySchedule(newWeeklyScheduleId, newScheduleDate) != null) {
+            throw new ConflictTimeslotException("Timeslot has been occupied!");
+        }
+
+        // 1. if current time before old slot <= 1 days -> error
+        // (only allows if current time >= 1 days with old slot)
+        Timeslot oldTimeslot = timeslotRepository.findById(oldTimeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        LocalDate oldDate = oldTimeslot.getScheduleDate();
+        LocalTime oldTime = oldTimeslot.getWeeklySchedule().getStartTime().toLocalTime();
+        LocalDateTime oldDateTime = oldDate.atTime(oldTime);
+        if (todayTime.isAfter(oldDateTime.minusHours(24))) {
+            throw new ConflictTimeslotException("Cannot reschedule because it is " +
+                    "less than 24 hours before booked slot");
+        }
+
+        // 2. new slot must be > date than current date
+        if (!newScheduleDate.isAfter(today)) {
+            throw new ConflictTimeslotException("New schedule must be after current day!");
+        }
+
+        // 3. new slot must has length == old slot
+        double oldLength = calculateTotalHoursBySlots(convertToList(oldTimeslot));
+        double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
+        if (oldLength != newLength) {
+            throw new ConflictTimeslotException("Old schedule length does not match new schedule length!");
+        }
+
+        // update timeslot for appointment
+
+        // remove old slot
+        appointment.getTimeslots().remove(oldTimeslot);
+
+        // add new slot
+        Timeslot t = new Timeslot();
+        t.setWeeklySchedule(newWeeklySchedule);
+        t.setScheduleDate(newScheduleDate);
+        t.setOccupied(true);
+        appointment.getTimeslots().add(t);
+
+        return null;
+    }
+
+    private List<Timeslot> convertToList(Timeslot t) {
+        List<Timeslot> timeslots = new ArrayList<>();
+        timeslots.add(t);
+        return timeslots;
+    }
+
     private Set<Subject> getSubjectsFromAppointments(List<Appointment> appointments) {
         Set<Subject> subjects = new HashSet<>();
         for (Appointment a : appointments) {
@@ -287,7 +346,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // calculate and set tuition = total hours * teach price per hour
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
-                * calculateTotalHours(appointment.getTimeslots()));
+                * this.calculateTotalHoursBySlots(appointment.getTimeslots()));
 
         return appointment;
     }
@@ -299,7 +358,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return today.plusDays(distance);
     }
 
-    private double calculateTotalHours(List<Timeslot> timeslots) {
+    private double calculateTotalHoursBySlots(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
             LocalTime startLocalTime = t.getWeeklySchedule().getStartTime().toLocalTime();
@@ -307,6 +366,15 @@ public class AppointmentServiceImpl implements AppointmentService {
             Duration duration = Duration.between(startLocalTime, endLocalTime);
             totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         }
+        return totalHours;
+    }
+
+    private double calculateTotalHoursSchedules(WeeklySchedule weeklySchedule) {
+        double totalHours = 0;
+            LocalTime startLocalTime = weeklySchedule.getStartTime().toLocalTime();
+            LocalTime endLocalTime = weeklySchedule.getEndTime().toLocalTime();
+            Duration duration = Duration.between(startLocalTime, endLocalTime);
+            totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
         return totalHours;
     }
 

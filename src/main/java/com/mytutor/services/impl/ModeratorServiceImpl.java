@@ -108,7 +108,7 @@ public class ModeratorServiceImpl implements ModeratorService {
             tutor.setSubjects(null);
             educationRepository.deleteEducationByTutorId(tutorId);
             certificateRepository.deleteCertificateByTutorId(tutorId);
-            timeslotRepository.deleteTimeslotsOfRejectedTutor(tutorId);
+//            timeslotRepository.deleteTimeslotsOfRejectedTutor(tutorId);
             accountRepository.save(tutor);
             return ResponseEntity.status(HttpStatus.OK).body("Rejected tutor!");
         }
