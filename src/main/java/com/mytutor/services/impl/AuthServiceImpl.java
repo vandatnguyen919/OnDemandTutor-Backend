@@ -112,10 +112,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> findByEmail(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
-        ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
 
     @Override
@@ -184,6 +182,6 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
     }
 
-    private record AccountResponse(String email, String status) {
+    public record AccountResponse(String email, String status) {
     }
 }

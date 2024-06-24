@@ -25,8 +25,8 @@ public class RegisterDto {
     @NotNull
     private String email;
 
-    @Size(message = "must be between 1 and 255 characters",
-            min = 1, max = 255)
+    @Size(message = "must be between 1 and 1000 characters",
+            min = 1, max = 1000)
     private String fullName;
 
     @Pattern(message = "invalid phone number format",
@@ -35,5 +35,6 @@ public class RegisterDto {
 
     @Pattern(message = "must be between 8 and 16 characters, including at least 1 number, 1 uppercase character, 1 lowercase character, and 1 special character",
             regexp = RegexConsts.PASSWORD_REGEX)
+    @NotNull
     private String password;
 }

@@ -6,7 +6,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.DegreeType;
-import com.mytutor.constants.VerifyStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
@@ -110,7 +110,7 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
-        Account tutor = accountRepository.findById(tutorId)
+        Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
@@ -125,8 +125,8 @@ public class TutorServiceImpl implements TutorService {
         if (isVerified.isBlank())
             educations = educationRepository.findByAccountId(tutorId);
         else {
-            VerifyStatus status = VerifyStatus.valueOf(isVerified.toUpperCase());
-            educations = educationRepository.findByAccountId(tutorId, status);
+            boolean isVerifiedBoolean = !isVerified.equalsIgnoreCase("false");
+            educations = educationRepository.findByAccountId(tutorId, isVerifiedBoolean);
         }
         List<EducationDto> educationDtos = educations.stream()
                 .map(e -> modelMapper.map(e, EducationDto.class)).toList();
@@ -139,8 +139,8 @@ public class TutorServiceImpl implements TutorService {
         if (isVerified.isBlank())
             certificates = certificateRepository.findByAccountId(tutorId);
         else {
-            VerifyStatus status = VerifyStatus.valueOf(isVerified.toUpperCase());
-            certificates = certificateRepository.findByAccountId(tutorId, status);
+            boolean isVerifiedBoolean = !isVerified.equalsIgnoreCase("false");
+            certificates = certificateRepository.findByAccountId(tutorId, isVerifiedBoolean);
         }
         List<CertificateDto> certificateDtos = certificates.stream()
                 .map(c -> modelMapper.map(c, CertificateDto.class)).toList();
@@ -157,7 +157,7 @@ public class TutorServiceImpl implements TutorService {
 
             Education education = modelMapper.map(educationDto, Education.class);
             education.setAccount(tutor);
-            education.setVerifyStatus(VerifyStatus.PROCESSING);
+            education.setVerified(false);
             education.setDegreeType(DegreeType.valueOf(educationDto.getDegreeType().toUpperCase()));
 
             educationRepository.save(education);
@@ -178,7 +178,7 @@ public class TutorServiceImpl implements TutorService {
         for (CertificateDto certificateDto : certificateDtos) {
             Certificate certificate = modelMapper.map(certificateDto, Certificate.class);
             certificate.setAccount(tutor);
-            certificate.setVerifyStatus(VerifyStatus.PROCESSING);
+            certificate.setVerified(false);
 
             certificateRepository.save(certificate);
         }
@@ -287,6 +287,8 @@ public class TutorServiceImpl implements TutorService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
+
+        account.setTutorDetail(tutorDetail);
 //        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
@@ -306,7 +308,9 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
         TutorDetail tutorDetail = tutor.getTutorDetail();
 
 
