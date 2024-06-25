@@ -1,6 +1,8 @@
 package com.mytutor.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,10 +12,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+@Component
 public class VNPayConfig {
 
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_ReturnUrl = "http://localhost:5173/confirm-payment";
+    @Value("${vnp.returnUrl}") public String vnp_ReturnUrl;
     public static String vnp_TmnCode = "0ZLJX97B";
     public static String secretKey = "NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY";
     public static String vnp_Version = "2.1.0";

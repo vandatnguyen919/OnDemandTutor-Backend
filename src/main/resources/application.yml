@@ -6,7 +6,11 @@ mytutor:
     base64-secret: aeGhbpAvxQxtq6sXeXxkKNJzDiGB8aFg1Q63rETWHX19P2iHbSUp9CvJamrNYzi+j8nvpOgn55Bn/QyCvHfDzQ==
     # 2 weeks in second
     token-validity-in-second: 1209600
+  url:
+    client: http://localhost:5173
 
+vnp:
+  returnUrl: http://localhost:5173/confirm-payment
 
 spring:
   security:

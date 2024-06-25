@@ -57,6 +57,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private VNPayConfig vnPayConfig;
+
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
@@ -205,7 +208,7 @@ public class PaymentServiceImpl implements PaymentService {
             vnp_Params.put("vnp_Locale", "vn");
         }
         vnp_Params.put("vnp_OrderType", "other");   //optional
-        vnp_Params.put("vnp_ReturnUrl", VNPayConfig.vnp_ReturnUrl);
+        vnp_Params.put("vnp_ReturnUrl", vnPayConfig.vnp_ReturnUrl);
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
