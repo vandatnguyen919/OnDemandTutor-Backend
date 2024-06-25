@@ -69,7 +69,6 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/tutors/{tutorId}/reviews").hasRole(ADMIN.name())
                         .anyRequest().permitAll()
                 )
 //                .exceptionHandling(
