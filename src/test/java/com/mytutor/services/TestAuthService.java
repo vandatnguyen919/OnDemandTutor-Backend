@@ -1,10 +1,7 @@
 package com.mytutor.services;
 
-import com.mytutor.dto.AuthenticationResponseDto;
-import com.mytutor.dto.auth.LoginDto;
 import com.mytutor.dto.auth.RegisterDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Otp;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.security.SecurityUtil;
 import com.mytutor.services.impl.AuthServiceImpl;
@@ -18,9 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
