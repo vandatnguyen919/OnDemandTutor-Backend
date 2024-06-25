@@ -1,6 +1,6 @@
 package com.mytutor.dto.payment;
 
-import com.mytutor.dto.InputAppointmentDto;
+import com.mytutor.dto.appointment.InputAppointmentDto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

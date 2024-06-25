@@ -1,7 +1,13 @@
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.appointment.AppointmentSlotDto;
+import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.timeslot.*;
 import com.mytutor.entities.Account;
+import com.mytutor.entities.Appointment;
+import com.mytutor.entities.Timeslot;
 import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.TimeslotValidationException;
@@ -11,14 +17,17 @@ import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.ScheduleService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -200,8 +209,61 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
+    @Override
+    public PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
+                                                                 boolean isDone,
+                                                                 boolean isLearner,
+                                                                 Integer pageNo,
+                                                                 Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Timeslot> responseTimeslots;
+        LocalDate currentDate = LocalDate.now();
+        LocalTime currentTime = LocalTime.now();
+
+        if (isLearner) {
+            if (isDone) {
+                responseTimeslots = timeslotRepository.findPastTimeslotByStudent(
+                        accountId, currentDate, currentTime, pageable);
+            } else {
+                responseTimeslots = timeslotRepository.findUpcomingTimeslotByStudent(
+                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
+            }
+        } else {
+            if (isDone) {
+                responseTimeslots = timeslotRepository.findPastTimeslotByTutor(
+                        accountId, currentDate, currentTime, pageable);
+            } else {
+                responseTimeslots = timeslotRepository.findUpcomingTimeslotByTutor(
+                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
+            }
+        }
+        return getPaginationDto(responseTimeslots);
+    }
+
+    private PaginationDto<AppointmentSlotDto> getPaginationDto(Page<Timeslot> timeslots) {
+        List<Timeslot> listOfTimeslots = timeslots.getContent();
+
+        List<AppointmentSlotDto> content = listOfTimeslots.stream()
+                .map(a -> {
+                    Timeslot timeslot = timeslotRepository.findById(a.getId())
+                            .orElse(new Timeslot());
+                    return AppointmentSlotDto.mapToDto(timeslot);
+                })
+                .toList();
+
+        PaginationDto<AppointmentSlotDto> appointmentResponseDto = new PaginationDto<>();
+        appointmentResponseDto.setContent(content);
+        appointmentResponseDto.setPageNo(timeslots.getNumber());
+        appointmentResponseDto.setPageSize(timeslots.getSize());
+        appointmentResponseDto.setTotalElements(timeslots.getTotalElements());
+        appointmentResponseDto.setTotalPages(timeslots.getTotalPages());
+        appointmentResponseDto.setLast(timeslots.isLast());
+
+        return appointmentResponseDto;
+    }
+
     private void removeBookedSlot(List<WeeklySchedule> weeklySchedules, LocalDate date) {
         weeklySchedules.removeIf(weeklySchedule ->
-                timeslotRepository.findTimeslotWithDateAndWeeklySchedule(weeklySchedule.getId(), date) != null);
+                timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null);
     }
 }

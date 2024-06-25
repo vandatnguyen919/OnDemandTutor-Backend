@@ -43,20 +43,4 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                                     @Param("startDate") LocalDateTime startDate,
                                     @Param("endDate") LocalDateTime endDate);
 
-//    @Query("SELECT distinct a.student FROM Appointment a " +
-//            " WHERE a.tutor.id = :id AND " +
-//            " (:startDate IS NULL OR a.createdAt >= :startDate) AND " +
-//            " (:endDate IS NULL OR a.createdAt < :endDate)")
-//    List<Account> findTotalTaughtStudents(@Param("id") Integer id,
-//                                          @Param("startDate") LocalDateTime startDate,
-//                                          @Param("endDate") LocalDateTime endDate);
-//
-//    @Query("SELECT distinct a.tutor FROM Appointment a " +
-//            " WHERE a.student.id = :id AND " +
-//            " (:startDate IS NULL OR a.createdAt >= :startDate) AND " +
-//            " (:endDate IS NULL OR a.createdAt < :endDate)")
-//    List<Account> findTotalLearntTutors(@Param("id") Integer id,
-//                                        @Param("startDate") LocalDateTime startDate,
-//                                        @Param("endDate") LocalDateTime endDate);
-
 }
