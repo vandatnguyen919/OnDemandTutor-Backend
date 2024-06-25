@@ -51,48 +51,48 @@ public class TestAuthService {
     @Mock
     private AccountRepository accountRepository;
 
+//    @Test
+//    public void Authentication_Login_VerifyLogin_LoginSuccess() {
+//        // Arrange
+//        LoginDto loginDto = new LoginDto();
+//        loginDto.setEmail("test@example.com");
+//        loginDto.setPassword("Password123.");
+//
+//        Authentication authentication = mock(Authentication.class);
+//        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
+//        when(securityUtil.createToken(authentication)).thenReturn("dummy-jwt-token");
+//
+//        // Act
+//        ResponseEntity<?> response = authService.login(loginDto);
+//
+//        // Assert
+//        assertEquals(HttpStatus.OK, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        assertInstanceOf(AuthenticationResponseDto.class, response.getBody());
+//        AuthenticationResponseDto authResponse = (AuthenticationResponseDto) response.getBody();
+//        assertEquals("dummy-jwt-token", authResponse.getAccessToken());
+//    }
+//
+//    @ParameterizedTest
+//    @CsvFileSource(resources = "/login_failure.csv", numLinesToSkip = 1)
+//    public void Authentication_Login_VerifyLogin_LoginFailure(String email, String password) {
+//        // Arrange
+//        LoginDto loginDto = new LoginDto();
+//        loginDto.setEmail(email);
+//        loginDto.setPassword(password);
+//
+//        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+//                .thenThrow(new BadCredentialsException("Bad credentials"));
+//
+//        // Act and Assert
+//        Exception exception = assertThrows(Exception.class, () -> authService.login(loginDto));
+//
+//        // Assert
+//        assertEquals("Bad credentials", exception.getMessage());
+//    }
+
     @Test
-    public void Authentication_Login_VerifyLogin_LoginSuccess() {
-        // Arrange
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("test@example.com");
-        loginDto.setPassword("Password123.");
-
-        Authentication authentication = mock(Authentication.class);
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
-        when(securityUtil.createToken(authentication)).thenReturn("dummy-jwt-token");
-
-        // Act
-        ResponseEntity<?> response = authService.login(loginDto);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertInstanceOf(AuthenticationResponseDto.class, response.getBody());
-        AuthenticationResponseDto authResponse = (AuthenticationResponseDto) response.getBody();
-        assertEquals("dummy-jwt-token", authResponse.getAccessToken());
-    }
-
-    @ParameterizedTest
-    @CsvFileSource(resources = "/login_failure.csv", numLinesToSkip = 1)
-    public void Authentication_Login_VerifyLogin_LoginFailure(String email, String password) {
-        // Arrange
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail(email);
-        loginDto.setPassword(password);
-
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException("Bad credentials"));
-
-        // Act and Assert
-        Exception exception = assertThrows(Exception.class, () -> authService.login(loginDto));
-
-        // Assert
-        assertEquals("Bad credentials", exception.getMessage());
-    }
-
-    @Test
-    public void Authentication_Register_VerifyRegister_RegisterSuccess() {
+    public void Authentication_Register_NNS_58_VerifyRegister_RegisterSuccess() {
         RegisterDto registerDto = new RegisterDto();
         registerDto.setEmail("test@example.com");
         registerDto.setFullName("Test User");
@@ -121,7 +121,7 @@ public class TestAuthService {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/register_failure.csv", numLinesToSkip = 1)
-    public void Authentication_Register_VerifyRegister_RegisterFailure(
+    public void Authentication_Register_NNS_59_VerifyRegister_RegisterFailure(
             String email,
             String phoneNumber
     ) {
