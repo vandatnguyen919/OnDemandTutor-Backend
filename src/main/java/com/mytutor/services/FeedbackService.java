@@ -4,8 +4,10 @@
  */
 package com.mytutor.services;
 
-import com.mytutor.dto.FeedbackDto;
+import com.mytutor.dto.feedback.RequestFeedbackDto;
 import org.springframework.http.ResponseEntity;
+
+import java.security.Principal;
 
 /**
  *
@@ -13,15 +15,15 @@ import org.springframework.http.ResponseEntity;
  */
 public interface FeedbackService {
 
-    public ResponseEntity<?> getAllReviews(int pageNo, int pageSize);
+    ResponseEntity<?> getAllReviews(int pageNo, int pageSize);
 
-    public ResponseEntity<?> getReviewsByTutorId(int pageNo, int pageSize, int tutorId);
+    ResponseEntity<?> getReviewsByTutorId(int pageNo, int pageSize, int tutorId);
 
-    public ResponseEntity<?> getReviewById(int pageNo, int pageSize, int tutorId, int reviewId);
+    ResponseEntity<?> getReviewById(int pageNo, int pageSize, int tutorId, int reviewId);
 
-    public ResponseEntity<?> createReview(int tutorId, FeedbackDto feedbackDto);
+    ResponseEntity<?> createReview(Principal principal, int tutorId, RequestFeedbackDto requestFeedbackDto);
 
-    public ResponseEntity<?> updateReviewById(int tutorId, int reviewId, FeedbackDto feedbackDto);
+    ResponseEntity<?> updateReviewById(int tutorId, int reviewId, RequestFeedbackDto requestFeedbackDto);
 
-    public ResponseEntity<?> deleteReviewById(int tutorId, int reviewId);
+    ResponseEntity<?> deleteReviewById(int tutorId, int reviewId);
 }

@@ -22,6 +22,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT cannot be found or trusted");
+            throw new BadCredentialsException("JWT cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
