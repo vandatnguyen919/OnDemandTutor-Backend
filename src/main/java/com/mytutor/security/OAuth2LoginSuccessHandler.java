@@ -5,6 +5,7 @@ import com.mytutor.services.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -20,7 +21,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final AuthService authService;
 
-    private static final String URL_CLIENT = "http://localhost:5173";
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
 
     public OAuth2LoginSuccessHandler(AuthService authService) {
         this.authService = authService;
@@ -37,10 +39,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             cookie.setPath("/");
             response.addCookie(cookie);
             String token = ((AuthenticationResponseDto) res.getBody()).getAccessToken();
-            url = URL_CLIENT + "/" + "?success=true&accessToken=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+            url = clientUrl + "/" + "?success=true&accessToken=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
         } else {
             String message = "You are banned";
-            url = URL_CLIENT + "/" + "?success=false&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+            url = clientUrl + "/" + "?success=false&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
         }
         response.sendRedirect(url);
     }

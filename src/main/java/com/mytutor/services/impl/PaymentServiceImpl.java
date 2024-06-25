@@ -60,7 +60,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
-            throw new BadCredentialsException("JWT cannot be found or trusted");
+            throw new BadCredentialsException("Token cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
@@ -77,6 +77,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token cannot be found or trusted");
+        }
+
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
         String vnp_Command = "querydr";
