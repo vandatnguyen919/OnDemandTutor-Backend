@@ -9,6 +9,8 @@ mytutor:
   url:
     client: http://localhost:5173
 
+vnp:
+  returnUrl: http://localhost:5173/confirm-payment
 
 spring:
   security:
