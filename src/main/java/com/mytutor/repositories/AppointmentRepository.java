@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- *
  * @author vothimaihoa
  */
 @Repository
@@ -41,6 +40,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @Query("SELECT a FROM Appointment a WHERE a.status = :status AND a.student.id = :studentId")
     List<Appointment> findAppointmentsWithPendingPayment(@Param("studentId") Integer studentId,
                                                          @Param("status") AppointmentStatus status);
+
+    boolean existsByTutorIdAndStudentIdAndStatus(Integer tutorId, Integer studentId, AppointmentStatus status);
+
 
     // rollback automatically after 30 minutes
     List<Appointment> findByStatusAndCreatedAtBefore(AppointmentStatus status, LocalDateTime dateTime);
