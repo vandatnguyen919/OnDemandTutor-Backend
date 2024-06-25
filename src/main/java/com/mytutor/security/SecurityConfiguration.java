@@ -4,14 +4,12 @@
  */
 package com.mytutor.security;
 
-import java.util.List;
-
-import com.mytutor.config.CorsConfig;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -27,12 +25,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
+import static com.mytutor.constants.Role.ADMIN;
 
 /**
  * @author Nguyen Van Dat
@@ -47,6 +45,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                                           CustomAccessDeniedHandler customAccessDeniedHandler,
                                            OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
                                            OAuth2LoginFailureHandler oAuth2LoginFailureHandler,
                                            CorsConfigurationSource corsConfigurationSource) throws Exception {
@@ -70,6 +69,7 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/tutors/{tutorId}/reviews").hasRole(ADMIN.name())
                         .anyRequest().permitAll()
                 )
 //                .exceptionHandling(
@@ -80,6 +80,7 @@ public class SecurityConfiguration {
                         -> oauth2
                         .jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .oauth2Login(oauth2
                                 -> oauth2
