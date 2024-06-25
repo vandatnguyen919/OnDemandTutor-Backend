@@ -85,7 +85,6 @@ public class SecurityConfiguration {
                                 -> oauth2
                                 .successHandler(oAuth2LoginSuccessHandler)
                                 .failureHandler(oAuth2LoginFailureHandler)
-//                        .defaultSuccessUrl("/api/auth/callback/google/redirect/success", true)
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
