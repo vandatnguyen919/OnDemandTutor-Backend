@@ -1,9 +1,10 @@
 package com.mytutor.controllers;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.InputAppointmentDto;
+import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.ResponseAppointmentDto;
+import com.mytutor.dto.appointment.RequestReScheduleDto;
+import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -67,5 +68,12 @@ public class AppointmentController {
     @DeleteMapping("{appointmentId}")
     public ResponseEntity<?> rollbackAppointment(@PathVariable Integer appointmentId) {
         return appointmentService.rollbackAppointment(appointmentId);
+    }
+
+    @PutMapping("{appointmentId}/reschedule")
+    public ResponseEntity<?> rescheduleAppointment(
+            @PathVariable Integer appointmentId,
+            @RequestBody RequestReScheduleDto dto) {
+        return appointmentService.updateAppointmentSchedule(appointmentId, dto);
     }
 }
