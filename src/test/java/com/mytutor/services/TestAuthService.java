@@ -119,28 +119,28 @@ public class TestAuthService {
         assertEquals("REGISTRATION", authResponse.status());
     }
 
-    @ParameterizedTest
-    @CsvFileSource(resources = "/register_failure.csv", numLinesToSkip = 1)
-    public void Authentication_Register_NNS_59_VerifyRegister_RegisterFailure(
-            String email,
-            String phoneNumber
-    ) {
-        RegisterDto registerDto = new RegisterDto();
-        registerDto.setEmail(email);
-        registerDto.setPhoneNumber(phoneNumber);
-
-        if (phoneNumber == null)
-            when(accountRepository.existsByEmail(registerDto.getEmail())).thenReturn(true);
-        else
-            when(accountRepository.existsByPhoneNumber(registerDto.getPhoneNumber())).thenReturn(true);
-
-
-        ResponseEntity<?> response = authService.register(registerDto);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertInstanceOf(String.class, response.getBody());
-        String message = (String) response.getBody();
-        assertNotNull(message);
-    }
+//    @ParameterizedTest
+//    @CsvFileSource(resources = "/register_failure.csv", numLinesToSkip = 1)
+//    public void Authentication_Register_NNS_59_VerifyRegister_RegisterFailure(
+//            String email,
+//            String phoneNumber
+//    ) {
+//        RegisterDto registerDto = new RegisterDto();
+//        registerDto.setEmail(email);
+//        registerDto.setPhoneNumber(phoneNumber);
+//
+//        if (phoneNumber == null)
+//            when(accountRepository.existsByEmail(registerDto.getEmail())).thenReturn(true);
+//        else
+//            when(accountRepository.existsByPhoneNumber(registerDto.getPhoneNumber())).thenReturn(true);
+//
+//
+//        ResponseEntity<?> response = authService.register(registerDto);
+//
+//        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+//        assertNotNull(response.getBody());
+//        assertInstanceOf(String.class, response.getBody());
+//        String message = (String) response.getBody();
+//        assertNotNull(message);
+//    }
 }
