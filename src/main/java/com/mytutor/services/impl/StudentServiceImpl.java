@@ -8,8 +8,9 @@ import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.ResponseAccountDetailsDto;
+import com.mytutor.dto.student.RequestQuestionDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Question;
 import com.mytutor.entities.Subject;
@@ -122,16 +123,16 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public ResponseEntity<?> addQuestion(Integer studentId, QuestionDto questionDto) {
+    public ResponseEntity<?> addQuestion(Integer studentId, RequestQuestionDto requestQuestionDto) {
 
         Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
+        Subject subject = subjectRepository.findBySubjectName(requestQuestionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
         Question question = new Question();
-        question.setTitle(questionDto.getTitle());
-        question.setContent(questionDto.getContent());
-        question.setQuestionUrl(questionDto.getQuestionUrl());
+        question.setTitle(requestQuestionDto.getTitle());
+        question.setContent(requestQuestionDto.getContent());
+        question.setQuestionUrl(requestQuestionDto.getQuestionUrl());
         question.setCreatedAt(new Date());
         question.setModifiedAt(new Date());
         question.setStatus(QuestionStatus.PROCESSING);
@@ -146,13 +147,10 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public ResponseEntity<?> updateQuestion(Integer studentId, Integer questionId, QuestionDto questionDto) {
+    public ResponseEntity<?> updateQuestion(Integer studentId, Integer questionId, RequestQuestionDto requestQuestionDto) {
 
         Account student = accountRepository.findById(studentId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
-
-        Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName())
-                .orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new QuestionNotFoundException("Question not found"));
@@ -161,17 +159,30 @@ public class StudentServiceImpl implements StudentService {
             throw new QuestionNotFoundException("Question does not belong to this account");
         }
 
-        question.setTitle(questionDto.getTitle());
+        Subject subject = null;
+        if (requestQuestionDto.getSubjectName() != null) {
+            subject = subjectRepository.findBySubjectName(requestQuestionDto.getSubjectName())
+                    .orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
+        }
 
-        question.setContent(questionDto.getContent());
-        question.setQuestionUrl(questionDto.getQuestionUrl());
+        if (requestQuestionDto.getTitle() != null) {
+            question.setTitle(requestQuestionDto.getTitle());
+        }
+        if (requestQuestionDto.getContent() != null) {
+            question.setContent(requestQuestionDto.getContent());
+        }
+        if (requestQuestionDto.getQuestionUrl() != null) {
+            question.setQuestionUrl(requestQuestionDto.getQuestionUrl());
+        }
+        if (subject != null) {
+            question.setSubject(subject);
+        }
         question.setModifiedAt(new Date());
         question.setStatus(QuestionStatus.PROCESSING);
-        question.setSubject(subject);
 
         Question updatedQuestion = questionRepository.save(question);
 
-        QuestionDto questionResponse = QuestionDto.mapToDto(updatedQuestion, subject.getSubjectName());
+        QuestionDto questionResponse = QuestionDto.mapToDto(updatedQuestion, updatedQuestion.getSubject().getSubjectName());
 
         return ResponseEntity.status(HttpStatus.OK).body(questionResponse);
     }
