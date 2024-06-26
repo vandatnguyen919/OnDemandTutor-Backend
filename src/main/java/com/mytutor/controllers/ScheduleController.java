@@ -35,11 +35,11 @@ public class ScheduleController {
         return scheduleService.getTutorWeeklySchedule(tutorId);
     }
 
-    @GetMapping("/tutors/{tutorId}/old-schedule/{weeklyScheduleId}")
+    @GetMapping("/tutors/{tutorId}/old-schedule/{timeslotId}")
     public ResponseEntity<?> getReScheduleSlots(
             @PathVariable Integer tutorId,
-            @PathVariable Integer weeklyScheduleId) {
-        return scheduleService.getScheduleForReschedule(weeklyScheduleId, tutorId);
+            @PathVariable Integer timeslotId) {
+        return scheduleService.getScheduleForReschedule(timeslotId, tutorId);
     }
 
 //    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
