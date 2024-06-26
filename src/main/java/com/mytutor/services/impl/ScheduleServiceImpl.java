@@ -223,14 +223,14 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public ResponseEntity<?> getScheduleForReschedule(Integer weeklyScheduleId, Integer tutorId) {
+    public ResponseEntity<?> getScheduleForReschedule(Integer timeslotId, Integer tutorId) {
         LocalDate startDate = LocalDate.now();
-        WeeklySchedule oldWeeklySchedule = weeklyScheduleRepository.findById(weeklyScheduleId)
-                .orElseThrow(() -> new TimeslotValidationException("Schedule not found!"));
-        double oldSlotLength = calculateTotalHoursSchedules(oldWeeklySchedule);
+        Timeslot oldTimeslot = timeslotRepository.findById(timeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        double oldSlotLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
         ScheduleDto scheduleDto = generateWeeklySchedule(
                 tutorId, startDate, oldSlotLength,
-                true, weeklyScheduleId
+                true, timeslotId
         );
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
