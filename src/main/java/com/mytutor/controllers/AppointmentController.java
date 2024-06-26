@@ -65,7 +65,7 @@ public class AppointmentController {
         return appointmentService.updateAppointmentStatus(accountId, appointmentId, status);
     }
 
-    @PutMapping("{appointmentId}/accounts/{accountId}/timeslots/{timeslotId}")
+    @PutMapping("accounts/{accountId}/timeslots/{timeslotId}")
     public ResponseEntity<?> cancelSlotsInAppointment(
             @PathVariable Integer timeslotId,
             @PathVariable Integer accountId

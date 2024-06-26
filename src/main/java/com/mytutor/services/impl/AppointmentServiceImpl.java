@@ -388,8 +388,25 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ResponseEntity<AppointmentSlotDto> cancelSlotsInAppointment(int accountId, int timeslotId) {
         Timeslot timeslotToDelete = timeslotRepository.findById(timeslotId)
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not exists!"));
+        if (timeslotToDelete.getAppointment().getStudent().getId() != accountId) {
+            throw new InvalidAppointmentStatusException("This account is not allowed to cancel this slot!");
+        }
+        if (timeslotToDelete.getScheduleDate().isBefore(LocalDate.now())) {
+            throw new InvalidAppointmentStatusException("Not allowed to cancel this slot!");
+        }
+
+        Appointment appointment = timeslotToDelete.getAppointment();
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidAppointmentStatusException("Not allowed to cancel this slot!");
+        }
+
         AppointmentSlotDto dto = AppointmentSlotDto.mapToDto(timeslotToDelete);
         timeslotRepository.delete(timeslotToDelete);
+        if (appointment.getTimeslots().isEmpty()) {
+            appointment.setStatus(AppointmentStatus.CANCELED);
+        }
+        appointmentRepository.save(appointment);
+
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
