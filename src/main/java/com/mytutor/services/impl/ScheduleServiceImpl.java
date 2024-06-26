@@ -210,6 +210,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
+    public ResponseEntity<?> getScheduleForReschedule(Integer tutorId) {
+        return null;
+    }
+
+    @Override
     public PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
                                                                  boolean isDone,
                                                                  boolean isLearner,

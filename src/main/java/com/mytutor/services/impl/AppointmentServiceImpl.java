@@ -1,11 +1,13 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.dto.timeslot.TimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -382,17 +384,27 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.OK).body(ResponseAppointmentDto.mapToDto(appointment));
     }
 
+    @Override
+    public ResponseEntity<AppointmentSlotDto> cancelSlotsInAppointment(int accountId, int timeslotId) {
+        Timeslot timeslotToDelete = timeslotRepository.findById(timeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not exists!"));
+        AppointmentSlotDto dto = AppointmentSlotDto.mapToDto(timeslotToDelete);
+        timeslotRepository.delete(timeslotToDelete);
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
     // tutor update appointment status: DONE from PAID or CANCELED from PAID
     @Override
-    public ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status) {
+    public ResponseEntity<?> updateAppointmentStatus(Integer accountId, Integer appointmentId, String status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
 
-        if(!Objects.equals(tutorId, appointment.getTutor().getId())) {
-            throw new AppointmentNotFoundException("This appointment is not belong to this tutor");
+        if(!Objects.equals(accountId, appointment.getTutor().getId()) &&
+                !Objects.equals(accountId, appointment.getStudent().getId())) {
+            throw new AppointmentNotFoundException("This appointment is not belong to this account");
         }
         if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
-            throw new InvalidAppointmentStatusException("Tutor can only update paid appointment!");
+            throw new InvalidAppointmentStatusException("Account can only update paid appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {

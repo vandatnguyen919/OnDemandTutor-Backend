@@ -1,6 +1,7 @@
 package com.mytutor.services;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
@@ -29,4 +30,5 @@ public interface AppointmentService {
     ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId);
     ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer accountId);
     ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, RequestReScheduleDto dto);
+    ResponseEntity<AppointmentSlotDto> cancelSlotsInAppointment(int accountId, int timeslotId);
 }
