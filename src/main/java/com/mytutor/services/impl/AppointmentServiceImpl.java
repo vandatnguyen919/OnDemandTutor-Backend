@@ -362,8 +362,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         timeslots.add(oldTimeslot);
         double oldLength = calculateTotalHoursBySlots(timeslots);
         double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
-        if (oldLength != newLength) {
-            throw new ConflictTimeslotException("Old schedule length does not match new schedule length!");
+        if (newLength > oldLength) {
+            throw new ConflictTimeslotException("New slot cannot longer than old slot!");
         }
 
         // update timeslot for appointment
