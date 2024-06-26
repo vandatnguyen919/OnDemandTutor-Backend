@@ -55,14 +55,22 @@ public class AppointmentController {
         return appointmentService.createAppointment(studentId, appointment);
     }
 
-    // tutor thay doi appointment status khi can
-    @PutMapping("{appointmentId}/tutors/{tutorId}")
+    // account thay doi appointment status khi can
+    @PutMapping("{appointmentId}/accounts/{accountId}")
     public ResponseEntity<?> updateAppointmentStatus(
             @PathVariable Integer appointmentId,
-            @PathVariable Integer tutorId,
+            @PathVariable Integer accountId,
             @RequestParam String status
     ) {
-        return appointmentService.updateAppointmentStatus(tutorId, appointmentId, status);
+        return appointmentService.updateAppointmentStatus(accountId, appointmentId, status);
+    }
+
+    @PutMapping("accounts/{accountId}/timeslots/{timeslotId}")
+    public ResponseEntity<?> cancelSlotsInAppointment(
+            @PathVariable Integer timeslotId,
+            @PathVariable Integer accountId
+    ) {
+        return appointmentService.cancelSlotsInAppointment(accountId, timeslotId);
     }
 
     @DeleteMapping("{appointmentId}")
