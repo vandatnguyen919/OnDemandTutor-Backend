@@ -30,9 +30,16 @@ public class ScheduleController {
 
     // everyone
     @GetMapping("/tutors/{tutorId}")
-    public ResponseEntity<?> getNext7DaysSchedulesOfATutor(
+    public ResponseEntity<?> getNext7DaysAvailableSchedulesOfATutor(
             @PathVariable Integer tutorId) {
         return scheduleService.getTutorWeeklySchedule(tutorId);
+    }
+
+    @GetMapping("/tutors/{tutorId}/old-schedule/{weeklyScheduleId}")
+    public ResponseEntity<?> getReScheduleSlots(
+            @PathVariable Integer tutorId,
+            @PathVariable Integer weeklyScheduleId) {
+        return scheduleService.getScheduleForReschedule(weeklyScheduleId, tutorId);
     }
 
 //    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
@@ -49,6 +56,7 @@ public class ScheduleController {
         return scheduleService.updateSchedule(tutorId, newTutorScheduleDto);
     }
 
+    // get booked slots by account id to know when to learn
     @GetMapping("/accounts/{accountId}")
     public ResponseEntity<?> getScheduleByAccountId(
             @PathVariable Integer accountId,

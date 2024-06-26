@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.sql.Time;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -172,12 +173,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.ok().body("Schedule updated successfully");
     }
 
-    // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
-    // Tính timeslots dựa theo schedule và xuất ra
-    @Override
-    public ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId) {
-
-        LocalDate startDate = LocalDate.now();
+    private ScheduleDto generateWeeklySchedule(Integer tutorId, LocalDate startDate,
+                                               double oldSlotLength, boolean forReschedule,
+                                               Integer weeklyScheduleId) {
         LocalDate endDate = startDate.plusDays(6);
 
         ScheduleDto scheduleDto = new ScheduleDto();
@@ -186,12 +184,16 @@ public class ScheduleServiceImpl implements ScheduleService {
         int today = startDate.getDayOfWeek().getValue() - 1;
         for (int i = 0; i < 7; i++) {
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
-            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
-                    .findByTutorIdAnDayOfWeek(tutorId, d);
+            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository.findByTutorIdAnDayOfWeek(tutorId, d);
             LocalDate date = startDate.plusDays(i);
-            removeBookedSlot(weeklySchedules, date);
 
-            if(weeklySchedules.isEmpty()) {
+            if (forReschedule) {
+                removeBookedOrLongerSlots(oldSlotLength, weeklySchedules, date);
+            } else {
+                removeBookedSlot(weeklySchedules, date);
+            }
+
+            if (weeklySchedules.isEmpty()) {
                 weeklySchedules = new ArrayList<>();
             }
             String dayOfWeek = date.getDayOfWeek().toString().substring(0, 3);
@@ -206,13 +208,33 @@ public class ScheduleServiceImpl implements ScheduleService {
         scheduleDto.setStartDate(startDate);
         scheduleDto.setEndDate(endDate);
 
+        return scheduleDto;
+    }
+
+    // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
+    // Tính timeslots dựa theo schedule và xuất ra
+    @Override
+    public ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId) {
+        LocalDate startDate = LocalDate.now();
+        ScheduleDto scheduleDto = generateWeeklySchedule(
+                tutorId, startDate, 0,
+                false, null);
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
     @Override
-    public ResponseEntity<?> getScheduleForReschedule(Integer tutorId) {
-        return null;
+    public ResponseEntity<?> getScheduleForReschedule(Integer weeklyScheduleId, Integer tutorId) {
+        LocalDate startDate = LocalDate.now();
+        WeeklySchedule oldWeeklySchedule = weeklyScheduleRepository.findById(weeklyScheduleId)
+                .orElseThrow(() -> new TimeslotValidationException("Schedule not found!"));
+        double oldSlotLength = calculateTotalHoursSchedules(oldWeeklySchedule);
+        ScheduleDto scheduleDto = generateWeeklySchedule(
+                tutorId, startDate, oldSlotLength,
+                true, weeklyScheduleId
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
+
 
     @Override
     public PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
@@ -270,5 +292,20 @@ public class ScheduleServiceImpl implements ScheduleService {
     private void removeBookedSlot(List<WeeklySchedule> weeklySchedules, LocalDate date) {
         weeklySchedules.removeIf(weeklySchedule ->
                 timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null);
+    }
+
+    private void removeBookedOrLongerSlots(double oldTimeSlotLength, List<WeeklySchedule> weeklySchedules, LocalDate date) {
+        weeklySchedules.removeIf(weeklySchedule ->
+                timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null
+        || calculateTotalHoursSchedules(weeklySchedule) > oldTimeSlotLength);
+    }
+
+    private double calculateTotalHoursSchedules(WeeklySchedule weeklySchedule) {
+        double totalHours = 0;
+        LocalTime startLocalTime = weeklySchedule.getStartTime().toLocalTime();
+        LocalTime endLocalTime = weeklySchedule.getEndTime().toLocalTime();
+        Duration duration = Duration.between(startLocalTime, endLocalTime);
+        totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
+        return totalHours;
     }
 }

@@ -19,7 +19,7 @@ public interface ScheduleService {
     ResponseEntity<?> addNewSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> tutorScheduleDto);
     ResponseEntity<?> updateSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> newSchedules);
     ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId);
-    ResponseEntity<?> getScheduleForReschedule(Integer tutorId);
+    ResponseEntity<?> getScheduleForReschedule(Integer weeklyScheduleId, Integer tutorId);
     PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
                                                           boolean isDone,
                                                           boolean isLearner,
