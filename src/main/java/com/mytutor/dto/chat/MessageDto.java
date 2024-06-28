@@ -18,6 +18,8 @@ public class MessageDto {
     private Long id;
     private Integer senderId;
     private String senderEmail;
+    private String senderFullName;
+    private String senderAvatarUrl;
     private Integer receiverId;
     private String receiverEmail;
     private String receiverFullName;
@@ -30,14 +32,19 @@ public class MessageDto {
 
         MessageDto messageDto = new MessageDto();
         messageDto.setId(message.getId());
+        // Sender info
         messageDto.setSenderId(message.getSender().getId());
         messageDto.setSenderEmail(message.getSender().getEmail());
+        messageDto.setSenderFullName(message.getSender().getFullName());
+        messageDto.setSenderAvatarUrl(message.getSender().getAvatarUrl());
+        // Receiver info
         if (message.getReceiver() != null) {
             messageDto.setReceiverId(message.getReceiver().getId());
             messageDto.setReceiverEmail(message.getReceiver().getEmail());
             messageDto.setReceiverFullName(message.getReceiver().getFullName());
             messageDto.setReceiverAvatarUrl(message.getReceiver().getAvatarUrl());
         }
+        // Message info
         messageDto.setMessage(message.getMessage());
         messageDto.setCreatedDate(RegexConsts.sdf.format(message.getCreatedDate()));
         messageDto.setStatus(message.getStatus());
