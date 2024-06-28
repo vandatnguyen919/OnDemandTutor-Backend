@@ -129,7 +129,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-
+         
         // total
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
                 tutorId, null, null);
@@ -279,7 +279,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 Timeslot t = new Timeslot();
                 t.setWeeklySchedule(w);
                 t.setScheduleDate(bookDate);
-//                t.setOccupied(true);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
             }
@@ -346,7 +345,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
         LocalDate oldDate = oldTimeslot.getScheduleDate();
         LocalTime oldTime = oldTimeslot.getWeeklySchedule().getStartTime().toLocalTime();
-        LocalDateTime oldDateTime = oldDate.atTime(oldTime);
+        LocalDateTime oldDateTime = oldDate.atTime(oldTime); // datetime of booked slot
         if (todayTime.isAfter(oldDateTime.minusHours(24))) {
             throw new ConflictTimeslotException("Cannot reschedule because it is " +
                     "less than 24 hours before booked slot");
