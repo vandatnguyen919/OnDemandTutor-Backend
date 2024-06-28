@@ -1,7 +1,7 @@
-package com.mytutor.dto.timeslot;
+package com.mytutor.dto.appointment;
 
+import com.mytutor.dto.timeslot.TimeslotInAppointmentDto;
 import com.mytutor.entities.Timeslot;
-import com.mytutor.entities.WeeklySchedule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,13 +9,17 @@ import lombok.NoArgsConstructor;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
+
+/**
+ *
+ * @author vothimaihoa
+ */
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppointmentTimeslotDto {
-    private int id;
+public class AppointmentSlotDto {
+    private int timeslotId;
 
     private Time startTime;
 
@@ -25,15 +29,19 @@ public class AppointmentTimeslotDto {
 
     private int dayOfWeek;
 
-    public static AppointmentTimeslotDto mapToDto(Timeslot timeslot) {
+    private ResponseAppointmentWithoutTimeslotDto appointment;
+
+    public static AppointmentSlotDto mapToDto(Timeslot timeslot) {
         String scheduleDate = new SimpleDateFormat("yyyy-MM-dd")
                 .format(Date.valueOf(timeslot.getScheduleDate()));
-        return new AppointmentTimeslotDto(
+        return new AppointmentSlotDto(
                 timeslot.getId(),
                 timeslot.getWeeklySchedule().getStartTime(),
                 timeslot.getWeeklySchedule().getEndTime(),
                 scheduleDate,
-                timeslot.getWeeklySchedule().getDayOfWeek()
+                timeslot.getWeeklySchedule().getDayOfWeek(),
+                ResponseAppointmentWithoutTimeslotDto.mapToDto(timeslot.getAppointment())
         );
     }
+
 }

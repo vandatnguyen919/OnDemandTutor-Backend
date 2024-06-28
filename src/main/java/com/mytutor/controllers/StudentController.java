@@ -23,9 +23,6 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @Autowired
-    private AppointmentService appointmentService;
-
 //    @Hidden
     @GetMapping("/students")
     public ResponseEntity<?> getAllStudents(

@@ -1,4 +1,4 @@
-package com.mytutor.dto.timeslot;
+package com.mytutor.dto.appointment;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
