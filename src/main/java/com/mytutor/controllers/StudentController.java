@@ -57,7 +57,7 @@ public class StudentController {
         return studentService.getQuestionById(questionId);
     }
 
-    @GetMapping("/students/{studentId}/tutors")
+    @GetMapping("/students/{studentId}/booked-tutors")
     public ResponseEntity<?> getAllBookedTutorsByStudentId(@PathVariable Integer studentId) {
         return tutorService.getAllBookedTutorsByStudentId(studentId);
     }

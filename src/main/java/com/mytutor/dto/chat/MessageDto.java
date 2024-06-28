@@ -25,7 +25,7 @@ public class MessageDto {
     private String receiverFullName;
     private String receiverAvatarUrl;
     private String message;
-    private String createdDate;
+    private String createdAt;
     private MessageStatus status;
 
     public static MessageDto mapToDto(Message message) {
@@ -46,7 +46,7 @@ public class MessageDto {
         }
         // Message info
         messageDto.setMessage(message.getMessage());
-        messageDto.setCreatedDate(RegexConsts.sdf.format(message.getCreatedDate()));
+        messageDto.setCreatedAt(RegexConsts.sdf.format(message.getCreatedAt()));
         messageDto.setStatus(message.getStatus());
 
         return messageDto;

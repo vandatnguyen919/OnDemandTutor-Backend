@@ -34,7 +34,7 @@ public class MessageServiceImpl implements MessageService {
         message.setSender(sender);
         message.setReceiver(receiver);
         message.setMessage(messageDto.getMessage());
-        message.setCreatedDate(new Date());
+        message.setCreatedAt(new Date());
         message.setStatus(messageDto.getStatus());
 
         Message savedMessage = messageRepository.save(message);

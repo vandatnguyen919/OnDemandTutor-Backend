@@ -28,7 +28,7 @@ public class Message {
 
     private String message;
 
-    private Date createdDate;
+    private Date createdAt;
 
     @Enumerated(EnumType.STRING)
     private MessageStatus status;
