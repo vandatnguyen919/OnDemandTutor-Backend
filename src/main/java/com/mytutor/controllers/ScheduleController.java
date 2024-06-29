@@ -1,8 +1,9 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.timeslot.InputTimeslotDto;
+import com.mytutor.dto.timeslot.RequestWeeklyScheduleDto;
 import com.mytutor.services.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,31 +24,49 @@ public class ScheduleController {
     @PostMapping("/tutors/{tutorId}/timeslots")
     public ResponseEntity<?> addNewSchedule(
             @PathVariable Integer tutorId,
-            @RequestBody List<InputTimeslotDto> tutorScheduleDto,
-            @RequestParam(defaultValue = "1", required = false) Integer numberOfWeeks ) {
-        return scheduleService.addNewSchedule(tutorId, tutorScheduleDto, numberOfWeeks);
+            @RequestBody List<RequestWeeklyScheduleDto> tutorScheduleDto) {
+        return scheduleService.addNewSchedule(tutorId, tutorScheduleDto);
     }
 
     // everyone
     @GetMapping("/tutors/{tutorId}")
-    public ResponseEntity<?> getNext7DaysSchedulesOfATutor(
+    public ResponseEntity<?> getNext7DaysAvailableSchedulesOfATutor(
             @PathVariable Integer tutorId) {
-        return scheduleService.getNext7DaysSchedulesByTutorId(tutorId);
+        return scheduleService.getTutorWeeklySchedule(tutorId);
     }
 
-    @DeleteMapping("/tutors/{tutorId}/timeslots/{timeslotId}")
-    public ResponseEntity<?> deleteSchedule(
+    @GetMapping("/tutors/{tutorId}/old-schedule/{timeslotId}")
+    public ResponseEntity<?> getReScheduleSlots(
             @PathVariable Integer tutorId,
             @PathVariable Integer timeslotId) {
-        return scheduleService.removeTimeslot(tutorId, timeslotId);
+        return scheduleService.getScheduleForReschedule(timeslotId, tutorId);
     }
 
-    @PutMapping("/tutors/{tutorId}/timeslots/{timeslotId}")
+//    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
+//    public ResponseEntity<?> deleteSchedule(
+//            @PathVariable Integer scheduleId,
+//            @PathVariable Integer tutorId) {
+//        return scheduleService.removeSchedule(tutorId, scheduleId);
+//    }
+//
+    @PutMapping("/tutors/{tutorId}")
     public ResponseEntity<?> updateSchedule(
             @PathVariable Integer tutorId,
-            @PathVariable Integer timeslotId,
-            @RequestParam boolean status) {
-        return scheduleService.updateTimeslotStatus(tutorId, timeslotId, status);
+            @RequestBody List<RequestWeeklyScheduleDto> newTutorScheduleDto) {
+        return scheduleService.updateSchedule(tutorId, newTutorScheduleDto);
+    }
+
+    // get booked slots by account id to know when to learn
+    @GetMapping("/accounts/{accountId}")
+    public ResponseEntity<?> getScheduleByAccountId(
+            @PathVariable Integer accountId,
+            @RequestParam boolean isDone,
+            @RequestParam boolean isLearner,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleService.getSlotsByAccountId(
+                accountId, isDone, isLearner, pageNo, pageSize));
     }
 
 }

@@ -4,9 +4,12 @@
  */
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.QuestionStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Question;
 import com.mytutor.entities.Subject;
@@ -15,10 +18,17 @@ import com.mytutor.exceptions.QuestionNotFoundException;
 import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.QuestionRepository;
+import com.mytutor.repositories.QuestionRepositoryCustom;
 import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.services.StudentService;
+
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,22 +48,55 @@ public class StudentServiceImpl implements StudentService {
     QuestionRepository questionRepository;
 
     @Autowired
+    QuestionRepositoryCustom questionRepositoryCustom;
+
+    @Autowired
     AccountRepository accountRepository;
 
     @Autowired
     SubjectRepository subjectRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
-    public ResponseEntity<?> getAllQuestion(int pageNo, int pageSize, String type) {
+    public ResponseEntity<?> getAllStudents(int pageNo, int pageSize, String status) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Question> questions;
-        if (type.equalsIgnoreCase(QuestionStatus.SOLVED.toString())) {
-            questions = questionRepository.findByStatus(QuestionStatus.SOLVED, pageable);
-        } else if (type.equalsIgnoreCase(QuestionStatus.UNSOLVED.toString())) {
-            questions = questionRepository.findByStatus(QuestionStatus.UNSOLVED, pageable);
-        } else {
-            questions = questionRepository.findAll(pageable);
+        Page<Account> students;
+        if (status == null || status.isBlank()) {
+            students = accountRepository.findByRole(Role.STUDENT, pageable);
         }
+        else {
+            students = accountRepository.findRoleAndStatus(
+                Role.STUDENT,
+                AccountStatus.valueOf(status.toUpperCase()),
+                pageable);
+        }
+        List<Account> studentList = students.getContent();
+
+        List<ResponseAccountDetailsDto> content = studentList.stream()
+                .map(s -> ResponseAccountDetailsDto.mapToDto(s)).toList();
+        PaginationDto<ResponseAccountDetailsDto> studentListResponseDto = new PaginationDto<>();
+        studentListResponseDto.setContent(content);
+        studentListResponseDto.setPageNo(students.getNumber());
+        studentListResponseDto.setPageSize(students.getSize());
+        studentListResponseDto.setTotalElements(students.getTotalElements());
+        studentListResponseDto.setTotalPages(students.getTotalPages());
+        studentListResponseDto.setLast(students.isLast());
+
+        return ResponseEntity.status(HttpStatus.OK).body(studentListResponseDto);
+    }
+
+    @Override
+    public ResponseEntity<?> getAllQuestion(int pageNo, int pageSize, String type, String subjects, String questionContent) {
+        Set<String> subjectSet = subjects.equalsIgnoreCase("all") ? null
+                : Arrays.stream(subjects.split("[,\\s+]+"))
+                .map(s -> s.trim().toLowerCase()).collect(Collectors.toSet());
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Question> questions = questionRepositoryCustom.findQuestionsByFilter(
+                type.equalsIgnoreCase("all") ? null :QuestionStatus.valueOf(type.toUpperCase()),
+                subjectSet,
+                questionContent,
+                pageable);
         List<Question> listOfQuestions = questions.getContent();
 
         List<QuestionDto> content = listOfQuestions.stream()
@@ -71,6 +114,14 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public ResponseEntity<?> getQuestionById(Integer questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new QuestionNotFoundException("Question not found"));
+        QuestionDto questionDto = QuestionDto.mapToDto(question, question.getSubject().getSubjectName());
+        return ResponseEntity.status(HttpStatus.OK).body(questionDto);
+    }
+
+    @Override
     public ResponseEntity<?> addQuestion(Integer studentId, QuestionDto questionDto) {
 
         Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
@@ -78,9 +129,11 @@ public class StudentServiceImpl implements StudentService {
         Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
         Question question = new Question();
+        question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
         question.setQuestionUrl(questionDto.getQuestionUrl());
         question.setCreatedAt(new Date());
+        question.setModifiedAt(new Date());
         question.setStatus(QuestionStatus.PROCESSING);
         question.setSubject(subject);
         question.setAccount(student);
@@ -95,15 +148,20 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public ResponseEntity<?> updateQuestion(Integer studentId, Integer questionId, QuestionDto questionDto) {
 
-        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account student = accountRepository.findById(studentId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
+        Subject subject = subjectRepository.findBySubjectName(questionDto.getSubjectName())
+                .orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
-        Question question = questionRepository.findById(questionId).orElseThrow(() -> new QuestionNotFoundException("Question not found"));
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new QuestionNotFoundException("Question not found"));
 
         if (student.getId() != question.getAccount().getId()) {
             throw new QuestionNotFoundException("Question does not belong to this account");
         }
+
+        question.setTitle(questionDto.getTitle());
 
         question.setContent(questionDto.getContent());
         question.setQuestionUrl(questionDto.getQuestionUrl());

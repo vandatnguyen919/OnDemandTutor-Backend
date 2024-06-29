@@ -6,6 +6,8 @@ package com.mytutor.repositories;
 
 import com.mytutor.entities.TutorDetail;
 import java.util.Optional;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,9 +21,4 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface TutorDetailRepository extends JpaRepository<TutorDetail, Integer> {
-    Optional<TutorDetail> findByAccountId(Integer accountId);
-
-    @Modifying
-    @Query("DELETE FROM TutorDetail WHERE account.id = :accountId")
-    void deleteByAccountId(@Param("accountId") Integer accountId);
 }

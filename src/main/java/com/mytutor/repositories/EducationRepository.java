@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,15 +29,13 @@ public interface EducationRepository extends JpaRepository<Education, Integer> {
     @Query("SELECT e FROM Education e WHERE e.account.id = :accountId ORDER BY e.degreeType DESC")
     List<Education> findByAccountId(@Param("accountId") Integer tutorId);
 
+    @Query("SELECT e FROM Education e WHERE e.account.id = :accountId AND e.verifyStatus = :isVerified ORDER BY e.degreeType DESC")
+    List<Education> findByAccountId(@Param("accountId") Integer tutorId, @Param("isVerified") VerifyStatus isVerified);
+
     @Modifying
     @Query("DELETE FROM Education e WHERE e.account.id = :accountId")
     void deleteEducationByTutorId(@Param("accountId") Integer tutorId);
 
-    @Modifying
-    @Query("UPDATE Education e SET e.verifyStatus = :status WHERE e.account.id = :accountId")
-    void updateEducationByTutorId(
-            @Param("status") VerifyStatus status,
-            @Param("accountId") Integer tutorId);
-
-
+    @Override
+    Optional<Education> findById(Integer id);
 }

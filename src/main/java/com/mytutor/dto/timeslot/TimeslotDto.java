@@ -7,9 +7,13 @@ package com.mytutor.dto.timeslot;
 
 import com.mytutor.entities.Timeslot;
 import java.sql.Time;
+import java.time.LocalTime;
+
+import com.mytutor.entities.WeeklySchedule;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 /**
  *
@@ -25,15 +29,16 @@ public class TimeslotDto {
     private Time startTime;
 
     private Time endTime;
+
+
+//    private boolean isOccupied;
     
-    private boolean isOccupied;
-    
-    public static TimeslotDto mapToDto(Timeslot timeslot) {
+    public static TimeslotDto mapToDto(WeeklySchedule timeslot) {
         return new TimeslotDto(
             timeslot.getId(),
             timeslot.getStartTime(),
-            timeslot.getEndTime(),
-            timeslot.isOccupied()
+            timeslot.getEndTime()
+//            timeslot.isOccupied()
         );
     }
 }

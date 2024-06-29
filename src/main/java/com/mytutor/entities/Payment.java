@@ -6,12 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 
 /**
  *
  * @author vothimaihoa
  */
-
 @Entity
 @Data
 @NoArgsConstructor
@@ -20,7 +20,7 @@ import java.sql.Date;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Column
     private Double moneyAmount;
@@ -29,7 +29,13 @@ public class Payment {
     private String provider;
 
     @Column
-    private Date transactionTime;
+    private LocalDateTime transactionTime;
+
+    @Column
+    private String transactionDate;
+
+    @Column
+    private String transactionId;
 
     @ManyToOne
     @JoinColumn(name="appointment_id")

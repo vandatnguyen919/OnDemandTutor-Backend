@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto;
 
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.entities.Reply;
 import java.text.SimpleDateFormat;
 import lombok.AllArgsConstructor;
@@ -20,28 +21,26 @@ import lombok.NoArgsConstructor;
 public class ReplyDto {
 
     private int id;
+    private int createdById;
+    private String createdBy;
+    private String avatarUrl;
     private String content;
     private String createdAt;
     private String modifiedAt;
 
-    private int createdBy;
     public static ReplyDto mapToDto(Reply reply) {
         if (reply == null) {
             return null;
         }
-
-
         ReplyDto replyDto = new ReplyDto();
         replyDto.setId(reply.getId());
+        replyDto.setCreatedById(reply.getCreatedBy().getId());
+        replyDto.setCreatedBy(reply.getCreatedBy().getEmail());
+        replyDto.setAvatarUrl(reply.getCreatedBy().getAvatarUrl());
         replyDto.setContent(reply.getContent());
-        
-        // Create a SimpleDateFormat object with the desired format
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        
-        replyDto.setCreatedAt(sdf.format(reply.getCreatedAt()));
-        replyDto.setModifiedAt(sdf.format(reply.getModifiedAt()));
-        replyDto.setCreatedBy(reply.getCreatedBy().getId());
-        
+        replyDto.setCreatedAt(RegexConsts.sdf.format(reply.getCreatedAt()));
+        replyDto.setModifiedAt(RegexConsts.sdf.format(reply.getModifiedAt()));
+
         return replyDto;
     }
 }

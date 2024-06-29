@@ -6,13 +6,15 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
+import com.mytutor.dto.auth.ForgotPasswordDto;
+import com.mytutor.dto.auth.LoginDto;
+import com.mytutor.dto.auth.RegisterDto;
+import com.mytutor.dto.auth.ResetPasswordDto;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Role;
 import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.jwt.JwtProvider;
 import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.RoleRepository;
 import com.mytutor.security.CustomUserDetailsService;
+import com.mytutor.security.SecurityUtil;
 import com.mytutor.services.AuthService;
 
 import java.util.Date;
@@ -22,39 +24,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
-import com.mytutor.constants.RoleName;
+import com.mytutor.constants.Role;
 import com.mytutor.services.OtpService;
-import com.mytutor.utils.PasswordGenerator;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
- *
  * @author Nguyen Van Dat
  */
 @Service
- public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private AccountRepository accountRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
-    private JwtProvider JwtProvider;
+    private SecurityUtil securityUtil;
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
@@ -68,41 +62,22 @@ import java.util.Map;
     @Autowired
     private OtpService otpService;
 
-
-//    public AuthServiceImpl(@Value("${app.googleClientId}") String clientId, AccountRepository accountRepository) {
-//        this.accountRepository = accountRepository;
-//        NetHttpTransport transport = new NetHttpTransport();
-//        GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-//        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-//                .setAudience(Collections.singletonList(clientId))
-//                .build();
-//    }
-
     @Override
     public ResponseEntity<?> login(LoginDto loginDto) {
-        try {
+        // Authenticate username(email) and password
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getEmail(),
+                        loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // Authenticate username(email) and password
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginDto.getEmail(),
-                            loginDto.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Generate JWT after authentication succeed
+        String token = securityUtil.createToken(authentication);
 
-            // Generate JWT after authentication succeed
-            UserDetails userDetails = userDetailsService.loadUserByUsername(loginDto.getEmail());
-            String token = JwtProvider.generateToken(userDetails);
-            long expirationTime = JwtProvider.JWT_EXPIRATION;
+        // Response ACCESS TOKEN and EXPIRATION TIME
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
 
-            // Response ACCESS TOKEN and EXPIRATION TIME
-            AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-
-            return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
-        } catch (AuthenticationException e) {
-
-            // If Authentication failed
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
-        }
+        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
     }
 
     @Override
@@ -122,19 +97,11 @@ import java.util.Map;
         account.setPhoneNumber(registerDto.getPhoneNumber());
         account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         account.setStatus(AccountStatus.UNVERIFIED);
-        Role role = getRole(RoleName.STUDENT);
-        account.setRoles(Collections.singleton(role));
+        account.setRole(Role.STUDENT);
         account.setCreatedAt(new Date());
 
         Account newAccount = accountRepository.save(account);
 
-//        // Generate JWT after authentication succeed
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(registerDto.getEmail());
-//        String token = JwtProvider.generateToken(userDetails);
-//        long expirationTime = JwtProvider.JWT_EXPIRATION;
-//
-//        // Response ACCESS TOKEN and EXPIRATION TIME
-//        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
         otpService.sendOtp(newAccount.getEmail());
 
         AccountResponse accountResponse = new AccountResponse(newAccount.getEmail(), "REGISTRATION");
@@ -146,8 +113,7 @@ import java.util.Map;
     @Override
     public ResponseEntity<?> findByEmail(String email) {
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
-        ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
 
     @Override
@@ -158,10 +124,9 @@ import java.util.Map;
         }
         String email = (String) userOAuth.get("email");
         String fullName = (String) userOAuth.get("name");
-        boolean emailVerified = (boolean) userOAuth.get("email_verified");
         String avatar = (String) userOAuth.get("picture");
         // Check user has already logged in before or new user
-        Account account = accountRepository.findByEmailAddress(email);
+        Account account = accountRepository.findByEmail(email).orElse(null);
 
         if (account == null) {
             Account newAccount = new Account();
@@ -169,10 +134,8 @@ import java.util.Map;
             newAccount.setFullName(fullName);
             newAccount.setAvatarUrl(avatar);
             newAccount.setStatus(AccountStatus.ACTIVE);
-            newAccount.setPassword(passwordEncoder.encode(PasswordGenerator.generateRandomPassword(12)));
             newAccount.setCreatedAt(new Date());
-            Role role = getRole(RoleName.STUDENT);
-            newAccount.setRoles(Collections.singleton(role));
+            newAccount.setRole(Role.STUDENT);
             account = accountRepository.save(newAccount);
         }
 
@@ -181,29 +144,16 @@ import java.util.Map;
             account.setStatus(AccountStatus.ACTIVE);
         }
 
-        // Generate JWT after authentication succeed
-        UserDetails userDetails = userDetailsService.loadUserByUsername(account.getEmail());
-        String token = JwtProvider.generateToken(userDetails);
-        long expirationTime = JwtProvider.JWT_EXPIRATION;
-
-        // Response ACCESS TOKEN and EXPIRATION TIME
-        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token, expirationTime);
-
-        return new ResponseEntity<>(authenticationResponseDto, HttpStatus.OK);
-    }
-
-
-    private Role getRole(RoleName roleName) {
-        // Get a role from the database
-        Role role = roleRepository.findByRoleName(roleName.name()).orElse(null);
-        // Create a new role if it is not in the database
-        if (role == null) {
-            role = new Role();
-            role.setRoleName(roleName.name());
-            roleRepository.save(role);
-            role = roleRepository.findByRoleName(roleName.name()).get();
+        if (account.getStatus().equals(AccountStatus.BANNED)) {
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
-        return role;
+
+        // Generate JWT after authentication succeed
+        String token = securityUtil.createToken(oAuth2AuthenticationToken);
+
+        AuthenticationResponseDto authenticationResponseDto = new AuthenticationResponseDto(token);
+
+        return ResponseEntity.status(HttpStatus.FOUND).body(authenticationResponseDto);
     }
 
     @Override
@@ -212,9 +162,9 @@ import java.util.Map;
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         otpService.sendOtp(account.getEmail());
-        
+
         AccountResponse accountResponse = new AccountResponse(account.getEmail(), "FORGOT_PASSWORD");
-        
+
         return ResponseEntity.status(HttpStatus.OK).body(accountResponse);
     }
 
@@ -232,5 +182,6 @@ import java.util.Map;
         return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
     }
 
-    private record AccountResponse(String email, String status) {}
+    public record AccountResponse(String email, String status) {
+    }
 }

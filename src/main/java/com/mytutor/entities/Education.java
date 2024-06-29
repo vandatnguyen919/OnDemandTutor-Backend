@@ -51,8 +51,10 @@ public class Education {
 
     private String diplomaUrl;
 
+    private boolean isVerified = false;
+
     @Enumerated(EnumType.STRING)
-    private VerifyStatus verifyStatus;
+    private VerifyStatus verifyStatus = VerifyStatus.PROCESSING;
 }
 
 
