@@ -30,5 +30,5 @@ public class CertificateDto {
 
     private String subject;
 
-    private boolean isVeirifed;
+    private boolean isVerified;
 }
