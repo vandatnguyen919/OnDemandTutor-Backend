@@ -1,6 +1,9 @@
 package com.mytutor.controllers;
 
+import com.mytutor.constants.AccountStatus;
+import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.RequestCheckTutorDto;
+import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.services.ModeratorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +50,13 @@ public class ModeratorController {
             @RequestParam String status,
             @RequestBody RequestCheckTutorDto dto) {
         return moderatorService.checkTutor(tutorId, status, dto);
+    }
+
+    @GetMapping("/tutors")
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getTutorListByStatus(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "status") AccountStatus status) {
+        return moderatorService.getTutorListByStatus(status, pageNo, pageSize);
     }
 }
