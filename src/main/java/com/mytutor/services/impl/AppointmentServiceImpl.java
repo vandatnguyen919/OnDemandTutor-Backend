@@ -7,7 +7,6 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -336,7 +335,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // if appointment is not in PAID status -> error
         if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
-            throw new InvalidAppointmentStatusException("Not allowed to reschedule an appointment not in PAID status");
+            throw new InvalidStatusException("Not allowed to reschedule an appointment not in PAID status");
         }
 
         // 1. if current time before old slot <= 1 days -> error
@@ -388,15 +387,15 @@ public class AppointmentServiceImpl implements AppointmentService {
         Timeslot timeslotToDelete = timeslotRepository.findById(timeslotId)
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not exists!"));
         if (timeslotToDelete.getAppointment().getStudent().getId() != accountId) {
-            throw new InvalidAppointmentStatusException("This account is not allowed to cancel this slot!");
+            throw new InvalidStatusException("This account is not allowed to cancel this slot!");
         }
         if (timeslotToDelete.getScheduleDate().isBefore(LocalDate.now())) {
-            throw new InvalidAppointmentStatusException("Not allowed to cancel this slot!");
+            throw new InvalidStatusException("Not allowed to cancel this slot!");
         }
 
         Appointment appointment = timeslotToDelete.getAppointment();
         if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
-            throw new InvalidAppointmentStatusException("Not allowed to cancel this slot!");
+            throw new InvalidStatusException("Not allowed to cancel this slot!");
         }
 
         AppointmentSlotDto dto = AppointmentSlotDto.mapToDto(timeslotToDelete);
@@ -420,7 +419,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AppointmentNotFoundException("This appointment is not belong to this account");
         }
         if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
-            throw new InvalidAppointmentStatusException("Account can only update paid appointment!");
+            throw new InvalidStatusException("Account can only update paid appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {
@@ -432,7 +431,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setStatus(AppointmentStatus.CANCELED);
             // goi service hoan tien cho student...
         } else {
-            throw new InvalidAppointmentStatusException("This status is invalid!");
+            throw new InvalidStatusException("This status is invalid!");
         }
 
         appointmentRepository.save(appointment);
@@ -446,7 +445,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
         if (!appointment.getStatus().equals(AppointmentStatus.PENDING_PAYMENT)) {
-            throw new InvalidAppointmentStatusException("This appointment cannot be rollback!");
+            throw new InvalidStatusException("This appointment cannot be rollback!");
         }
         rollbackAppointment(appointment);
         return ResponseEntity.status(HttpStatus.OK).body("Appointment rollback successfully");

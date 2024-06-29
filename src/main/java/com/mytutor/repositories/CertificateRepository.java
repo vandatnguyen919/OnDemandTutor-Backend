@@ -40,12 +40,4 @@ public interface CertificateRepository extends JpaRepository<Certificate, Intege
     @Query("DELETE FROM Certificate c WHERE c.account.id = :accountId")
     void deleteCertificateByTutorId(@Param("accountId") Integer tutorId);
 
-    @Modifying
-    @Query("UPDATE Certificate c SET c.verifyStatus = :newStatus " +
-            " WHERE c.account.id = :accountId" +
-            " AND c.verifyStatus = :status")
-    void updateCertificateByTutorId(
-            @Param("newStatus") VerifyStatus newStatus,
-            @Param("accountId") Integer tutorId,
-            @Param("status") VerifyStatus status);
 }

@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             TimeslotValidationException.class,
             PaymentFailedException.class,
-            InvalidAppointmentStatusException.class
+            InvalidStatusException.class
     })
     public ResponseEntity<ErrorObject> handleBadRequestException(Exception ex) {
         ErrorObject errorObject = new ErrorObject();

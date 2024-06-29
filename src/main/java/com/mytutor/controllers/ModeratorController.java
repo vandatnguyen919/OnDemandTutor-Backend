@@ -1,7 +1,6 @@
 package com.mytutor.controllers;
 
-import com.mytutor.dto.CheckEducationDto;
-import com.mytutor.dto.tutor.EducationDto;
+import com.mytutor.dto.RequestCheckTutorDto;
 import com.mytutor.services.ModeratorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +44,8 @@ public class ModeratorController {
     @PutMapping("/tutors/{tutorId}")
     public ResponseEntity<?> checkTutor(
             @PathVariable Integer tutorId,
-            @RequestParam String status) {
-        return moderatorService.checkTutor(tutorId, status);
+            @RequestParam String status,
+            @RequestBody RequestCheckTutorDto dto) {
+        return moderatorService.checkTutor(tutorId, status, dto);
     }
 }

@@ -3,16 +3,19 @@ package com.mytutor.repositories;
 import com.mytutor.entities.WeeklySchedule;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Time;
 import java.time.LocalTime;
 import java.util.List;
 
 @Repository
+@Transactional
 public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, Integer> {
     @Query("SELECT w FROM WeeklySchedule w " +
             "WHERE w.account.id = :tutorId " +
@@ -35,5 +38,9 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
     @Query("SELECT w FROM WeeklySchedule w " +
             " WHERE w.account.id = :tutorId " )
     List<WeeklySchedule> findByTutorId(@Param("tutorId")Integer tutorId);
+
+    @Modifying
+    @Query("DELETE FROM WeeklySchedule w WHERE w.account.id = :accountId")
+    void deleteScheduleByTutorId(@Param("accountId") Integer accountId);
 
 }

@@ -54,7 +54,7 @@ public class Education {
     private boolean isVerified = false;
 
     @Enumerated(EnumType.STRING)
-    private VerifyStatus verifyStatus;
+    private VerifyStatus verifyStatus = VerifyStatus.PROCESSING;
 }
 
 

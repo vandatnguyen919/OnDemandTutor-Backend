@@ -36,15 +36,6 @@ public interface EducationRepository extends JpaRepository<Education, Integer> {
     @Query("DELETE FROM Education e WHERE e.account.id = :accountId")
     void deleteEducationByTutorId(@Param("accountId") Integer tutorId);
 
-    @Modifying
-    @Query("UPDATE Education e SET e.verifyStatus = :newStatus " +
-            " WHERE e.account.id = :accountId " +
-            " and e.verifyStatus = :status")
-    void updateEducationByTutorId(
-            @Param("newStatus") VerifyStatus newStatus,
-            @Param("accountId") Integer tutorId,
-            @Param("status") VerifyStatus status);
-
     @Override
     Optional<Education> findById(Integer id);
 }
