@@ -66,7 +66,7 @@ public class StudentServiceImpl implements StudentService {
             students = accountRepository.findByRole(Role.STUDENT, pageable);
         }
         else {
-            students = accountRepository.findRoleAndStatus(
+            students = accountRepository.findByRoleAndStatus(
                 Role.STUDENT,
                 AccountStatus.valueOf(status.toUpperCase()),
                 pageable);

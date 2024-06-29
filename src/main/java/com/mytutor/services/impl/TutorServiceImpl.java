@@ -121,32 +121,30 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified) {
-//        List<Education> educations;
-//        if (isVerified.isBlank())
-//            educations = educationRepository.findByAccountId(tutorId);
-//        else {
-//            boolean isVerifiedBoolean = !isVerified.equalsIgnoreCase("false");
-////            educations = educationRepository.findByAccountId(tutorId, isVerifiedBoolean);
-//        }
-//        List<EducationDto> educationDtos = educations.stream()
-//                .map(e -> modelMapper.map(e, EducationDto.class)).toList();
-//        return ResponseEntity.status(HttpStatus.OK).body(educationDtos);
-        return null;
+        List<Education> educations;
+        if (isVerified.isBlank())
+            educations = educationRepository.findByAccountId(tutorId);
+        else {
+            boolean isVerifiedBoolean = !isVerified.equalsIgnoreCase("false");
+            educations = educationRepository.findByAccountId(tutorId, isVerifiedBoolean);
+        }
+        List<EducationDto> educationDtos = educations.stream()
+                .map(e -> modelMapper.map(e, EducationDto.class)).toList();
+        return ResponseEntity.status(HttpStatus.OK).body(educationDtos);
     }
 
     @Override
     public ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified) {
-//        List<Certificate> certificates;
-//        if (isVerified.isBlank())
-//            certificates = certificateRepository.findByAccountId(tutorId);
-//        else {
-//            boolean isVerifiedBoolean = !isVerified.equalsIgnoreCase("false");
-////            certificates = certificateRepository.findByAccountId(tutorId, isVerifiedBoolean);
-//        }
-//        List<CertificateDto> certificateDtos = certificates.stream()
-//                .map(c -> modelMapper.map(c, CertificateDto.class)).toList();
-//        return ResponseEntity.status(HttpStatus.OK).body(certificateDtos);
-        return null;
+        List<Certificate> certificates;
+        if (isVerified.isBlank())
+            certificates = certificateRepository.findByAccountId(tutorId);
+        else {
+            boolean isVerifiedBoolean = !isVerified.equalsIgnoreCase("false");
+            certificates = certificateRepository.findByAccountId(tutorId, isVerifiedBoolean);
+        }
+        List<CertificateDto> certificateDtos = certificates.stream()
+                .map(c -> modelMapper.map(c, CertificateDto.class)).toList();
+        return ResponseEntity.status(HttpStatus.OK).body(certificateDtos);
     }
 
     @Override

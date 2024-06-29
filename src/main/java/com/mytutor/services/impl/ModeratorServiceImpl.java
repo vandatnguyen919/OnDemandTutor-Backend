@@ -5,10 +5,12 @@ import com.mytutor.constants.QuestionStatus;
 import com.mytutor.constants.Role;
 import com.mytutor.constants.VerifyStatus;
 import com.mytutor.dto.CheckingDto;
+import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.QuestionDto;
 import com.mytutor.dto.RequestCheckTutorDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
+import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.entities.*;
 import com.mytutor.exceptions.*;
 import com.mytutor.repositories.*;
@@ -16,12 +18,16 @@ import com.mytutor.services.ModeratorService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -161,6 +167,31 @@ public class ModeratorServiceImpl implements ModeratorService {
         }
         QuestionDto dto = modelMapper.map(question, QuestionDto.class);
         return ResponseEntity.ok().body(dto);
+    }
+
+    @Override
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getTutorListByStatus(AccountStatus status, int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Account> tutorListPage = accountRepository.findByRoleAndStatus(Role.TUTOR, status, pageable);
+        List<Account> listOfTutors = tutorListPage.getContent();
+
+        List<TutorInfoDto> content = listOfTutors.stream()
+                .map(a -> {
+                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                            .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+                    return tutorInfoDto;
+                })
+                .collect(Collectors.toList());
+
+        PaginationDto<TutorInfoDto> tutorResponseDto = new PaginationDto<>();
+        tutorResponseDto.setContent(content);
+        tutorResponseDto.setPageNo(tutorListPage.getNumber());
+        tutorResponseDto.setPageSize(tutorListPage.getSize());
+        tutorResponseDto.setTotalElements(tutorListPage.getTotalElements());
+        tutorResponseDto.setTotalPages(tutorListPage.getTotalPages());
+        tutorResponseDto.setLast(tutorListPage.isLast());
+        return ResponseEntity.ok(tutorResponseDto);
     }
 
 }
