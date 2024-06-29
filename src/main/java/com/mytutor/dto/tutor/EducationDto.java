@@ -32,5 +32,5 @@ public class EducationDto {
 
     private String diplomaUrl;
 
-    private String verifyStatus;
+    private boolean isVerified;
 }

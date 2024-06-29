@@ -59,8 +59,7 @@ public class AccountRepositoryCustomImpl implements AccountRepositoryCustom {
 
         //Filter by tutor level
         Join<Account, Education> educationJoin = account.join("educations", JoinType.LEFT);
-//        predicates.add(cb.equal(educationJoin.get("isVerified"), true));
-        predicates.add(cb.equal(educationJoin.get("verifyStatus"), VerifyStatus.APPROVED));
+        predicates.add(cb.equal(educationJoin.get("isVerified"), true));
         if (tutorLevelSet != null && !tutorLevelSet.isEmpty()) {
             predicates.add(educationJoin.get("degreeType").in(tutorLevelSet));
         }
