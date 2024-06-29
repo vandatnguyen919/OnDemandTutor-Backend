@@ -60,10 +60,10 @@ public class ModeratorServiceImpl implements ModeratorService {
     public ResponseEntity<?> checkAnEducation(int educationId, String status) {
         Education education = educationRepository.findById(educationId).orElseThrow(
                 () -> new EducationNotFoundException("Education not found!"));
-        if (education.isVerified() || education.getVerifyStatus().equals(VerifyStatus.APPROVED)) {
+        if (education.isVerified()) {
             throw new EducationNotFoundException("Education has been checked!");
         }
-        education.setVerifyStatus(VerifyStatus.valueOf(status.toUpperCase()));
+//        education.setVerifyStatus(VerifyStatus.valueOf(status.toUpperCase()));
         educationRepository.save(education);
         EducationDto dto = modelMapper.map(education, EducationDto.class);
         return ResponseEntity.ok().body(dto);
@@ -73,10 +73,10 @@ public class ModeratorServiceImpl implements ModeratorService {
     public ResponseEntity<?> checkACertificate(int certificateId, String status) {
         Certificate certificate = certificateRepository.findById(certificateId).orElseThrow(
                 () -> new EducationNotFoundException("Certificate not found!"));
-        if (certificate.isVerified() || certificate.getVerifyStatus().equals(VerifyStatus.APPROVED)) {
+        if (certificate.isVerified()) {
             throw new EducationNotFoundException("Certificate has been checked!");
         }
-        certificate.setVerifyStatus(VerifyStatus.valueOf(status.toUpperCase()));
+//        certificate.setVerifyStatus(VerifyStatus.valueOf(status.toUpperCase()));
         certificateRepository.save(certificate);
         CertificateDto dto = modelMapper.map(certificate, CertificateDto.class);
         return ResponseEntity.ok().body(dto);
@@ -117,10 +117,11 @@ public class ModeratorServiceImpl implements ModeratorService {
         for (Education edu : allEducations) {
             if (dto.getApprovedEducations().contains(edu.getId())) {
                 edu.setVerified(true);
-                edu.setVerifyStatus(VerifyStatus.APPROVED);
+                educationRepository.save(edu);
             } else
-                edu.setVerifyStatus(VerifyStatus.REJECTED);
-            educationRepository.save(edu);
+                educationRepository.delete(edu);
+
+
         }
 
         // handle certificates
@@ -128,10 +129,9 @@ public class ModeratorServiceImpl implements ModeratorService {
         for (Certificate cert : allCertificates) {
             if (dto.getApprovedCertificates().contains(cert.getId())) {
                 cert.setVerified(true);
-                cert.setVerifyStatus(VerifyStatus.APPROVED);
+                certificateRepository.save(cert);
             } else
-                cert.setVerifyStatus(VerifyStatus.REJECTED);
-            certificateRepository.save(cert);
+                certificateRepository.delete(cert);
         }
         tutor.getTutorDetail().setBackgroundDescription(dto.getBackgroundDescription());
         tutor.getTutorDetail().setVideoIntroductionLink(dto.getVideoIntroductionLink());

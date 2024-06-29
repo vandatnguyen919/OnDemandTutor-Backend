@@ -40,7 +40,7 @@ public class Certificate {
 
     private boolean isVerified = false;
 
-    @Enumerated(EnumType.STRING)
-    private VerifyStatus verifyStatus = VerifyStatus.PROCESSING;
+//    @Enumerated(EnumType.STRING)
+//    private VerifyStatus verifyStatus = VerifyStatus.PROCESSING;
 }
 
