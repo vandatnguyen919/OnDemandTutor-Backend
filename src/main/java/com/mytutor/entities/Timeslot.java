@@ -45,8 +45,8 @@ public class Timeslot {
     @JoinColumn(name = "weekly_schedule_id")
     private WeeklySchedule weeklySchedule;
 
-    @Column(name="is_occupied")
-    private boolean isOccupied = false;
+//    @Column(name="is_occupied")
+//    private boolean isOccupied = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id")

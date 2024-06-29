@@ -279,7 +279,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 Timeslot t = new Timeslot();
                 t.setWeeklySchedule(w);
                 t.setScheduleDate(bookDate);
-                t.setOccupied(true);
+//                t.setOccupied(true);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
             }
