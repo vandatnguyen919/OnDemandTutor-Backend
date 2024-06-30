@@ -66,7 +66,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
                                                Pageable pageable);
     @Query(
             "SELECT t FROM Timeslot t " +
-                    " WHERE (t.appointment.tutor.id = :accountId OR t.appointment.student.id = :accountId) " +
+                    " WHERE (t.appointment.tutor.id = :accountId)" +
                     " AND t.scheduleDate < :currentDate " +
                     " OR (t.weeklySchedule.startTime <= :currentTime AND t.scheduleDate = :currentDate)" +
                     " ORDER BY t.scheduleDate DESC, t.weeklySchedule.startTime DESC"
