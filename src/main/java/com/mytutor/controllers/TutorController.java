@@ -92,7 +92,7 @@ public class TutorController {
     public ResponseEntity<?> deleteCertificate(
             @PathVariable Integer tutorId,
             @PathVariable Integer certificateId) {
-        return tutorService.deleteEducation(tutorId, certificateId);
+        return tutorService.deleteCertificate(tutorId, certificateId);
     }
 
     // insert tutor-description

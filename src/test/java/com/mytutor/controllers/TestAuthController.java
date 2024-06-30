@@ -1,8 +1,7 @@
 package com.mytutor.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mytutor.dto.AuthenticationResponseDto;
+import com.mytutor.dto.auth.AuthenticationResponseDto;
 import com.mytutor.dto.auth.LoginDto;
 import com.mytutor.dto.auth.RegisterDto;
 import com.mytutor.repositories.AccountRepository;
