@@ -22,7 +22,7 @@ import java.util.Set;
  * @author vothimaihoa
  */
 @Repository
-public class QuestionCustomRepositoryImpl implements QuestionRepositoryCustom {
+public class QuestionRepositoryCustomImpl implements QuestionRepositoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
