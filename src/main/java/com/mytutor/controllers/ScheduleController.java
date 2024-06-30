@@ -34,18 +34,20 @@ public class ScheduleController {
         return scheduleService.getTutorWeeklySchedule(tutorId);
     }
 
-//    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
-//    public ResponseEntity<?> deleteSchedule(
-//            @PathVariable Integer scheduleId,
-//            @PathVariable Integer tutorId) {
-//        return scheduleService.removeSchedule(tutorId, scheduleId);
-//    }
-//
+    // that tutor only
+    @GetMapping("/{tutorId}/profile-schedule")
+    public ResponseEntity<?> getTutorWeeklySchedule(
+            @PathVariable Integer tutorId) {
+        return scheduleService.getTutorProfileSchedule(tutorId);
+    }
+
     @PutMapping("tutors/{tutorId}")
     public ResponseEntity<?> updateSchedule(
             @PathVariable Integer tutorId,
             @RequestBody List<RequestWeeklyScheduleDto> newTutorScheduleDto) {
         return scheduleService.updateSchedule(tutorId, newTutorScheduleDto);
     }
+
+
 
 }

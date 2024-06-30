@@ -29,25 +29,4 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
     Timeslot findTimeslotWithDateAndWeeklySchedule(@Param("weeklyScheduleId") Integer weeklyScheduleId,
                                                    @Param("scheduleDate") LocalDate scheduleDate);
 
-//    @Query("SELECT t FROM Timeslot t " +
-//            "WHERE t.account.id = :tutorId " +
-//            "AND t.scheduleDate = :date " +
-//            "AND ((t.startTime >= :startTime AND t.startTime < :endTime) " +
-//            "OR (t.endTime > :startTime AND t.endTime <= :endTime) " +
-//            "OR (t.startTime <= :startTime AND t.endTime >= :endTime))")
-//    List<Timeslot> findOverlapTimeslot(@Param("tutorId") Integer tutorId,
-//                                 @Param("date") LocalDate date,
-//                                 @Param("startTime") Time startTime,
-//                                 @Param("endTime") Time endTime);
-//
-//    @Query("SELECT t FROM Timeslot t " +
-//            "WHERE t.account.id = :tutorId " +
-//            "AND t.scheduleDate BETWEEN :startDate AND :endDate " +
-//            " AND t.isOccupied = false" +
-//            " AND t.dayOfWeek = :dayOfWeek " +
-//            " ORDER BY t.scheduleDate, t.startTime ASC")
-//    List<Timeslot> findByTutorIdAndDayOfWeekAndDateRange(@Param("tutorId") Integer tutorId,
-//                                                         @Param("startDate") LocalDate startDate,
-//                                                         @Param("endDate") LocalDate endDate,
-//                                                         @Param("dayOfWeek") Integer dayOfWeek);
 }

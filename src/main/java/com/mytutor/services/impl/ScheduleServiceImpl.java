@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,6 +164,27 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.ok().body("Schedule updated successfully");
     }
 
+    @Override
+    public ResponseEntity<?> getTutorProfileSchedule(Integer tutorId) {
+        ScheduleDto scheduleDto = new ScheduleDto();
+        List<ScheduleItemDto> items = scheduleDto.getSchedules();
+        int d;
+        for (d = 2; d <= 8; d++) {
+            String dayOfWeek = DayOfWeek.of((d - 2) % 7 + 1).toString().substring(0, 3);
+            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
+                    .findByTutorIdAnDayOfWeek(tutorId, d);
+            if(weeklySchedules.isEmpty()) {
+                weeklySchedules = new ArrayList<>();
+            }
+            List<TimeslotDto> timeslotDtos = weeklySchedules.stream()
+                    .map(t -> TimeslotDto.mapToDto(t)).toList();
+
+            ScheduleItemDto scheduleItemDto = new ScheduleItemDto(dayOfWeek, 0, timeslotDtos);
+            items.add(scheduleItemDto);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
+    }
+
     // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
     // Tính timeslots dựa theo schedule và xuất ra
     @Override
@@ -180,6 +202,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
                     .findByTutorIdAnDayOfWeek(tutorId, d);
             LocalDate date = startDate.plusDays(i);
+
             removeBookedSlot(weeklySchedules, date);
 
             if(weeklySchedules.isEmpty()) {

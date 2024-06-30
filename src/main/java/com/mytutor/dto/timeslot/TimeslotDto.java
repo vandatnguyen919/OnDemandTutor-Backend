@@ -38,7 +38,6 @@ public class TimeslotDto {
             timeslot.getId(),
             timeslot.getStartTime(),
             timeslot.getEndTime()
-//            timeslot.isOccupied()
         );
     }
 }

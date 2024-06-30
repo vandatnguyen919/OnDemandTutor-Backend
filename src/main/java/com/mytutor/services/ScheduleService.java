@@ -13,8 +13,7 @@ import java.util.List;
 @Service
 public interface ScheduleService {
     ResponseEntity<?> addNewSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> tutorScheduleDto);
-//    ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId);
     ResponseEntity<?> updateSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> newSchedules);
-//    ResponseEntity<?> removeSchedule(Integer tutorId, Integer scheduleId);
     ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId);
+    ResponseEntity<?> getTutorProfileSchedule(Integer tutorId);
 }
