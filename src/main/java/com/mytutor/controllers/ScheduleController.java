@@ -42,7 +42,6 @@ public class ScheduleController {
         return scheduleService.getTutorProfileSchedule(tutorId);
     }
 
-    @PutMapping("tutors/{tutorId}")
     @GetMapping("/tutors/{tutorId}/old-schedule/{timeslotId}")
     public ResponseEntity<?> getReScheduleSlots(
             @PathVariable Integer tutorId,
