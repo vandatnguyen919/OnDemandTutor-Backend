@@ -3,10 +3,8 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
-import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.timeslot.*;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
 import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.AccountNotFoundException;
@@ -24,7 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
 import java.time.Duration;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -68,7 +65,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 List<ResponseWeeklyScheduleDto> overlapScheduleDtos = overlapSchedules.stream()
                         .map(schedule -> ResponseWeeklyScheduleDto.mapToDto(schedule))
                         .toList();
-                return ResponseEntity.status(HttpStatus.OK)
+                return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(overlapScheduleDtos);
             }
 
@@ -90,15 +87,29 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<WeeklySchedule> validatedSchedules = new ArrayList<>();
             for (RequestWeeklyScheduleDto requestWeeklyScheduleDto : requestWeeklyScheduleDtos) {
                 WeeklySchedule schedule = modelMapper.map(requestWeeklyScheduleDto, WeeklySchedule.class);
-                if (weeklyScheduleRepository.findOverlapSchedule(
+                // if new slot not overlap with any timeslot that is using => added to valid using slots
+                if (weeklyScheduleRepository.findOverlapUsingSchedule(
                         account.getId(),
                         requestWeeklyScheduleDto.getDayOfWeek(),
                         requestWeeklyScheduleDto.getStartTime(),
                         requestWeeklyScheduleDto.getEndTime()).isEmpty()) {
-                    schedule.setAccount(account);
-                    schedule.setUsing(true);
-                    validatedSchedules.add(schedule);
+
+                    // if new slot match time with a existedNotUsingSlot => set that existedNotUsingSlot to isUsing = true
+                    WeeklySchedule existedNotUsingSlot = weeklyScheduleRepository.findNotUsingSlotByTutor(
+                            account.getId(),
+                            requestWeeklyScheduleDto.getDayOfWeek(),
+                            requestWeeklyScheduleDto.getStartTime(),
+                            requestWeeklyScheduleDto.getEndTime()
+                    );
+                    if (existedNotUsingSlot != null) {
+                        existedNotUsingSlot.setUsing(true);
+                    } else {
+                        schedule.setAccount(account);
+                        schedule.setUsing(true);
+                        validatedSchedules.add(schedule);
+                    }
                 } else {
+                    // if overlap with isUsing slot
                     schedule.setAccount(account);
                     overlapSchedules.add(schedule);
                 }
