@@ -159,7 +159,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         dto.setThisMonthSubjects(thisMonthSubjects);
         dto.setThisMonthLessons(thisMonthAppointments.size());
         dto.setThisMonthStudent(thisMonthStudents.size());
-        dto.setTotalIncome(getTotalIncome(thisMonthAppointments));
+        dto.setTotalMonthlyIncome(getTotalIncome(thisMonthAppointments));
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
@@ -190,7 +190,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private double getTotalIncome(List<Appointment> appointments) {
         double income = 0;
         for (Appointment a : appointments) {
-            income += a.getTuition() * (100 - a.getTutor().getTutorDetail().getPercentage());
+            income += a.getTuition() * (100 - a.getTutor().getTutorDetail().getPercentage()) / 100;
         }
         return income;
     }
