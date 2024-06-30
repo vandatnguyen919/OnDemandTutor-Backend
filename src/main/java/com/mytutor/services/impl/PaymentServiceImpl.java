@@ -57,13 +57,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Autowired
-    private VNPayConfig vnPayConfig;
-
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
-            throw new BadCredentialsException("JWT cannot be found or trusted");
+            throw new BadCredentialsException("Token cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
@@ -80,6 +77,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token cannot be found or trusted");
+        }
+
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
         String vnp_Command = "querydr";
@@ -208,7 +209,7 @@ public class PaymentServiceImpl implements PaymentService {
             vnp_Params.put("vnp_Locale", "vn");
         }
         vnp_Params.put("vnp_OrderType", "other");   //optional
-        vnp_Params.put("vnp_ReturnUrl", vnPayConfig.vnp_ReturnUrl);
+        vnp_Params.put("vnp_ReturnUrl", VNPayConfig.vnp_ReturnUrl);
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));

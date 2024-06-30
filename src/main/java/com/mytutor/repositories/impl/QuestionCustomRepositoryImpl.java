@@ -1,7 +1,6 @@
 package com.mytutor.repositories.impl;
 
 import com.mytutor.constants.QuestionStatus;
-import com.mytutor.entities.Account;
 import com.mytutor.entities.Question;
 import com.mytutor.entities.Subject;
 import com.mytutor.repositories.QuestionRepositoryCustom;
@@ -23,7 +22,7 @@ import java.util.Set;
  * @author vothimaihoa
  */
 @Repository
-public class QuestionRepositoryImpl implements QuestionRepositoryCustom {
+public class QuestionCustomRepositoryImpl implements QuestionRepositoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;

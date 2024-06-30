@@ -10,7 +10,12 @@ mytutor:
     client: http://localhost:5173
 
 vnp:
+  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   returnUrl: http://localhost:5173/confirm-payment
+  tmnCode: 0ZLJX97B
+  secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
+  version: 2.1.0
+  apiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
 spring:
   security:

@@ -16,5 +16,4 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface TutorDetailRepository extends JpaRepository<TutorDetail, Integer> {
-//    Optional<TutorDetail> findByAccountId(Integer accountId);
 }
