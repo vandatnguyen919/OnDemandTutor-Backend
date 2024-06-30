@@ -3,8 +3,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-package com.mytutor.dto;
+package com.mytutor.dto.auth;
 
+import com.mytutor.constants.RegexConsts;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +19,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResetPasswordDto {
+public class ForgotPasswordDto {
 
+    @NotNull
+    @Email(message = "invalid email format", regexp = RegexConsts.EMAIL_REGEX)
     private String email;
-    private String password;
 }

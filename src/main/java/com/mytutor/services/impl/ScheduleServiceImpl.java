@@ -1,27 +1,35 @@
 package com.mytutor.services.impl;
 
-import com.mytutor.dto.timeslot.InputTimeslotDto;
-import com.mytutor.dto.timeslot.ResponseTimeslotDto;
-import com.mytutor.dto.timeslot.ScheduleDto;
-import com.mytutor.dto.timeslot.ScheduleItemDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
+import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.appointment.AppointmentSlotDto;
+import com.mytutor.dto.appointment.ResponseAppointmentDto;
+import com.mytutor.dto.timeslot.*;
 import com.mytutor.entities.Account;
+import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
+import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.TimeslotValidationException;
 import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.TimeslotRepository;
+import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.ScheduleService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
+import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author vothimaihoa
@@ -38,25 +46,29 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    private WeeklyScheduleRepository weeklyScheduleRepository;
 
     @Override
-    public ResponseEntity<?> addNewSchedule(Integer tutorId, List<InputTimeslotDto> timeslotDtos,
-            Integer numberOfWeeks) {
+    public ResponseEntity<?> addNewSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> weeklyScheduleDtos) {
         try {
 
             Account account = accountRepository.findById(tutorId)
                     .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
 
-            List<Timeslot> overlapTimeslots = saveValidTimeslotAndGetOverlapTimeslot(timeslotDtos, account, numberOfWeeks);
+            List<WeeklySchedule> overlapSchedules = saveValidTimeslotAndGetOverlapTimeslot(weeklyScheduleDtos, account);
 
-            if (overlapTimeslots.isEmpty()) {
+            if (overlapSchedules.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.OK)
                     .body("All timeslots are saved successfully");
             } else {
                 // return overlapped timeslot to FE to show to the customer
                 // FE will show annoucement that timeslots saved, except these slots are overlap...
+                List<ResponseWeeklyScheduleDto> overlapScheduleDtos = overlapSchedules.stream()
+                        .map(schedule -> ResponseWeeklyScheduleDto.mapToDto(schedule))
+                        .toList();
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(overlapTimeslots);
+                        .body(overlapScheduleDtos);
             }
 
         } catch (AccountNotFoundException | TimeslotValidationException e) {
@@ -69,90 +81,125 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    private List<Timeslot> saveValidTimeslotAndGetOverlapTimeslot(List<InputTimeslotDto> inputTimeslotDtos,
-            Account account, Integer numberOfWeeks)
+    private List<WeeklySchedule> saveValidTimeslotAndGetOverlapTimeslot
+            (List<RequestWeeklyScheduleDto> requestWeeklyScheduleDtos,
+            Account account)
             throws TimeslotValidationException {
-        List<Timeslot> overlapTimeslots = new ArrayList<>();
-        List<Timeslot> validatedTimeslots = new ArrayList<>();
-        for (int weekNo = 0; weekNo < numberOfWeeks; weekNo++) {
-            for (InputTimeslotDto inputTimeslotDto : inputTimeslotDtos) {
-                LocalDate scheduleDate = calculateDateFromDayOfWeek(inputTimeslotDto.getDayOfWeek(), weekNo);
-                Timeslot timeslot = modelMapper.map(inputTimeslotDto, Timeslot.class);
-                timeslot.setScheduleDate(scheduleDate);
-                if (timeslotRepository.findOverlapTimeslot(account.getId(), scheduleDate,
-                        inputTimeslotDto.getStartTime(), inputTimeslotDto.getEndTime()).isEmpty()) {
-                    timeslot.setOccupied(false);
-                    timeslot.setAccount(account);
-                    validatedTimeslots.add(timeslot);
+        List<WeeklySchedule> overlapSchedules = new ArrayList<>();
+        List<WeeklySchedule> validatedSchedules = new ArrayList<>();
+            for (RequestWeeklyScheduleDto requestWeeklyScheduleDto : requestWeeklyScheduleDtos) {
+                WeeklySchedule schedule = modelMapper.map(requestWeeklyScheduleDto, WeeklySchedule.class);
+                if (weeklyScheduleRepository.findOverlapSchedule(
+                        account.getId(),
+                        requestWeeklyScheduleDto.getDayOfWeek(),
+                        requestWeeklyScheduleDto.getStartTime(),
+                        requestWeeklyScheduleDto.getEndTime()).isEmpty()) {
+                    schedule.setAccount(account);
+                    schedule.setUsing(true);
+                    validatedSchedules.add(schedule);
                 } else {
-                    overlapTimeslots.add(timeslot);
+                    schedule.setAccount(account);
+                    overlapSchedules.add(schedule);
+                }
+        }
+        weeklyScheduleRepository.saveAll(validatedSchedules);
+        return overlapSchedules;
+    }
+
+    // update schedule => kiem tra slot can them da có trong db chua (dayOfWeek, startTime, endTime trung)
+    // co roi thi de nguyen,
+    // chua co thi them vao,
+    // old schedule co ma new ko co => xoa di
+    @Override
+    public ResponseEntity<?> updateSchedule(Integer tutorId, List<RequestWeeklyScheduleDto> newSchedules) {
+
+        Account account = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        // Fetch existing schedules for the tutor
+        List<WeeklySchedule> existingSchedules = weeklyScheduleRepository.findByTutorId(tutorId);
+
+        // Create maps for quick lookup
+        Map<String, RequestWeeklyScheduleDto> newScheduleMap = newSchedules.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getDayOfWeek()
+                                + "-" + s.getStartTime()
+                                + "-" + s.getEndTime(),
+                        s -> s
+                ));
+
+        Map<String, WeeklySchedule> existingScheduleMap = existingSchedules.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getDayOfWeek()
+                                + "-" + s.getStartTime()
+                                + "-" + s.getEndTime(),
+                        s -> s
+                ));
+
+        // Add or update schedules
+        for (RequestWeeklyScheduleDto newSchedule : newSchedules) {
+            String key = newSchedule.getDayOfWeek() + "-"
+                    + newSchedule.getStartTime() + "-"
+                    + newSchedule.getEndTime();
+            if (!existingScheduleMap.containsKey(key)) {
+                // Schedule does not exist, add it
+                WeeklySchedule newScheduleDB = modelMapper.map(newSchedule, WeeklySchedule.class);
+                newScheduleDB.setAccount(account);
+                newScheduleDB.setUsing(true); // Ensure new schedules are marked as using
+                weeklyScheduleRepository.save(newScheduleDB);
+            } else {
+                // Schedule exists, ensure it's marked as using
+                WeeklySchedule existingSchedule = existingScheduleMap.get(key);
+                existingSchedule.setUsing(true);
+                weeklyScheduleRepository.save(existingSchedule);
+            }
+        }
+
+        // Mark old schedules that are not in the new schedules as not using
+        for (WeeklySchedule existingSchedule : existingSchedules) {
+            String key = existingSchedule.getDayOfWeek() + "-"
+                    + existingSchedule.getStartTime()
+                    + "-" + existingSchedule.getEndTime();
+            if (!newScheduleMap.containsKey(key)) {
+                if (!existingSchedule.getTimeslots().isEmpty()) {
+                    existingSchedule.setUsing(false);
+                    weeklyScheduleRepository.save(existingSchedule);
+                }
+                else {
+                    weeklyScheduleRepository.delete(existingSchedule);
                 }
             }
         }
-        timeslotRepository.saveAll(validatedTimeslots);
-        return overlapTimeslots;
+
+        return ResponseEntity.ok().body("Schedule updated successfully");
     }
 
-    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek, int weekNo) {
-        LocalDate today = LocalDate.now();
-        int day = today.getDayOfWeek().getValue() + 1;
-        int distance = dayOfWeek > day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
-        return today.plusDays(distance + (weekNo * 7L) );
-    }
-
-    @Override
-    public ResponseEntity<?> updateTimeslotStatus(Integer tutorId, Integer timeslotId, Boolean status) {
-        Timeslot timeslot = timeslotRepository.findById(timeslotId).orElseThrow(
-                () -> new RuntimeException("Timeslot not found!"));
-        if (!Objects.equals(timeslot.getAccount().getId(), tutorId)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("This timeslot is not belongs to this tutor!");
-        }
-        timeslot.setOccupied(status);
-        timeslotRepository.save(timeslot);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(modelMapper.map(timeslot, ResponseTimeslotDto.class));
-    }
-
-    // remove timeslot (only allow for not occupied timeslots)
-    @Override
-    public ResponseEntity<?> removeTimeslot(Integer tutorId, Integer timeslotId) {
-        Timeslot timeslot = timeslotRepository.findById(timeslotId)
-                .orElseThrow(() -> new TimeslotValidationException("Timeslot not exists!"));
-        if (timeslot.getAccount().getId() != tutorId) {
-            throw new TimeslotValidationException("The timeslot with id is not belongs to this tutor!");
-        }
-        if (timeslot.isOccupied()) {
-            throw new TimeslotValidationException("This timeslot with id is occupied!");
-        }
-        ResponseTimeslotDto dto = modelMapper.map(timeslot, ResponseTimeslotDto.class);
-        timeslotRepository.delete(timeslot);
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
-    }
-
-    // hien ra lich trinh cua tutor 7 ngay gan nhat theo tutor id (trong tuong lai)
-    @Override
-    public ResponseEntity<?> getNext7DaysSchedulesByTutorId(Integer tutorId) {
-
-        LocalDate startDate = LocalDate.now();
+    private ScheduleDto generateWeeklySchedule(Integer tutorId, LocalDate startDate,
+                                               double oldSlotLength, boolean forReschedule,
+                                               Integer weeklyScheduleId) {
         LocalDate endDate = startDate.plusDays(6);
 
         ScheduleDto scheduleDto = new ScheduleDto();
         List<ScheduleItemDto> items = scheduleDto.getSchedules();
 
-        int today = startDate.getDayOfWeek().getValue() - 1;    // Monday is 0 and Sunday is 6
+        int today = startDate.getDayOfWeek().getValue() - 1;
         for (int i = 0; i < 7; i++) {
-
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
-            List<Timeslot> timeslots = timeslotRepository.findByTutorIdAndDayOfWeekAndDateRange(tutorId, startDate, endDate, d);
-            if (timeslots == null) {
-                timeslots = new ArrayList<>();
+            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository.findByTutorIdAnDayOfWeek(tutorId, d);
+            LocalDate date = startDate.plusDays(i);
+
+            if (forReschedule) {
+                removeBookedOrLongerSlots(oldSlotLength, weeklySchedules, date);
+            } else {
+                removeBookedSlot(weeklySchedules, date);
             }
 
-            LocalDate date = startDate.plusDays(i);
+            if (weeklySchedules.isEmpty()) {
+                weeklySchedules = new ArrayList<>();
+            }
             String dayOfWeek = date.getDayOfWeek().toString().substring(0, 3);
             int dayOfMonth = date.getDayOfMonth();
-            List<TimeslotDto> timeslotDtos = timeslots.stream().map(t -> TimeslotDto.mapToDto(t)).toList();
+            List<TimeslotDto> timeslotDtos = weeklySchedules.stream()
+                    .map(t -> TimeslotDto.mapToDto(t)).toList();
 
             ScheduleItemDto scheduleItemDto = new ScheduleItemDto(dayOfWeek, dayOfMonth, timeslotDtos);
             items.add(scheduleItemDto);
@@ -161,7 +208,104 @@ public class ScheduleServiceImpl implements ScheduleService {
         scheduleDto.setStartDate(startDate);
         scheduleDto.setEndDate(endDate);
 
+        return scheduleDto;
+    }
+
+    // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
+    // Tính timeslots dựa theo schedule và xuất ra
+    @Override
+    public ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId) {
+        LocalDate startDate = LocalDate.now();
+        ScheduleDto scheduleDto = generateWeeklySchedule(
+                tutorId, startDate, 0,
+                false, null);
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
+    @Override
+    public ResponseEntity<?> getScheduleForReschedule(Integer timeslotId, Integer tutorId) {
+        LocalDate startDate = LocalDate.now();
+        Timeslot oldTimeslot = timeslotRepository.findById(timeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        double oldSlotLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
+        ScheduleDto scheduleDto = generateWeeklySchedule(
+                tutorId, startDate, oldSlotLength,
+                true, timeslotId
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
+    }
+
+
+    @Override
+    public PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
+                                                                 boolean isDone,
+                                                                 boolean isLearner,
+                                                                 Integer pageNo,
+                                                                 Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Timeslot> responseTimeslots;
+        LocalDate currentDate = LocalDate.now();
+        LocalTime currentTime = LocalTime.now();
+
+        if (isLearner) {
+            if (isDone) {
+                responseTimeslots = timeslotRepository.findPastTimeslotByStudent(
+                        accountId, currentDate, currentTime, pageable);
+            } else {
+                responseTimeslots = timeslotRepository.findUpcomingTimeslotByStudent(
+                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
+            }
+        } else {
+            if (isDone) {
+                responseTimeslots = timeslotRepository.findPastTimeslotByTutor(
+                        accountId, currentDate, currentTime, pageable);
+            } else {
+                responseTimeslots = timeslotRepository.findUpcomingTimeslotByTutor(
+                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
+            }
+        }
+        return getPaginationDto(responseTimeslots);
+    }
+
+    private PaginationDto<AppointmentSlotDto> getPaginationDto(Page<Timeslot> timeslots) {
+        List<Timeslot> listOfTimeslots = timeslots.getContent();
+
+        List<AppointmentSlotDto> content = listOfTimeslots.stream()
+                .map(a -> {
+                    Timeslot timeslot = timeslotRepository.findById(a.getId())
+                            .orElse(new Timeslot());
+                    return AppointmentSlotDto.mapToDto(timeslot);
+                })
+                .toList();
+
+        PaginationDto<AppointmentSlotDto> appointmentResponseDto = new PaginationDto<>();
+        appointmentResponseDto.setContent(content);
+        appointmentResponseDto.setPageNo(timeslots.getNumber());
+        appointmentResponseDto.setPageSize(timeslots.getSize());
+        appointmentResponseDto.setTotalElements(timeslots.getTotalElements());
+        appointmentResponseDto.setTotalPages(timeslots.getTotalPages());
+        appointmentResponseDto.setLast(timeslots.isLast());
+
+        return appointmentResponseDto;
+    }
+
+    private void removeBookedSlot(List<WeeklySchedule> weeklySchedules, LocalDate date) {
+        weeklySchedules.removeIf(weeklySchedule ->
+                timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null);
+    }
+
+    private void removeBookedOrLongerSlots(double oldTimeSlotLength, List<WeeklySchedule> weeklySchedules, LocalDate date) {
+        weeklySchedules.removeIf(weeklySchedule ->
+                timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null
+        || calculateTotalHoursSchedules(weeklySchedule) > oldTimeSlotLength);
+    }
+
+    private double calculateTotalHoursSchedules(WeeklySchedule weeklySchedule) {
+        double totalHours = 0;
+        LocalTime startLocalTime = weeklySchedule.getStartTime().toLocalTime();
+        LocalTime endLocalTime = weeklySchedule.getEndTime().toLocalTime();
+        Duration duration = Duration.between(startLocalTime, endLocalTime);
+        totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
+        return totalHours;
+    }
 }

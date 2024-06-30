@@ -1,4 +1,4 @@
-package com.mytutor.dto.timeslot;
+package com.mytutor.dto.appointment;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class InputAppointmentDto {
+public class RequestAppointmentDto {
 
     private Integer id;
 

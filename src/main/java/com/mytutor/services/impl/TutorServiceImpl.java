@@ -5,8 +5,11 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.DegreeType;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
@@ -53,13 +56,16 @@ public class TutorServiceImpl implements TutorService {
     private SubjectRepository subjectRepository;
 
     @Autowired
+    private TutorDetailRepository tutorDetailRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
     private FeedbackRepository feedbackRepository;
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private TutorDetailRepository tutorDetailRepository;
 
     @Override
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
@@ -90,7 +96,7 @@ public class TutorServiceImpl implements TutorService {
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
                     tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
-                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId(), true).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
                     return tutorInfoDto;
                 })
@@ -109,13 +115,22 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
-        Account tutor = accountRepository.findById(tutorId)
+        Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
 
         return ResponseEntity.status(HttpStatus.OK).body(tutorInfoDto);
+    }
+
+    @Override
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId) {
+
+        List<Account> tutors = appointmentRepository.findAllBookedTutorsByStudentIdAndStatus(studentId, AppointmentStatus.PAID);
+
+        List<ResponseAccountDetailsDto> tutorDtos = tutors.stream().map(ResponseAccountDetailsDto::mapToDto).toList();
+        return ResponseEntity.status(HttpStatus.OK).body(tutorDtos);
     }
 
     @Override
@@ -287,6 +302,8 @@ public class TutorServiceImpl implements TutorService {
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
+        account.setTutorDetail(tutorDetail);
+//        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
@@ -305,7 +322,9 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account tutor = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
         TutorDetail tutorDetail = tutor.getTutorDetail();
 
 

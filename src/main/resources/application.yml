@@ -6,7 +6,16 @@ mytutor:
     base64-secret: aeGhbpAvxQxtq6sXeXxkKNJzDiGB8aFg1Q63rETWHX19P2iHbSUp9CvJamrNYzi+j8nvpOgn55Bn/QyCvHfDzQ==
     # 2 weeks in second
     token-validity-in-second: 1209600
+  url:
+    client: http://localhost:5173
 
+vnp:
+  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  returnUrl: http://localhost:5173/confirm-payment
+  tmnCode: 0ZLJX97B
+  secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
+  version: 2.1.0
+  apiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
 spring:
   security:

@@ -41,7 +41,7 @@ public class Appointment {
     @JoinColumn(name = "student_id")
     private Account student;
 
-    @OneToMany(mappedBy = "appointment")
+    @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Timeslot> timeslots = new ArrayList<>();
 
     @Column(name = "tuition")
@@ -49,6 +49,10 @@ public class Appointment {
 
     @OneToMany(mappedBy = "appointment")
     List<Payment> payments = new ArrayList<>();
+
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
 
     private String meetingLink;
 

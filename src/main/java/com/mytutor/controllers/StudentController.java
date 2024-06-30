@@ -4,9 +4,11 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.student.QuestionDto;
+import com.mytutor.dto.student.RequestQuestionDto;
+import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StudentService;
-import io.swagger.v3.oas.annotations.Hidden;
+import com.mytutor.services.TutorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +24,20 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @Hidden
+    @Autowired
+    private TutorService tutorService;
+
+    @Autowired
+    private AppointmentService appointmentService;
+
+//    @Hidden
     @GetMapping("/students")
-    public ResponseEntity<?> getAllStudents() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public ResponseEntity<?> getAllStudents(
+        @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+        @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+        @RequestParam(value = "status", required = false) String status
+        ) {
+        return studentService.getAllStudents(pageNo, pageSize, status);
     }
 
 
@@ -45,19 +57,24 @@ public class StudentController {
         return studentService.getQuestionById(questionId);
     }
 
+    @GetMapping("/students/{studentId}/booked-tutors")
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(@PathVariable Integer studentId) {
+        return tutorService.getAllBookedTutorsByStudentId(studentId);
+    }
+
     @PostMapping("/students/{studentId}/questions")
     public ResponseEntity<?> addQuestion(
             @PathVariable Integer studentId,
-            @RequestBody QuestionDto questionDto) {
-        return studentService.addQuestion(studentId, questionDto);
+            @RequestBody RequestQuestionDto requestQuestionDto) {
+        return studentService.addQuestion(studentId, requestQuestionDto);
     }
 
     @PutMapping("/students/{studentId}/questions/{questionId}")
     public ResponseEntity<?> updateQuestion(
             @PathVariable Integer studentId,
             @PathVariable Integer questionId,
-            @RequestBody QuestionDto questionDto) {
-        return studentService.updateQuestion(studentId, questionId, questionDto);
+            @RequestBody RequestQuestionDto requestQuestionDto) {
+        return studentService.updateQuestion(studentId, questionId, requestQuestionDto);
     }
 
     @DeleteMapping("/students/{studentId}/questions/{questionId}")
