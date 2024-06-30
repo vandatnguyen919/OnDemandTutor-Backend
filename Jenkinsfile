@@ -36,7 +36,7 @@ pipeline {
                     def jiraIssueKey = env.JIRA_ISSUE_KEY
                     def jiraAuth = "Basic " + "${JIRA_CREDENTIALS}".bytes.encodeBase64().toString()
                     def status = testResults.failCount == 0 ? "Pass" : "Fail"
-                    def attachment = "target/surefire-reports/TEST-com.mytutor.controllers.TestAuthController.xml"
+                    def attachment = "target/surefire-reports/TEST-com.mytutor.services.TestAuthService.xml"
 
                     echo "Test Results: ${testResults}"
                     echo "JIRA Issue Key: ${jiraIssueKey}"

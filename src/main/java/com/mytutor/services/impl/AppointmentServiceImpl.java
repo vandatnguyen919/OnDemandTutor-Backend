@@ -1,10 +1,13 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.InputAppointmentDto;
+import com.mytutor.dto.appointment.AppointmentSlotDto;
+import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.ResponseAppointmentDto;
+import com.mytutor.dto.appointment.RequestReScheduleDto;
+import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.dto.timeslot.TimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -28,10 +31,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -47,13 +47,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
-    AppointmentRepository appointmentRepository;
+    private AppointmentRepository appointmentRepository;
 
     @Autowired
-    TimeslotRepository timeslotRepository;
+    private TimeslotRepository timeslotRepository;
 
     @Autowired
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -271,7 +271,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
             LocalDate bookDate = calculateDateFromDayOfWeek(w.getDayOfWeek());
 
-            if (timeslotRepository.findTimeslotWithDateAndWeeklySchedule(w.getId(), bookDate) != null) {
+            if (timeslotRepository.findByDateAndWeeklySchedule(w.getId(), bookDate) != null) {
                 throw new ConflictTimeslotException("Cannot book because " +
                         "some timeslots are occupied!");
             }
@@ -287,19 +287,19 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // calculate and set tuition = total hours * teach price per hour
         appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
-                * calculateTotalHours(appointment.getTimeslots()));
+                * calculateTotalHoursBySlots(appointment.getTimeslots()));
 
         return appointment;
     }
 
     private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
         LocalDate today = LocalDate.now();
-        int day = today.getDayOfWeek().getValue() + 1;
+        int day = today.getDayOfWeek().getValue() + 1; // LocalDate: sunday = 0, my app: sunday = 8
         int distance = dayOfWeek >= day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
         return today.plusDays(distance);
     }
 
-    private double calculateTotalHours(List<Timeslot> timeslots) {
+    private double calculateTotalHoursBySlots(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
             LocalTime startLocalTime = t.getWeeklySchedule().getStartTime().toLocalTime();
@@ -310,17 +310,118 @@ public class AppointmentServiceImpl implements AppointmentService {
         return totalHours;
     }
 
+    private double calculateTotalHoursSchedules(WeeklySchedule weeklySchedule) {
+        double totalHours = 0;
+        LocalTime startLocalTime = weeklySchedule.getStartTime().toLocalTime();
+        LocalTime endLocalTime = weeklySchedule.getEndTime().toLocalTime();
+        Duration duration = Duration.between(startLocalTime, endLocalTime);
+        totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
+        return totalHours;
+    }
+
+    // everytime reschedule == only reschedule a slot of the appointment
+    @Override
+    public ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, RequestReScheduleDto dto) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayTime = LocalDateTime.now();
+
+        // if new weekly schedule has booked timeslot -> error
+        WeeklySchedule newWeeklySchedule = weeklyScheduleRepository.findById(dto.getNewWeeklyScheduleId())
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        LocalDate newScheduleDate = calculateDateFromDayOfWeek(newWeeklySchedule.getDayOfWeek());
+        if (timeslotRepository.findByDateAndWeeklySchedule(dto.getNewWeeklyScheduleId(), newScheduleDate) != null) {
+            throw new ConflictTimeslotException("Timeslot has been occupied!");
+        }
+
+        // if appointment is not in PAID status -> error
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidAppointmentStatusException("Not allowed to reschedule an appointment not in PAID status");
+        }
+
+        // 1. if current time before old slot <= 1 days -> error
+        // (only allows if current time >= 1 days with old slot)
+        Timeslot oldTimeslot = timeslotRepository.findById(dto.getOldTimeslotId())
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        LocalDate oldDate = oldTimeslot.getScheduleDate();
+        LocalTime oldTime = oldTimeslot.getWeeklySchedule().getStartTime().toLocalTime();
+        LocalDateTime oldDateTime = oldDate.atTime(oldTime); // datetime of booked slot
+        if (todayTime.isAfter(oldDateTime.minusHours(24))) {
+            throw new ConflictTimeslotException("Cannot reschedule because it is " +
+                    "less than 24 hours before booked slot");
+        }
+
+        // 2. new slot must be > date than current date
+        if (!newScheduleDate.isAfter(today)) {
+            throw new ConflictTimeslotException("New schedule must be after current day!");
+        }
+
+        // 3. new slot must has length == old slot
+        List<Timeslot> timeslots = new ArrayList<>();
+        timeslots.add(oldTimeslot);
+        double oldLength = calculateTotalHoursBySlots(timeslots);
+        double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
+        if (newLength > oldLength) {
+            throw new ConflictTimeslotException("New slot cannot longer than old slot!");
+        }
+
+        // update timeslot for appointment
+
+        // remove old slot
+        appointment.getTimeslots().remove(oldTimeslot);
+
+        // add new slot
+        Timeslot t = new Timeslot();
+        t.setWeeklySchedule(newWeeklySchedule);
+        t.setScheduleDate(newScheduleDate);
+//        t.setOccupied(true);
+        t.setAppointment(appointment);
+        appointment.getTimeslots().add(t);
+
+        appointmentRepository.save(appointment);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAppointmentDto.mapToDto(appointment));
+    }
+
+    @Override
+    public ResponseEntity<AppointmentSlotDto> cancelSlotsInAppointment(int accountId, int timeslotId) {
+        Timeslot timeslotToDelete = timeslotRepository.findById(timeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not exists!"));
+        if (timeslotToDelete.getAppointment().getStudent().getId() != accountId) {
+            throw new InvalidAppointmentStatusException("This account is not allowed to cancel this slot!");
+        }
+        if (timeslotToDelete.getScheduleDate().isBefore(LocalDate.now())) {
+            throw new InvalidAppointmentStatusException("Not allowed to cancel this slot!");
+        }
+
+        Appointment appointment = timeslotToDelete.getAppointment();
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidAppointmentStatusException("Not allowed to cancel this slot!");
+        }
+
+        AppointmentSlotDto dto = AppointmentSlotDto.mapToDto(timeslotToDelete);
+        timeslotRepository.delete(timeslotToDelete);
+        if (appointment.getTimeslots().isEmpty()) {
+            appointment.setStatus(AppointmentStatus.CANCELED);
+        }
+        appointmentRepository.save(appointment);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
     // tutor update appointment status: DONE from PAID or CANCELED from PAID
     @Override
-    public ResponseEntity<?> updateAppointmentStatus(Integer tutorId, Integer appointmentId, String status) {
+    public ResponseEntity<?> updateAppointmentStatus(Integer accountId, Integer appointmentId, String status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
 
-        if(!Objects.equals(tutorId, appointment.getTutor().getId())) {
-            throw new AppointmentNotFoundException("This appointment is not belong to this tutor");
+        if(!Objects.equals(accountId, appointment.getTutor().getId()) &&
+                !Objects.equals(accountId, appointment.getStudent().getId())) {
+            throw new AppointmentNotFoundException("This appointment is not belong to this account");
         }
         if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
-            throw new InvalidAppointmentStatusException("Tutor can only update paid appointment!");
+            throw new InvalidAppointmentStatusException("Account can only update paid appointment!");
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {

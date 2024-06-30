@@ -25,28 +25,12 @@ public class Timeslot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "tutor_id")
-//    private Account account;
-
-//    @Column(name="start_time")
-//    private Time startTime;
-//
-//    @Column(name="end_time")
-//    private Time endTime;
-
-//    @Column(name="day_of_week")
-//    private Integer dayOfWeek;
-
     @Column(name="schedule_date")
     private LocalDate scheduleDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "weekly_schedule_id")
     private WeeklySchedule weeklySchedule;
-
-//    @Column(name="is_occupied")
-//    private boolean isOccupied = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id")
