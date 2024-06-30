@@ -43,14 +43,13 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
             "SELECT t FROM Timeslot t " +
                     " WHERE (t.appointment.student.id = :accountId) " +
                     " AND (t.scheduleDate < :currentDate " +
-                    "     OR (t.scheduleDate = :currentDate AND t.weeklySchedule.startTime <= :currentTime)) " +
+                    " OR (t.weeklySchedule.startTime <= :currentTime AND t.scheduleDate = :currentDate))" +
                     " ORDER BY t.scheduleDate DESC, t.weeklySchedule.startTime DESC"
     )
     Page<Timeslot> findPastTimeslotByStudent(@Param("accountId") Integer accountId,
                                              @Param("currentDate") LocalDate currentDate,
                                              @Param("currentTime") LocalTime currentTime,
                                              Pageable pageable);
-
 
     @Query(
             "SELECT t FROM Timeslot t " +
@@ -67,7 +66,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
                                                Pageable pageable);
     @Query(
             "SELECT t FROM Timeslot t " +
-                    " WHERE (t.appointment.tutor.id = :accountId)" +
+                    " WHERE (t.appointment.tutor.id = :accountId) " +
                     " AND (t.scheduleDate < :currentDate " +
                     " OR (t.weeklySchedule.startTime <= :currentTime AND t.scheduleDate = :currentDate))" +
                     " ORDER BY t.scheduleDate DESC, t.weeklySchedule.startTime DESC"
