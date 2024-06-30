@@ -6,7 +6,7 @@ import com.mytutor.constants.Role;
 import com.mytutor.constants.VerifyStatus;
 import com.mytutor.dto.CheckingDto;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.QuestionDto;
+import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.RequestCheckTutorDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;

@@ -65,7 +65,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 List<ResponseWeeklyScheduleDto> overlapScheduleDtos = overlapSchedules.stream()
                         .map(schedule -> ResponseWeeklyScheduleDto.mapToDto(schedule))
                         .toList();
-                return ResponseEntity.status(HttpStatus.OK)
+                return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(overlapScheduleDtos);
             }
 
@@ -73,7 +73,6 @@ public class ScheduleServiceImpl implements ScheduleService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An error occurred while saving the schedule.");
         }
@@ -87,15 +86,29 @@ public class ScheduleServiceImpl implements ScheduleService {
         List<WeeklySchedule> validatedSchedules = new ArrayList<>();
             for (RequestWeeklyScheduleDto requestWeeklyScheduleDto : requestWeeklyScheduleDtos) {
                 WeeklySchedule schedule = modelMapper.map(requestWeeklyScheduleDto, WeeklySchedule.class);
-                if (weeklyScheduleRepository.findOverlapSchedule(
+                // if new slot not overlap with any timeslot that is using => added to valid using slots
+                if (weeklyScheduleRepository.findOverlapUsingSchedule(
                         account.getId(),
                         requestWeeklyScheduleDto.getDayOfWeek(),
                         requestWeeklyScheduleDto.getStartTime(),
                         requestWeeklyScheduleDto.getEndTime()).isEmpty()) {
-                    schedule.setAccount(account);
-                    schedule.setUsing(true);
-                    validatedSchedules.add(schedule);
+
+                    // if new slot match time with a existedNotUsingSlot => set that existedNotUsingSlot to isUsing = true
+                    WeeklySchedule existedNotUsingSlot = weeklyScheduleRepository.findNotUsingSlotByTutor(
+                            account.getId(),
+                            requestWeeklyScheduleDto.getDayOfWeek(),
+                            requestWeeklyScheduleDto.getStartTime(),
+                            requestWeeklyScheduleDto.getEndTime()
+                    );
+                    if (existedNotUsingSlot != null) {
+                        existedNotUsingSlot.setUsing(true);
+                    } else {
+                        schedule.setAccount(account);
+                        schedule.setUsing(true);
+                        validatedSchedules.add(schedule);
+                    }
                 } else {
+                    // if overlap with isUsing slot
                     schedule.setAccount(account);
                     overlapSchedules.add(schedule);
                 }
@@ -134,6 +147,15 @@ public class ScheduleServiceImpl implements ScheduleService {
                 ));
 
         // Add or update schedules
+        addOrUpdateNewSchedule(newSchedules, account, existingScheduleMap);
+
+        // Mark old schedules that are not in the new schedules as not using
+        handleOldSchedule(existingSchedules, newScheduleMap);
+
+        return ResponseEntity.ok().body("Schedule updated successfully");
+    }
+
+    private void addOrUpdateNewSchedule(List<RequestWeeklyScheduleDto> newSchedules, Account account, Map<String, WeeklySchedule> existingScheduleMap) {
         for (RequestWeeklyScheduleDto newSchedule : newSchedules) {
             String key = newSchedule.getDayOfWeek() + "-"
                     + newSchedule.getStartTime() + "-"
@@ -142,7 +164,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 // Schedule does not exist, add it
                 WeeklySchedule newScheduleDB = modelMapper.map(newSchedule, WeeklySchedule.class);
                 newScheduleDB.setAccount(account);
-                newScheduleDB.setUsing(true); // Ensure new schedules are marked as using
+                newScheduleDB.setUsing(true);
                 weeklyScheduleRepository.save(newScheduleDB);
             } else {
                 // Schedule exists, ensure it's marked as using
@@ -151,13 +173,15 @@ public class ScheduleServiceImpl implements ScheduleService {
                 weeklyScheduleRepository.save(existingSchedule);
             }
         }
+    }
 
-        // Mark old schedules that are not in the new schedules as not using
+    private void handleOldSchedule(List<WeeklySchedule> existingSchedules, Map<String, RequestWeeklyScheduleDto> newScheduleMap) {
         for (WeeklySchedule existingSchedule : existingSchedules) {
             String key = existingSchedule.getDayOfWeek() + "-"
                     + existingSchedule.getStartTime()
                     + "-" + existingSchedule.getEndTime();
             if (!newScheduleMap.containsKey(key)) {
+                // if this slot not in new schedule but it has been booked in the past => set isUsing = false
                 if (!existingSchedule.getTimeslots().isEmpty()) {
                     existingSchedule.setUsing(false);
                     weeklyScheduleRepository.save(existingSchedule);
@@ -167,8 +191,27 @@ public class ScheduleServiceImpl implements ScheduleService {
                 }
             }
         }
+    }
 
-        return ResponseEntity.ok().body("Schedule updated successfully");
+    @Override
+    public ResponseEntity<?> getTutorProfileSchedule(Integer tutorId) {
+        ScheduleDto scheduleDto = new ScheduleDto();
+        List<ScheduleItemDto> items = scheduleDto.getSchedules();
+        int d;
+        for (d = 2; d <= 8; d++) {
+            String dayOfWeek = DayOfWeek.of((d - 2) % 7 + 1).toString().substring(0, 3);
+            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
+                    .findByTutorIdAnDayOfWeek(tutorId, d);
+            if(weeklySchedules.isEmpty()) {
+                weeklySchedules = new ArrayList<>();
+            }
+            List<TimeslotDto> timeslotDtos = weeklySchedules.stream()
+                    .map(t -> TimeslotDto.mapToDto(t)).toList();
+
+            ScheduleItemDto scheduleItemDto = new ScheduleItemDto(dayOfWeek, 0, timeslotDtos);
+            items.add(scheduleItemDto);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
     private ScheduleDto generateWeeklySchedule(Integer tutorId, LocalDate startDate,
@@ -233,34 +276,13 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
-    @Override
-    public ResponseEntity<?> getTutorProfileSchedule(Integer tutorId) {
-        ScheduleDto scheduleDto = new ScheduleDto();
-        List<ScheduleItemDto> items = scheduleDto.getSchedules();
-        int d;
-        for (d = 2; d <= 8; d++) {
-            String dayOfWeek = DayOfWeek.of((d - 2) % 7 + 1).toString().substring(0, 3);
-            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
-                    .findByTutorIdAnDayOfWeek(tutorId, d);
-            if(weeklySchedules.isEmpty()) {
-                weeklySchedules = new ArrayList<>();
-            }
-            List<TimeslotDto> timeslotDtos = weeklySchedules.stream()
-                    .map(t -> TimeslotDto.mapToDto(t)).toList();
-
-            ScheduleItemDto scheduleItemDto = new ScheduleItemDto(dayOfWeek, 0, timeslotDtos);
-            items.add(scheduleItemDto);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
-    }
-
 
     @Override
     public PaginationDto<AppointmentSlotDto> getBookedSlotsByAccount(Integer accountId,
-                                                                     boolean isDone,
-                                                                     boolean isLearner,
-                                                                     Integer pageNo,
-                                                                     Integer pageSize) {
+                                                                 boolean isDone,
+                                                                 boolean isLearner,
+                                                                 Integer pageNo,
+                                                                 Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Timeslot> responseTimeslots;
         LocalDate currentDate = LocalDate.now();

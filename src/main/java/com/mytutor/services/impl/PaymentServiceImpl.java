@@ -22,6 +22,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT cannot be found or trusted");
+            throw new BadCredentialsException("Token cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
@@ -75,10 +76,11 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> checkVNPayPayment(Principal principal,
-                                               HttpServletRequest req,
-                                               String vnp_TxnRef,
-                                               String vnp_TransDate) throws IOException {
+    public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token cannot be found or trusted");
+        }
+
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
         String vnp_Command = "querydr";
@@ -105,8 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
         vnp_Params.addProperty("vnp_CreateDate", vnp_CreateDate);
         vnp_Params.addProperty("vnp_IpAddr", vnp_IpAddr);
 
-        String hash_Data= String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode,
-                vnp_TxnRef, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
+        String hash_Data= String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode, vnp_TxnRef, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
         String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.secretKey, hash_Data);
 
         vnp_Params.addProperty("vnp_SecureHash", vnp_SecureHash);
@@ -166,9 +167,7 @@ public class PaymentServiceImpl implements PaymentService {
         return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate);
     }
 
-    public ResponseEntity<?> processToDatabase(Appointment appointment,
-                                               String transactionId,
-                                               String transactionDate) {
+    public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
         appointment.setStatus(AppointmentStatus.PAID);
         Payment payment = new Payment();
         payment.setMoneyAmount(appointment.getTuition());
