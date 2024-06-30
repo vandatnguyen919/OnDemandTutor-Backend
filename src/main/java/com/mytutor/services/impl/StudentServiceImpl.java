@@ -75,7 +75,7 @@ public class StudentServiceImpl implements StudentService {
         List<Account> studentList = students.getContent();
 
         List<ResponseAccountDetailsDto> content = studentList.stream()
-                .map(s -> modelMapper.map(s, ResponseAccountDetailsDto.class)).toList();
+                .map(s -> ResponseAccountDetailsDto.mapToDto(s)).toList();
         PaginationDto<ResponseAccountDetailsDto> studentListResponseDto = new PaginationDto<>();
         studentListResponseDto.setContent(content);
         studentListResponseDto.setPageNo(students.getNumber());

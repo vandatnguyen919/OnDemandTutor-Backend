@@ -1,7 +1,6 @@
-package com.mytutor.dto.tutor;
+package com.mytutor.dto.appointment;
 
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Appointment;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
