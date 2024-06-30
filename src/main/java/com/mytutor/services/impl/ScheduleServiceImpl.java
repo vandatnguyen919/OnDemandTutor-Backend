@@ -101,8 +101,11 @@ public class ScheduleServiceImpl implements ScheduleService {
                             requestWeeklyScheduleDto.getEndTime()
                     );
                     if (existedNotUsingSlot != null) {
+                        System.out.println(existedNotUsingSlot.getId());
                         existedNotUsingSlot.setUsing(true);
+                        weeklyScheduleRepository.save(existedNotUsingSlot);
                     } else {
+                        System.out.println("not found!!!");
                         schedule.setAccount(account);
                         schedule.setUsing(true);
                         validatedSchedules.add(schedule);
@@ -155,7 +158,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.ok().body("Schedule updated successfully");
     }
 
-    private void addOrUpdateNewSchedule(List<RequestWeeklyScheduleDto> newSchedules, Account account, Map<String, WeeklySchedule> existingScheduleMap) {
+    private void addOrUpdateNewSchedule(List<RequestWeeklyScheduleDto> newSchedules, Account account,
+                                        Map<String, WeeklySchedule> existingScheduleMap) {
         for (RequestWeeklyScheduleDto newSchedule : newSchedules) {
             String key = newSchedule.getDayOfWeek() + "-"
                     + newSchedule.getStartTime() + "-"

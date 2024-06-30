@@ -34,10 +34,10 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
 
     @Query("SELECT w FROM WeeklySchedule w " +
             " WHERE w.account.id = :tutorId " +
-            " AND w.isUsing = true " +
+            " AND w.isUsing = false " +
             " AND w.dayOfWeek = :dayOfWeek AND w.startTime = :startTime AND w.endTime = :endTime ")
     WeeklySchedule findNotUsingSlotByTutor(@Param("tutorId")Integer tutorId,
-                                           @Param("dayOfWeek")Integer dayOfWeek,
+                                           @Param("dayOfWeek") Integer dayOfWeek,
                                            @Param("startTime") Time startTime,
                                            @Param("endTime") Time endTime);
 
