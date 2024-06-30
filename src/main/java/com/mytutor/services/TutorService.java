@@ -29,6 +29,8 @@ public interface TutorService {
 
     ResponseEntity<TutorInfoDto> getTutorById(Integer id);
 
+    ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId);
+
     ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
 
     ResponseEntity<List<CertificateDto>> getListOfCertificatesByTutorId(Integer tutorId, String isVerified);

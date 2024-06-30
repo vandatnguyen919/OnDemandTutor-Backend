@@ -7,6 +7,7 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.dto.timeslot.TimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -46,13 +47,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
-    AppointmentRepository appointmentRepository;
+    private AppointmentRepository appointmentRepository;
 
     @Autowired
-    TimeslotRepository timeslotRepository;
+    private TimeslotRepository timeslotRepository;
 
     @Autowired
-    ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     @Autowired
     private AccountRepository accountRepository;
@@ -128,7 +129,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-         
+
         // total
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
                 tutorId, null, null);
@@ -282,6 +283,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 Timeslot t = new Timeslot();
                 t.setWeeklySchedule(w);
                 t.setScheduleDate(bookDate);
+//                t.setOccupied(true);
                 appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
             }

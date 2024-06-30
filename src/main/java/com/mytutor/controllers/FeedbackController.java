@@ -4,8 +4,9 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.dto.FeedbackDto;
+import com.mytutor.dto.feedback.RequestFeedbackDto;
 import com.mytutor.services.FeedbackService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 /**
  *
@@ -59,19 +62,20 @@ public class FeedbackController {
 
     @PostMapping("/tutors/{tutorId}/reviews")
     public ResponseEntity<?> createReview(
+            Principal principal,
             @PathVariable int tutorId,
-            @RequestBody FeedbackDto feedbackDto
+            @Valid @RequestBody RequestFeedbackDto requestFeedbackDto
     ) {
-        return feedbackService.createReview(tutorId, feedbackDto);
+        return feedbackService.createReview(principal, tutorId, requestFeedbackDto);
     }
 
     @PutMapping("/tutors/{tutorId}/reviews/{reviewId}")
     public ResponseEntity<?> updateReviewById(
             @PathVariable int tutorId,
             @PathVariable int reviewId,
-            @RequestBody FeedbackDto feedbackDto
+            @Valid @RequestBody RequestFeedbackDto requestFeedbackDto
     ) {
-        return feedbackService.updateReviewById(tutorId, reviewId, feedbackDto);
+        return feedbackService.updateReviewById(tutorId, reviewId, requestFeedbackDto);
     }
 
     @DeleteMapping("/tutors/{tutorId}/reviews/{reviewId}")
