@@ -19,7 +19,7 @@ public interface ScheduleService {
     ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId);
     ResponseEntity<?> getTutorProfileSchedule(Integer tutorId);
     ResponseEntity<?> getScheduleForReschedule(Integer weeklyScheduleId, Integer tutorId);
-    PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
+    PaginationDto<AppointmentSlotDto> getBookedSlotsByAccount(Integer accountId,
                                                           boolean isDone,
                                                           boolean isLearner,
                                                           Integer pageNo,

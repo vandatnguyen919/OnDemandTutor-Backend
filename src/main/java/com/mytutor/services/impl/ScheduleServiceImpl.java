@@ -278,7 +278,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
 
     @Override
-    public PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
+    public PaginationDto<AppointmentSlotDto> getBookedSlotsByAccount(Integer accountId,
                                                                  boolean isDone,
                                                                  boolean isLearner,
                                                                  Integer pageNo,
