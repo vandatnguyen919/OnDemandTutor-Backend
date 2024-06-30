@@ -3,10 +3,8 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
-import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.timeslot.*;
 import com.mytutor.entities.Account;
-import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
 import com.mytutor.entities.WeeklySchedule;
 import com.mytutor.exceptions.AccountNotFoundException;
@@ -24,8 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
 import java.time.Duration;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -235,13 +233,34 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
+    @Override
+    public ResponseEntity<?> getTutorProfileSchedule(Integer tutorId) {
+        ScheduleDto scheduleDto = new ScheduleDto();
+        List<ScheduleItemDto> items = scheduleDto.getSchedules();
+        int d;
+        for (d = 2; d <= 8; d++) {
+            String dayOfWeek = DayOfWeek.of((d - 2) % 7 + 1).toString().substring(0, 3);
+            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository
+                    .findByTutorIdAnDayOfWeek(tutorId, d);
+            if(weeklySchedules.isEmpty()) {
+                weeklySchedules = new ArrayList<>();
+            }
+            List<TimeslotDto> timeslotDtos = weeklySchedules.stream()
+                    .map(t -> TimeslotDto.mapToDto(t)).toList();
+
+            ScheduleItemDto scheduleItemDto = new ScheduleItemDto(dayOfWeek, 0, timeslotDtos);
+            items.add(scheduleItemDto);
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
+    }
+
 
     @Override
-    public PaginationDto<AppointmentSlotDto> getSlotsByAccountId(Integer accountId,
-                                                                 boolean isDone,
-                                                                 boolean isLearner,
-                                                                 Integer pageNo,
-                                                                 Integer pageSize) {
+    public PaginationDto<AppointmentSlotDto> getBookedSlotsByAccount(Integer accountId,
+                                                                     boolean isDone,
+                                                                     boolean isLearner,
+                                                                     Integer pageNo,
+                                                                     Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Timeslot> responseTimeslots;
         LocalDate currentDate = LocalDate.now();

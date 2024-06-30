@@ -247,6 +247,10 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                   InputAppointmentDto inputAppointmentDto) {
         Account tutor = accountRepository.findById(inputAppointmentDto.getTutorId())
                 .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
+
+        if (Objects.equals(studentId, inputAppointmentDto.getTutorId())) {
+            throw new AppointmentNotFoundException("Cannot book yourself!");
+        }
         // create appointment instance
         Appointment appointment = new Appointment();
         appointment.setStudent(accountRepository.findById(studentId).get());
