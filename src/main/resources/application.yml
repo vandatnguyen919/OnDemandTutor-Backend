@@ -1,5 +1,6 @@
 server:
   port: 8080
+  timezone: Asia/Ho_Chi_Minh
 
 mytutor:
   jwt:
@@ -40,7 +41,7 @@ spring:
     name: MyTutor
   
   datasource:
-    url: jdbc:mysql://root:hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt@monorail.proxy.rlwy.net:16440/railway
+    url: jdbc:mysql://root:hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt@monorail.proxy.rlwy.net:16440/railway?serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt
     driver-class-name: com.mysql.cj.jdbc.Driver
