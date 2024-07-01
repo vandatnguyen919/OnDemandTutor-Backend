@@ -1,5 +1,6 @@
 package com.mytutor.dto;
 
+import com.mytutor.constants.VerifyStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CheckEducationDto {
+public class CheckingDto {
     private int id;
     private boolean isVerified;
+    private VerifyStatus verifyStatus;
 }

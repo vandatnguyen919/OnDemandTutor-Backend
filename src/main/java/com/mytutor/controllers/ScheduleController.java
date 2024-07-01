@@ -35,6 +35,13 @@ public class ScheduleController {
         return scheduleService.getTutorWeeklySchedule(tutorId);
     }
 
+    // that tutor only
+    @GetMapping("/{tutorId}/profile-schedule")
+    public ResponseEntity<?> getTutorWeeklySchedule(
+            @PathVariable Integer tutorId) {
+        return scheduleService.getTutorProfileSchedule(tutorId);
+    }
+
     @GetMapping("/tutors/{tutorId}/old-schedule/{timeslotId}")
     public ResponseEntity<?> getReScheduleSlots(
             @PathVariable Integer tutorId,
@@ -42,13 +49,6 @@ public class ScheduleController {
         return scheduleService.getScheduleForReschedule(timeslotId, tutorId);
     }
 
-//    @DeleteMapping("{scheduleId}/tutors/{tutorId}")
-//    public ResponseEntity<?> deleteSchedule(
-//            @PathVariable Integer scheduleId,
-//            @PathVariable Integer tutorId) {
-//        return scheduleService.removeSchedule(tutorId, scheduleId);
-//    }
-//
     @PutMapping("/tutors/{tutorId}")
     public ResponseEntity<?> updateSchedule(
             @PathVariable Integer tutorId,
@@ -65,7 +65,7 @@ public class ScheduleController {
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(scheduleService.getSlotsByAccountId(
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleService.getBookedSlotsByAccount(
                 accountId, isDone, isLearner, pageNo, pageSize));
     }
 

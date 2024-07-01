@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TimeslotInAppointmentDto {
+public class TimeslotWithoutAppointmentDto {
     private int id;
 
     private Time startTime;
@@ -23,10 +23,10 @@ public class TimeslotInAppointmentDto {
 
     private int dayOfWeek;
 
-    public static TimeslotInAppointmentDto mapToDto(Timeslot timeslot) {
+    public static TimeslotWithoutAppointmentDto mapToDto(Timeslot timeslot) {
         String scheduleDate = new SimpleDateFormat("yyyy-MM-dd")
                 .format(Date.valueOf(timeslot.getScheduleDate()));
-        return new TimeslotInAppointmentDto(
+        return new TimeslotWithoutAppointmentDto(
                 timeslot.getId(),
                 timeslot.getWeeklySchedule().getStartTime(),
                 timeslot.getWeeklySchedule().getEndTime(),

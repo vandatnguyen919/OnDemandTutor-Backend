@@ -47,9 +47,9 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
                     " ORDER BY t.scheduleDate DESC, t.weeklySchedule.startTime DESC"
     )
     Page<Timeslot> findPastTimeslotByStudent(@Param("accountId") Integer accountId,
-                                           @Param("currentDate") LocalDate currentDate,
-                                           @Param("currentTime") LocalTime currentTime,
-                                           Pageable pageable);
+                                             @Param("currentDate") LocalDate currentDate,
+                                             @Param("currentTime") LocalTime currentTime,
+                                             Pageable pageable);
 
     @Query(
             "SELECT t FROM Timeslot t " +
