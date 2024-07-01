@@ -119,7 +119,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
 
         Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-        Set<Account> thisMonthTutors = getTutorsFromAppointments(appointments);
+        Set<Account> thisMonthTutors = getTutorsFromAppointments(thisMonthAppointments);
 
         dto.setThisMonthSubjects(thisMonthSubjects);
         dto.setThisMonthLessons(thisMonthAppointments.size());
@@ -154,7 +154,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
 
         Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-        Set<Account> thisMonthStudents = getStudentsFromAppointments(appointments);
+        Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
 
         dto.setThisMonthSubjects(thisMonthSubjects);
         dto.setThisMonthLessons(thisMonthAppointments.size());
