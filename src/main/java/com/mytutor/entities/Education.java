@@ -5,6 +5,7 @@
 package com.mytutor.entities;
 
 import com.mytutor.constants.DegreeType;
+import com.mytutor.constants.VerifyStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -51,6 +52,9 @@ public class Education {
     private String diplomaUrl;
 
     private boolean isVerified = false;
+
+//    @Enumerated(EnumType.STRING)
+//    private VerifyStatus verifyStatus = VerifyStatus.PROCESSING;
 }
 
 

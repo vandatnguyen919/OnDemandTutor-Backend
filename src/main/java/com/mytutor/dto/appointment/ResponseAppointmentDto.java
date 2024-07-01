@@ -1,7 +1,7 @@
 package com.mytutor.dto.appointment;
 
 import com.mytutor.constants.AppointmentStatus;
-import com.mytutor.dto.timeslot.TimeslotInAppointmentDto;
+import com.mytutor.dto.timeslot.TimeslotWithoutAppointmentDto;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Timeslot;
 import lombok.AllArgsConstructor;
@@ -38,7 +38,7 @@ public class ResponseAppointmentDto {
 
     private double tuition;
 
-    private Set<TimeslotInAppointmentDto> timeslots = new HashSet<>();
+    private Set<TimeslotWithoutAppointmentDto> timeslots = new HashSet<>();
 
 //    private Set<Integer> timeslotIds = new HashSet<>();
 
@@ -68,7 +68,7 @@ public class ResponseAppointmentDto {
 
     private static void convertTimeslotsToDtos(Appointment appointment, ResponseAppointmentDto dto) {
         for (Timeslot t : appointment.getTimeslots()) {
-            dto.getTimeslots().add(TimeslotInAppointmentDto.mapToDto(t));
+            dto.getTimeslots().add(TimeslotWithoutAppointmentDto.mapToDto(t));
         }
     }
 

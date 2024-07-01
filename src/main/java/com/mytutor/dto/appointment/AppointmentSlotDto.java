@@ -1,6 +1,5 @@
 package com.mytutor.dto.appointment;
 
-import com.mytutor.dto.timeslot.TimeslotInAppointmentDto;
 import com.mytutor.entities.Timeslot;
 import lombok.AllArgsConstructor;
 import lombok.Data;

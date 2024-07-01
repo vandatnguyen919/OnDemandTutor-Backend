@@ -91,6 +91,7 @@ public class AuthController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> getUserInfo(Principal principal) {
+
         return authService.findByEmail(principal.getName());
     }
 }

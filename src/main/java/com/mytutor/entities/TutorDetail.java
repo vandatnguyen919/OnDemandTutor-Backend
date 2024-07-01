@@ -37,7 +37,4 @@ public class TutorDetail {
     @Column(name = "percentage")
     private Integer percentage = 15;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "account_id")
-//    private Account account;
 }
