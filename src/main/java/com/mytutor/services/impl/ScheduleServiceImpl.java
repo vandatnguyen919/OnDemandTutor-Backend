@@ -179,7 +179,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
     }
 
-    private void handleOldSchedule(List<WeeklySchedule> existingSchedules, Map<String, RequestWeeklyScheduleDto> newScheduleMap) {
+    private void handleOldSchedule(List<WeeklySchedule> existingSchedules, Map<String,
+            RequestWeeklyScheduleDto> newScheduleMap) {
         for (WeeklySchedule existingSchedule : existingSchedules) {
             String key = existingSchedule.getDayOfWeek() + "-"
                     + existingSchedule.getStartTime()
@@ -339,7 +340,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null);
     }
 
-    private void removeBookedOrLongerSlots(double oldTimeSlotLength, List<WeeklySchedule> weeklySchedules, LocalDate date) {
+    private void removeBookedOrLongerSlots(double oldTimeSlotLength, List<WeeklySchedule> weeklySchedules,
+                                           LocalDate date) {
         weeklySchedules.removeIf(weeklySchedule ->
                 timeslotRepository.findByDateAndWeeklySchedule(weeklySchedule.getId(), date) != null
         || calculateTotalHoursSchedules(weeklySchedule) > oldTimeSlotLength);
