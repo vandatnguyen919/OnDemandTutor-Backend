@@ -143,7 +143,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         dto.setTotalSubjects(subjects);
         dto.setTotalLessons(appointments.size());
         dto.setTotalTaughtStudent(students.size());
-        dto.setTotalIncome(getTotalIncome(appointments));
+        if (!appointments.isEmpty()) {
+            dto.setTotalIncome(getTotalIncome(tutorId, appointments));
+        }
+
 
         // current month
         LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
@@ -159,7 +162,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         dto.setThisMonthSubjects(thisMonthSubjects);
         dto.setThisMonthLessons(thisMonthAppointments.size());
         dto.setThisMonthStudent(thisMonthStudents.size());
-        dto.setTotalMonthlyIncome(getTotalIncome(thisMonthAppointments));
+        if (!thisMonthAppointments.isEmpty()) {
+            dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
+        }
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
@@ -187,10 +192,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         return tutors;
     }
 
-    private double getTotalIncome(List<Appointment> appointments) {
+    private double getTotalIncome(int tutorId, List<Appointment> appointments) {
         double income = 0;
+
         for (Appointment a : appointments) {
-            income += a.getTuition() * (100 - a.getTutor().getTutorDetail().getPercentage()) / 100;
+            Account tutor = a.getTutor();
+            if (tutor.getId() == tutorId) {
+                income += a.getTuition() * (100 - a.getTutor().getTutorDetail().getPercentage()) / 100;
+            }
         }
         return income;
     }
