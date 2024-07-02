@@ -94,7 +94,7 @@ public class ModeratorServiceImpl implements ModeratorService {
         } else if (status.equalsIgnoreCase("rejected")) {
             // nếu reject tutor -> set account: role thành student và status ACTIVE
             // + xóa tất cả bằng cấp chúng chỉ, tutor details liên quan (cả trong firebase - FE xử lý), timeslot
-            handleRejectingTutor(tutor, dto);
+            handleRejectingTutor(tutor);
         } else {
             throw new InvalidStatusException("Status not found!");
         }
@@ -107,7 +107,7 @@ public class ModeratorServiceImpl implements ModeratorService {
         // handle subjects
         for (Subject s : tutor.getSubjects()) {
             // if subject not in approved list
-            if (!dto.getApprovedSubjects().contains(s.getId())) {
+            if (!dto.getApprovedSubjects().contains(s.getSubjectName())) {
                 tutor.getSubjects().remove(s);
             }
         }
@@ -120,8 +120,6 @@ public class ModeratorServiceImpl implements ModeratorService {
                 educationRepository.save(edu);
             } else
                 educationRepository.delete(edu);
-
-
         }
 
         // handle certificates
@@ -138,7 +136,7 @@ public class ModeratorServiceImpl implements ModeratorService {
         accountRepository.save(tutor);
     }
 
-    private void handleRejectingTutor(Account tutor, RequestCheckTutorDto dto) {
+    private void handleRejectingTutor(Account tutor) {
         tutor.setRole(Role.STUDENT);
         tutor.setStatus(AccountStatus.ACTIVE);
         TutorDetail tutorDetail = tutor.getTutorDetail();

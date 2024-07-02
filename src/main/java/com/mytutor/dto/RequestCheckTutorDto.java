@@ -12,7 +12,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestCheckTutorDto {
-    private List<Integer> approvedSubjects;
+    private List<String> approvedSubjects;
     private List<Integer> approvedEducations;
     private List<Integer> approvedCertificates;
     private String backgroundDescription;
