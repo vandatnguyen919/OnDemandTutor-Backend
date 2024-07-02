@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -103,38 +104,64 @@ public class ModeratorServiceImpl implements ModeratorService {
     }
 
     private void handleApprovingTutor(Account tutor, RequestCheckTutorDto dto) {
+        // Set tutor status to ACTIVE
         tutor.setStatus(AccountStatus.ACTIVE);
-        // handle subjects
-        for (Subject s : tutor.getSubjects()) {
-            // if subject not in approved list
-            if (!dto.getApprovedSubjects().contains(s.getSubjectName())) {
-                tutor.getSubjects().remove(s);
-            }
-        }
 
-        // handle educations
-        List<Education> allEducations = educationRepository.findByAccountId(tutor.getId());
-        for (Education edu : allEducations) {
-            if (dto.getApprovedEducations().contains(edu.getId())) {
-                edu.setVerified(true);
-                educationRepository.save(edu);
-            } else
-                educationRepository.delete(edu);
-        }
+        // Handle subjects
+        List<Subject> subjectsToRemove = tutor.getSubjects().stream()
+                .filter(subject -> !dto.getApprovedSubjects().contains(subject.getSubjectName()))
+                .toList();
+        tutor.getSubjects().removeAll(subjectsToRemove);
 
-        // handle certificates
-        List<Certificate> allCertificates = certificateRepository.findByAccountId(tutor.getId());
-        for (Certificate cert : allCertificates) {
-            if (dto.getApprovedCertificates().contains(cert.getId())) {
-                cert.setVerified(true);
-                certificateRepository.save(cert);
-            } else
-                certificateRepository.delete(cert);
-        }
-        tutor.getTutorDetail().setBackgroundDescription(dto.getBackgroundDescription());
-        tutor.getTutorDetail().setVideoIntroductionLink(dto.getVideoIntroductionLink());
+        // Handle educations
+        handleApprovingEducations(tutor, dto);
+
+        // Handle certificates
+        handleApprovingCertificates(tutor, dto);
+
+        // Update tutor details
+        TutorDetail tutorDetail = tutor.getTutorDetail();
+        tutorDetail.setBackgroundDescription(dto.getBackgroundDescription());
+        tutorDetail.setVideoIntroductionLink(dto.getVideoIntroductionLink());
+
+        // Save tutor
         accountRepository.save(tutor);
     }
+
+    private void handleApprovingEducations(Account tutor, RequestCheckTutorDto dto) {
+        List<Education> allEducations = educationRepository.findByAccountId(tutor.getId());
+        List<Education> educationsToSave = new ArrayList<>();
+        List<Education> educationsToDelete = new ArrayList<>();
+
+        for (Education education : allEducations) {
+            if (dto.getApprovedEducations().contains(education.getId())) {
+                education.setVerified(true);
+                educationsToSave.add(education);
+            } else {
+                educationsToDelete.add(education);
+            }
+        }
+        educationRepository.saveAll(educationsToSave);
+        educationRepository.deleteAll(educationsToDelete);
+    }
+
+    private void handleApprovingCertificates(Account tutor, RequestCheckTutorDto dto) {
+        List<Certificate> allCertificates = certificateRepository.findByAccountId(tutor.getId());
+        List<Certificate> certificatesToSave = new ArrayList<>();
+        List<Certificate> certificatesToDelete = new ArrayList<>();
+
+        for (Certificate certificate : allCertificates) {
+            if (dto.getApprovedCertificates().contains(certificate.getId())) {
+                certificate.setVerified(true);
+                certificatesToSave.add(certificate);
+            } else {
+                certificatesToDelete.add(certificate);
+            }
+        }
+        certificateRepository.saveAll(certificatesToSave);
+        certificateRepository.deleteAll(certificatesToDelete);
+    }
+
 
     private void handleRejectingTutor(Account tutor) {
         tutor.setRole(Role.STUDENT);
