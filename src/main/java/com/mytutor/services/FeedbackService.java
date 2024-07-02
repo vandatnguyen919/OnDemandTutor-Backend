@@ -21,6 +21,8 @@ public interface FeedbackService {
 
     ResponseEntity<?> getReviewById(int pageNo, int pageSize, int tutorId, int reviewId);
 
+    ResponseEntity<?> getReviewsByTutorIdStudentId(int tutorId, int studentId);
+
     ResponseEntity<?> createReview(Principal principal, int tutorId, RequestFeedbackDto requestFeedbackDto);
 
     ResponseEntity<?> updateReviewById(int tutorId, int reviewId, RequestFeedbackDto requestFeedbackDto);

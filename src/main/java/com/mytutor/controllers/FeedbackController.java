@@ -60,6 +60,14 @@ public class FeedbackController {
         return feedbackService.getReviewById(pageNo, pageSize, tutorId, reviewId);
     }
 
+    @GetMapping("/tutors/{tutorId}/students/{studentId}")
+    public ResponseEntity<?> getReviewsByTutorIdStudentId(
+            @PathVariable int tutorId,
+            @PathVariable int studentId
+    ) {
+        return feedbackService.getReviewsByTutorIdStudentId(tutorId, studentId);
+    }
+
     @PostMapping("/tutors/{tutorId}/reviews")
     public ResponseEntity<?> createReview(
             Principal principal,
