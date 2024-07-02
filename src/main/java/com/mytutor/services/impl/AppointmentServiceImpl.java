@@ -112,6 +112,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // current month
         LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        System.out.println(startDate);
         LocalDateTime endDate = startDate.plusMonths(1);
 
         List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRange(
@@ -480,9 +481,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 60000) // Run to check every minute
+    @Scheduled(fixedRate = 60000) // Run to check every minute - 15p ch thanh toan => rollback
     public void checkPendingAppointments() {
-        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(15);
         List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
                 AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
         );

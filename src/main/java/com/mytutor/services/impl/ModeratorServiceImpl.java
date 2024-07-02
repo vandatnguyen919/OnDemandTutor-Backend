@@ -89,6 +89,10 @@ public class ModeratorServiceImpl implements ModeratorService {
         Account tutor = accountRepository.findById(tutorId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
 
+        if (tutor.getStatus().equals(AccountStatus.ACTIVE) && tutor.getRole().equals(Role.TUTOR)) {
+            throw new InvalidStatusException("This tutor has been moderated before!");
+        }
+
         // nếu approved tutor -> set account: giữ role tutor, status thành ACTIVE
         if (status.equalsIgnoreCase("approved")) {
             handleApprovingTutor(tutor, dto);
