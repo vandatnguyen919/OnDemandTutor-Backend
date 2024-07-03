@@ -6,8 +6,7 @@ import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
-import com.mytutor.dto.LessonStatisticDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
+import com.mytutor.dto.statistics.LessonStatisticDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -155,13 +154,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 tutorId, startDate, endDate
         );
         if (!thisMonthAppointments.isEmpty()) {
-        Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-        Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
+            Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
+            Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
 
-        dto.setThisMonthSubjects(thisMonthSubjects);
-        dto.setThisMonthStudent(thisMonthStudents.size());
-        dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
-        dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
+            dto.setThisMonthSubjects(thisMonthSubjects);
+            dto.setThisMonthStudent(thisMonthStudents.size());
+            dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
+            dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
         }
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }

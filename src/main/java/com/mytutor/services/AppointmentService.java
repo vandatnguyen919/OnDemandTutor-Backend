@@ -6,13 +6,10 @@ import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
-import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.dto.statistics.LessonStatisticDto;
 import com.mytutor.entities.Appointment;
-import com.mytutor.entities.Timeslot;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.Set;
 
 /**
  * @author vothimaihoa
