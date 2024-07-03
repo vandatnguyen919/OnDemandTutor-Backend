@@ -1,6 +1,7 @@
 package com.mytutor.repositories;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.statistics.SubjectTuitionSum;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import org.springframework.data.domain.Page;
@@ -36,7 +37,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     boolean existsByTutorIdAndStudentIdAndStatus(Integer tutorId, Integer studentId, AppointmentStatus status);
 
-
     // rollback automatically after 30 minutes
     List<Appointment> findByStatusAndCreatedAtBefore(AppointmentStatus status, LocalDateTime dateTime);
 
@@ -48,4 +48,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                                     @Param("startDate") LocalDateTime startDate,
                                     @Param("endDate") LocalDateTime endDate);
 
+    @Query("SELECT new com.mytutor.dto.statistics.SubjectTuitionSum(s.subjectName, COALESCE(SUM(a.tuition), 0)) " +
+            "FROM Subject s " +
+            "LEFT JOIN Appointment a ON s.id = a.subject.id AND a.status = :status " +
+            "GROUP BY s.subjectName")
+    List<SubjectTuitionSum> findTotalTuitionBySubject(@Param("status") AppointmentStatus status);
 }

@@ -5,10 +5,8 @@
 package com.mytutor.controllers;
 
 import com.mytutor.constants.Role;
-import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.services.AccountService;
-import com.mytutor.services.AppointmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
