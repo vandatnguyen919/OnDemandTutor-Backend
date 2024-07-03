@@ -6,6 +6,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
@@ -16,9 +17,13 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
+import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,6 +47,46 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public ResponseEntity<?> getAccountsByRole(Integer pageNo, Integer pageSize, Role role) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+
+        Page<Account> accountPage;
+        if (role != null)
+            accountPage = accountRepository.findByRoleOrderByCreatedAtDesc(role, pageable);
+        else
+            accountPage = accountRepository.findByOrderByCreatedAtDesc(pageable);
+
+        List<Account> accounts = accountPage.getContent();
+        List<ResponseAccountDetailsDto> accountDetailsDtos = accounts.stream().map(ResponseAccountDetailsDto::mapToDto).toList();
+
+        PaginationDto<ResponseAccountDetailsDto> response = new PaginationDto<>();
+        response.setContent(accountDetailsDtos);
+        response.setPageNo(accountPage.getNumber());
+        response.setPageSize(accountPage.getSize());
+        response.setTotalElements(accountPage.getTotalElements());
+        response.setTotalPages(accountPage.getTotalPages());
+        response.setLast(accountPage.isLast());
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<?> banAccountById(Integer accountId) {
+
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        account.setStatus(AccountStatus.BANNED);
+        accountRepository.save(account);
+
+        return ResponseEntity.status(HttpStatus.OK).body(account.getEmail() + " is banned");
+    }
+
+    @Override
+    public Account getAccountById(Integer accountId) {
+
+        return accountRepository.findById(accountId).orElse(null);
+    }
+
+    @Override
     public ResponseEntity<?> changeRole(Integer accountId, String roleName) {
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new AccountNotFoundException("Account not found"));
@@ -53,12 +98,6 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
 
         return ResponseEntity.status(HttpStatus.OK).body("Role updated successfully");
-    }
-
-    @Override
-    public Account getAccountById(Integer accountId) {
-
-        return accountRepository.findById(accountId).orElse(null);
     }
 
     /**

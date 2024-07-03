@@ -64,7 +64,7 @@ public class StudentServiceImpl implements StudentService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Account> students;
         if (status == null || status.isBlank()) {
-            students = accountRepository.findByRole(Role.STUDENT, pageable);
+            students = accountRepository.findByRoleOrderByCreatedAtDesc(Role.STUDENT, pageable);
         }
         else {
             students = accountRepository.findByRoleAndStatus(

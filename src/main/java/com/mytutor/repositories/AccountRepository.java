@@ -27,14 +27,15 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     Account findByPhoneNumber(String phoneNumber);
 
-
     Optional<Account> findByIdAndRole(Integer id, Role role);
 
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    Page<Account> findByRole(Role role, Pageable pageable);
+    Page<Account> findByOrderByCreatedAtDesc(Pageable pageable);
+
+    Page<Account> findByRoleOrderByCreatedAtDesc(Role role, Pageable pageable);
 
     @Query("SELECT a FROM Account a WHERE a.role = :role AND a.status = :status")
     Page<Account> findByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);

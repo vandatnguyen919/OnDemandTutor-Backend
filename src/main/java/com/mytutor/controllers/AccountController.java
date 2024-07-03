@@ -4,6 +4,7 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.constants.Role;
 import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.services.AccountService;
@@ -43,6 +44,22 @@ public class AccountController {
     @GetMapping("/{accountId}")
     public ResponseEntity<?> findAccountById(@PathVariable Integer accountId) {
         return accountService.readAccountById(accountId);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> findAccountsByRole(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "role", required = false) Role role
+    ) {
+        return accountService.getAccountsByRole(pageNo, pageSize, role);
+    }
+
+    @DeleteMapping("/{accountId}")
+    public ResponseEntity<?> banAccountById(
+            @PathVariable Integer accountId
+    ) {
+        return accountService.banAccountById(accountId);
     }
 
 }
