@@ -30,4 +30,6 @@ import java.util.Set;
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
     @Query("SELECT COUNT(q) FROM Question q WHERE q.account.id = :accountId AND DATE(q.createdAt) = :date")
     long countByAccountAndDate(@Param("accountId") Integer accountId, @Param("date") LocalDate date);
+
+    Page<Question> findByStatus(QuestionStatus status, Pageable pageable);
 }
