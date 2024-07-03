@@ -1,6 +1,7 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.statistics.DateTuitionSum;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.services.StatisticsService;
@@ -20,5 +21,10 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public List<SubjectTuitionSum> getTotalTuitionBySubject() {
         return appointmentRepository.findTotalTuitionBySubject(AppointmentStatus.PAID);
+    }
+
+    @Override
+    public List<DateTuitionSum> getTotalTuitionByDate() {
+        return appointmentRepository.findTotalTuitionByDate(AppointmentStatus.PAID);
     }
 }
