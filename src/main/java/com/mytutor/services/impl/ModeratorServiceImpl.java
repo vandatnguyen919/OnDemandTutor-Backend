@@ -223,4 +223,9 @@ public class ModeratorServiceImpl implements ModeratorService {
         return ResponseEntity.ok(tutorResponseDto);
     }
 
+    @Override
+    public ResponseEntity<PaginationDto<QuestionDto>> getQuestionListByStatus(QuestionStatus status, int pageNo, int pageSize) {
+        return null;
+    }
+
 }

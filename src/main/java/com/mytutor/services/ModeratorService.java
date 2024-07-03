@@ -1,8 +1,10 @@
 package com.mytutor.services;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.RequestCheckTutorDto;
+import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.tutor.TutorInfoDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,5 +24,7 @@ public interface ModeratorService {
     ResponseEntity<?> checkAQuestion(int questionId, String status);
 
     ResponseEntity<PaginationDto<TutorInfoDto>> getTutorListByStatus(AccountStatus status, int pageNo, int pageSize);
+
+    ResponseEntity<PaginationDto<QuestionDto>> getQuestionListByStatus(QuestionStatus status, int pageNo, int pageSize);
 
 }

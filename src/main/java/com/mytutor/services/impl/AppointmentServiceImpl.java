@@ -1,6 +1,7 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
@@ -249,6 +250,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                     "in pending payment status!");
         }
 
+        Account student = accountRepository.findById(studentId)
+                .orElseThrow(() -> new AccountNotFoundException("Student not found!"));
+
+        if (!student.getRole().equals(Role.STUDENT)) {
+            throw new AccountNotFoundException("Only student can book lessons!");
+        }
+
         Appointment appointment = createAppointmentInstance(studentId, inputAppointmentDto);
 
         // save entities
@@ -360,7 +368,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new InvalidStatusException("Not allowed to reschedule an appointment not in PAID status");
         }
 
-        // 1. if current time before old slot <= 1 days -> error
+        // 1. if current time before old slot < 1 days -> error
         // (only allows if current time >= 1 days with old slot)
         Timeslot oldTimeslot = timeslotRepository.findById(dto.getOldTimeslotId())
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
