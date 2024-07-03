@@ -1,11 +1,15 @@
 package com.mytutor.controllers;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.PaginationDto;
-import com.mytutor.dto.RequestCheckTutorDto;
+import com.mytutor.dto.moderator.RequestCheckTutorDto;
+import com.mytutor.dto.moderator.TutorVerificationEmailDto;
+import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.services.ModeratorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,5 +62,21 @@ public class ModeratorController {
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
             @RequestParam(value = "status") AccountStatus status) {
         return moderatorService.getTutorListByStatus(status, pageNo, pageSize);
+    }
+
+    @GetMapping("/questions")
+    public ResponseEntity<PaginationDto<QuestionDto>> getQuestionListByStatus(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "status") QuestionStatus status) {
+        return moderatorService.getQuestionListByStatus(status, pageNo, pageSize);
+    }
+
+    @PostMapping("/send-verification-email")
+    public ResponseEntity<String> sendVerificationEmail(
+            @RequestBody TutorVerificationEmailDto dto
+    ) {
+        moderatorService.sendApprovalEmail(dto.getEmail(), dto.getModeratorMessage(), dto.isApproved());
+        return ResponseEntity.status(HttpStatus.OK).body("Verification email sent");
     }
 }
