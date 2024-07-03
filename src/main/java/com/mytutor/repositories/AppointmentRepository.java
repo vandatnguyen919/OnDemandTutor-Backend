@@ -1,6 +1,7 @@
 package com.mytutor.repositories;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.statistics.DateTuitionSum;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
@@ -53,4 +54,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "LEFT JOIN Appointment a ON s.id = a.subject.id AND a.status = :status " +
             "GROUP BY s.subjectName")
     List<SubjectTuitionSum> findTotalTuitionBySubject(@Param("status") AppointmentStatus status);
+
+    @Query("SELECT new com.mytutor.dto.statistics.DateTuitionSum(DATE(a.createdAt), SUM(a.tuition)) " +
+            "FROM Appointment a " +
+            "WHERE a.status = :status  " +
+            "GROUP BY DATE(a.createdAt) " +
+            "ORDER BY DATE(a.createdAt) ASC")
+    List<DateTuitionSum> findTotalTuitionByDate(@Param("status") AppointmentStatus status);
 }
