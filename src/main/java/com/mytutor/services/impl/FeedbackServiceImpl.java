@@ -105,7 +105,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public ResponseEntity<?> getReviewsByTutorIdStudentId(int tutorId, int studentId) {
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
-        Account student = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Student not found"));
+        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Student not found"));
 
         List<Feedback> feedbacks = feedbackRepository.findByTutorAndCreatedBy(tutor, student);
 
