@@ -138,9 +138,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
                 tutorId, null, null);
 
-        Set<Subject> subjects = getSubjectsFromAppointments(appointments);
-        Set<Account> students = getStudentsFromAppointments(appointments);
         if (!appointments.isEmpty()) {
+            Set<Subject> subjects = getSubjectsFromAppointments(appointments);
+            Set<Account> students = getStudentsFromAppointments(appointments);
             dto.setTotalSubjects(subjects);
             dto.setTotalTaughtStudent(students.size());
             dto.setTotalLessons(getTotalLessons(appointments));
@@ -155,13 +155,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 tutorId, startDate, endDate
         );
         if (!thisMonthAppointments.isEmpty()) {
-        Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-        Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
+            Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
+            Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
 
-        dto.setThisMonthSubjects(thisMonthSubjects);
-        dto.setThisMonthStudent(thisMonthStudents.size());
-        dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
-        dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
+            dto.setThisMonthSubjects(thisMonthSubjects);
+            dto.setThisMonthStudent(thisMonthStudents.size());
+            dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
+            dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
         }
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
