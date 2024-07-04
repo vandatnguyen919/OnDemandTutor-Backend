@@ -3,6 +3,7 @@ package com.mytutor.controllers;
 import com.mytutor.dto.statistics.DateTuitionSum;
 import com.mytutor.dto.statistics.LessonStatisticDto;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
+import com.mytutor.dto.statistics.SubjectTutorCount;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,5 +63,11 @@ public class StatisticsController {
             return ResponseEntity.status(HttpStatus.OK).body(dateTuitionSums);
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/tutor-count-by-subject")
+    public ResponseEntity<?> countTutorsBySubject() {
+        List<SubjectTutorCount> subjectTutorCounts = statisticsService.countTutorsBySubject();
+        return ResponseEntity.status(HttpStatus.OK).body(subjectTutorCounts);
     }
 }

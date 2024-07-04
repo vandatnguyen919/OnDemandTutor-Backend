@@ -4,9 +4,13 @@
  */
 package com.mytutor.repositories;
 
+import com.mytutor.dto.statistics.SubjectTutorCount;
 import com.mytutor.entities.Subject;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -16,6 +20,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubjectRepository extends JpaRepository<Subject, Integer>{
 
-    public Optional<Subject> findBySubjectName(String subjectName);
-    
+    Optional<Subject> findBySubjectName(String subjectName);
+
+    @Query("SELECT new com.mytutor.dto.statistics.SubjectTutorCount(s.subjectName, COUNT(DISTINCT a.id)) " +
+            "FROM Subject s " +
+            "LEFT JOIN s.accounts a " +
+            "GROUP BY s.subjectName")
+    List<SubjectTutorCount> countTutorsBySubject();
 }
