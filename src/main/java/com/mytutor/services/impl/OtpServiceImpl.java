@@ -129,7 +129,7 @@ public class OtpServiceImpl implements OtpService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 My Tutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"https://www.yourcompany.com\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
