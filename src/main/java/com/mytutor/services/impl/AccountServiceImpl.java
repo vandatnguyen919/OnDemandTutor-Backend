@@ -138,13 +138,9 @@ public class AccountServiceImpl implements AccountService {
      * @return status code OK if updated successfully
      */
     @Override
-    public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
+    public ResponseEntity<?> updateAccountDetails(Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-
-//        if (!checkCurrentAccount(principal, accountId)) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
-//        }
 
         // chỉ cập nhật khi điền vào != null và khác rỗng
 
@@ -165,6 +161,10 @@ public class AccountServiceImpl implements AccountService {
         }
         if (checkFilled(updateAccountDetailsDto.getFullName())) {
             accountDB.setFullName(updateAccountDetailsDto.getFullName());
+        }
+
+        if (updateAccountDetailsDto.getStatus() != null) {
+            accountDB.setStatus(updateAccountDetailsDto.getStatus());
         }
 
         accountRepository.save(accountDB);

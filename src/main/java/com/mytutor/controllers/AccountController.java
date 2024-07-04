@@ -34,9 +34,8 @@ public class AccountController {
     @PutMapping("/{accountId}/update-details")
     public ResponseEntity<?> updateAccountDetails(
             @PathVariable Integer accountId,
-            @Valid @RequestBody UpdateAccountDetailsDto updateAccountDetails,
-            Principal principal) {
-        return accountService.updateAccountDetails(principal, accountId, updateAccountDetails);
+            @Valid @RequestBody UpdateAccountDetailsDto updateAccountDetails) {
+        return accountService.updateAccountDetails(accountId, updateAccountDetails);
     }
 
     @GetMapping("/{accountId}")

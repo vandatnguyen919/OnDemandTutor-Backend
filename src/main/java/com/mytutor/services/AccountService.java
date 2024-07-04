@@ -26,7 +26,7 @@ public interface AccountService {
 
     ResponseEntity<?> changeRole(Integer accountId, String roleName);
 
-    ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
+    ResponseEntity<?> updateAccountDetails(Integer accountId, UpdateAccountDetailsDto updateAccountDetailsDTO);
 
     boolean checkCurrentAccount(Principal principal, Integer accountId);
 
