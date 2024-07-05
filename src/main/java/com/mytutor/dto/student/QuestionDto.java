@@ -2,10 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mytutor.dto;
+package com.mytutor.dto.student;
 
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.constants.RegexConsts;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.entities.Question;
 import lombok.AllArgsConstructor;
 import lombok.Data;

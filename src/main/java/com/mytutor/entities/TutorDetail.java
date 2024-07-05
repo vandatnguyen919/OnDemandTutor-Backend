@@ -25,7 +25,7 @@ public class TutorDetail {
     @Column(name = "teaching_price_per_hour")
     private Double teachingPricePerHour;
 
-    @Column(name = "background_description")
+    @Column(name = "background_description", length = 1000)
     private String backgroundDescription;
 
     @Column(name = "meeting_link")
@@ -37,7 +37,4 @@ public class TutorDetail {
     @Column(name = "percentage")
     private Integer percentage = 15;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "account_id")
-//    private Account account;
 }

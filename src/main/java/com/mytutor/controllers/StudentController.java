@@ -4,10 +4,12 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.constants.AccountStatus;
-import com.mytutor.dto.QuestionDto;
+import com.mytutor.constants.QuestionStatus;
+import com.mytutor.dto.student.QuestionDto;
+import com.mytutor.dto.student.RequestQuestionDto;
+import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StudentService;
-import io.swagger.v3.oas.annotations.Hidden;
+import com.mytutor.services.TutorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,12 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
+
+    @Autowired
+    private TutorService tutorService;
+
+    @Autowired
+    private AppointmentService appointmentService;
 
 //    @Hidden
     @GetMapping("/students")
@@ -50,19 +58,32 @@ public class StudentController {
         return studentService.getQuestionById(questionId);
     }
 
+    @GetMapping("/students/{studentId}/booked-tutors")
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(@PathVariable Integer studentId) {
+        return tutorService.getAllBookedTutorsByStudentId(studentId);
+    }
+
     @PostMapping("/students/{studentId}/questions")
     public ResponseEntity<?> addQuestion(
             @PathVariable Integer studentId,
-            @RequestBody QuestionDto questionDto) {
-        return studentService.addQuestion(studentId, questionDto);
+            @RequestBody RequestQuestionDto requestQuestionDto) {
+        return studentService.addQuestion(studentId, requestQuestionDto);
     }
 
     @PutMapping("/students/{studentId}/questions/{questionId}")
     public ResponseEntity<?> updateQuestion(
             @PathVariable Integer studentId,
             @PathVariable Integer questionId,
-            @RequestBody QuestionDto questionDto) {
-        return studentService.updateQuestion(studentId, questionId, questionDto);
+            @RequestBody RequestQuestionDto requestQuestionDto) {
+        return studentService.updateQuestion(studentId, questionId, requestQuestionDto);
+    }
+
+    @PutMapping("/students/{studentId}/update-questions-status/{questionId}")
+    public ResponseEntity<?> updateQuestionStatus(
+            @PathVariable Integer studentId,
+            @PathVariable Integer questionId,
+            @RequestParam QuestionStatus status) {
+        return studentService.updateQuestionStatus(studentId, questionId, status);
     }
 
     @DeleteMapping("/students/{studentId}/questions/{questionId}")
@@ -71,5 +92,17 @@ public class StudentController {
             @PathVariable Integer questionId) {
         return studentService.deleteQuestion(studentId, questionId);
     }
+
+    @GetMapping("/students/{studentId}/questions")
+    public ResponseEntity<?> getQuestionsByStudent(
+            @PathVariable int studentId,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "type", defaultValue = "all", required = false) String type,
+            @RequestParam(value = "subjects", defaultValue = "all", required = false) String subjects
+    ){
+        return studentService.getAllQuestionsByStudent(studentId, pageNo, pageSize, type, subjects);
+    }
+
 
 }

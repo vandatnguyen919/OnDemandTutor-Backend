@@ -4,8 +4,12 @@
  */
 package com.mytutor.dto;
 
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.constants.Role;
 import com.mytutor.entities.Account;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -14,7 +18,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- *
  * @author vothimaihoa
  */
 @Data
@@ -24,7 +27,7 @@ import lombok.NoArgsConstructor;
 public class ResponseAccountDetailsDto {
 
     private int id;
-    private Date dateOfBirth;
+    private String dateOfBirth;
     private String gender; // male: false, female: true
     private String address;
     private String avatarUrl;
@@ -33,24 +36,30 @@ public class ResponseAccountDetailsDto {
     private String phoneNumber;
     private String status;
     private Role role;
+    private String createAt;
 
     public static ResponseAccountDetailsDto mapToDto(Account account) {
         if (account == null) {
             return null;
         }
 
-        return ResponseAccountDetailsDto.builder()
-                .id(account.getId())
-                .dateOfBirth(account.getDateOfBirth())
-                .gender(account.getGender() ? "female" : "male")
-                .address(account.getAddress())
-                .avatarUrl(account.getAvatarUrl())
-                .email(account.getEmail())
-                .fullName(account.getFullName())
-                .phoneNumber(account.getPhoneNumber())
-                .status(account.getStatus().toString())
-                .role(account.getRole())
-                .build();
+        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
+
+        dto.setId(account.getId());
+        if (account.getDateOfBirth() != null)
+            dto.setDateOfBirth(new SimpleDateFormat("yyyy-MM-dd").format(account.getDateOfBirth()));
+        if (account.getGender() != null)
+            dto.setGender(account.getGender() ? "female" : "male");
+        dto.setAddress(account.getAddress());
+        dto.setAvatarUrl(account.getAvatarUrl());
+        dto.setEmail(account.getEmail());
+        dto.setFullName(account.getFullName());
+        dto.setPhoneNumber(account.getPhoneNumber());
+        dto.setStatus(account.getStatus().toString());
+        dto.setRole(account.getRole());
+        dto.setCreateAt(RegexConsts.sdf.format(account.getCreatedAt()));
+
+        return dto;
     }
 
 }

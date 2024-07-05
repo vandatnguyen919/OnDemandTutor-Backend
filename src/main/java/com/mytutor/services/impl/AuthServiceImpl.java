@@ -6,10 +6,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.*;
-import com.mytutor.dto.auth.ForgotPasswordDto;
-import com.mytutor.dto.auth.LoginDto;
-import com.mytutor.dto.auth.RegisterDto;
-import com.mytutor.dto.auth.ResetPasswordDto;
+import com.mytutor.dto.auth.*;
 import com.mytutor.entities.Account;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.repositories.AccountRepository;
@@ -113,8 +110,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<?> findByEmail(String email) {
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
-        ResponseAccountDetailsDto dto = modelMapper.map(account, ResponseAccountDetailsDto.class);
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
 
     @Override
@@ -183,6 +179,6 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.status(HttpStatus.OK).body("Reset password successfully!");
     }
 
-    private record AccountResponse(String email, String status) {
+    public record AccountResponse(String email, String status) {
     }
 }

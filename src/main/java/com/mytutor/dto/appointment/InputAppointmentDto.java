@@ -1,11 +1,9 @@
-package com.mytutor.dto;
+package com.mytutor.dto.appointment;
 
-import com.mytutor.constants.AppointmentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +17,8 @@ import java.util.List;
 public class InputAppointmentDto {
 
     private String description;
+
+    private String subjectName;
 
     private Integer tutorId;
 

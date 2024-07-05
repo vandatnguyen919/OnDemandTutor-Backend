@@ -1,9 +1,6 @@
 package com.mytutor.repositories.impl;
 
-import com.mytutor.constants.AccountStatus;
-import com.mytutor.constants.DegreeType;
-import com.mytutor.constants.FeedbackType;
-import com.mytutor.constants.Role;
+import com.mytutor.constants.*;
 import com.mytutor.entities.*;
 import com.mytutor.repositories.AccountRepositoryCustom;
 import jakarta.persistence.EntityManager;

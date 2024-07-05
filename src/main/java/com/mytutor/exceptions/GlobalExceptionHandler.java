@@ -55,8 +55,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorObject, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(TimeslotValidationException.class)
-    public ResponseEntity<ErrorObject> handleTimeslotValidationException(TimeslotValidationException ex) {
+    @ExceptionHandler(value = {
+            TimeslotValidationException.class,
+            PaymentFailedException.class,
+            InvalidStatusException.class
+    })
+    public ResponseEntity<ErrorObject> handleBadRequestException(Exception ex) {
         ErrorObject errorObject = new ErrorObject();
 
         errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -66,38 +70,41 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ConflictTimeslotException.class)
-    public ResponseEntity<ErrorObject> handleConflictTimeslotException(ConflictTimeslotException ex) {
+    @ExceptionHandler(value = {
+            ConflictTimeslotException.class,
+            PhoneNumberAlreadyUsedException.class
+    })
+    public ResponseEntity<ErrorObject> handleConflictException(Exception ex) {
         ErrorObject errorObject = new ErrorObject();
 
-        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorObject.setStatusCode(HttpStatus.CONFLICT.value());
         errorObject.setMessage(ex.getMessage());
         errorObject.setTimestamp(new Date());
 
-        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorObject, HttpStatus.CONFLICT);
     }
-
-    @ExceptionHandler(InvalidAppointmentStatusException.class)
-    public ResponseEntity<ErrorObject> handleInvalidAppointmentStatusException(InvalidAppointmentStatusException ex) {
-        ErrorObject errorObject = new ErrorObject();
-
-        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        errorObject.setMessage(ex.getMessage());
-        errorObject.setTimestamp(new Date());
-
-        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(PaymentFailedException.class)
-    public ResponseEntity<ErrorObject> handlePaymentException(PaymentFailedException ex) {
-        ErrorObject errorObject = new ErrorObject();
-
-        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
-        errorObject.setMessage(ex.getMessage());
-        errorObject.setTimestamp(new Date());
-
-        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
-    }
+//
+//    @ExceptionHandler(InvalidAppointmentStatusException.class)
+//    public ResponseEntity<ErrorObject> handleInvalidAppointmentStatusException(InvalidAppointmentStatusException ex) {
+//        ErrorObject errorObject = new ErrorObject();
+//
+//        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//        errorObject.setMessage(ex.getMessage());
+//        errorObject.setTimestamp(new Date());
+//
+//        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
+//    }
+//
+//    @ExceptionHandler(PaymentFailedException.class)
+//    public ResponseEntity<ErrorObject> handlePaymentException(PaymentFailedException ex) {
+//        ErrorObject errorObject = new ErrorObject();
+//
+//        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//        errorObject.setMessage(ex.getMessage());
+//        errorObject.setTimestamp(new Date());
+//
+//        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
+//    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorObject> handleBindException(MethodArgumentNotValidException ex) {
@@ -114,4 +121,8 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
     }
+
+
+
+
 }
