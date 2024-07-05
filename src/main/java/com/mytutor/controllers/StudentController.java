@@ -4,6 +4,7 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.student.RequestQuestionDto;
 import com.mytutor.services.AppointmentService;
@@ -75,6 +76,14 @@ public class StudentController {
             @PathVariable Integer questionId,
             @RequestBody RequestQuestionDto requestQuestionDto) {
         return studentService.updateQuestion(studentId, questionId, requestQuestionDto);
+    }
+
+    @PutMapping("/students/{studentId}/update-questions-status/{questionId}")
+    public ResponseEntity<?> updateQuestionStatus(
+            @PathVariable Integer studentId,
+            @PathVariable Integer questionId,
+            @RequestParam QuestionStatus status) {
+        return studentService.updateQuestionStatus(studentId, questionId, status);
     }
 
     @DeleteMapping("/students/{studentId}/questions/{questionId}")

@@ -84,4 +84,12 @@ public class AppointmentController {
             @RequestBody RequestReScheduleDto dto) {
         return appointmentService.updateAppointmentSchedule(appointmentId, dto);
     }
+
+    @PostMapping("{appointmentId}/send-booking-email")
+    public ResponseEntity<?> sendBookingEmail(
+            @PathVariable Integer appointmentId
+    ) {
+        appointmentService.sendCreateBookingEmail(appointmentId);
+        return ResponseEntity.ok().body("Email sent");
+    }
 }

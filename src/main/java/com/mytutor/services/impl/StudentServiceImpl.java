@@ -15,6 +15,7 @@ import com.mytutor.entities.Account;
 import com.mytutor.entities.Question;
 import com.mytutor.entities.Subject;
 import com.mytutor.exceptions.AccountNotFoundException;
+import com.mytutor.exceptions.InvalidStatusException;
 import com.mytutor.exceptions.QuestionNotFoundException;
 import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.AccountRepository;
@@ -23,6 +24,7 @@ import com.mytutor.repositories.QuestionRepositoryCustom;
 import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.services.StudentService;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -114,9 +116,19 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public ResponseEntity<?> addQuestion(Integer studentId, RequestQuestionDto requestQuestionDto) {
 
-        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Account student = accountRepository.findById(studentId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        Subject subject = subjectRepository.findBySubjectName(requestQuestionDto.getSubjectName()).orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
+        if (!student.getRole().equals(Role.STUDENT)) {
+            throw new AccountNotFoundException("Only student can create questions!");
+        }
+
+        if (questionRepository.countByAccountAndDate(studentId, LocalDate.now()) == 3) {
+            throw new QuestionNotFoundException("You have reached your daily limit - only 3 questions can be created each day!");
+        }
+
+        Subject subject = subjectRepository.findBySubjectName(requestQuestionDto.getSubjectName())
+                .orElseThrow(() -> new SubjectNotFoundException("Subject not found"));
 
         Question question = new Question();
         question.setTitle(requestQuestionDto.getTitle());
@@ -208,6 +220,27 @@ public class StudentServiceImpl implements StudentService {
                 null,
                 pageable);
         return getResponseEntity(questions);
+    }
+
+    @Override
+    public ResponseEntity<?> updateQuestionStatus(Integer studentId, Integer questionId, QuestionStatus status) {
+        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new QuestionNotFoundException("Question not found"));
+
+        if (student.getId() != question.getAccount().getId()) {
+            throw new QuestionNotFoundException("Question does not belong to this account");
+        }
+
+        if (question.getStatus().equals(QuestionStatus.PROCESSING) || question.getStatus().equals(QuestionStatus.REJECTED)) {
+            throw new InvalidStatusException("Cannot update status of this question!");
+        }
+
+        question.setStatus(status);
+        questionRepository.save(question);
+        QuestionDto questionResponse = QuestionDto.mapToDto(question, question.getSubject().getSubjectName());
+
+        return ResponseEntity.status(HttpStatus.OK).body(questionResponse);
     }
 
     @NotNull

@@ -8,11 +8,8 @@ import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
 import com.mytutor.entities.Appointment;
-import com.mytutor.entities.Timeslot;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.Set;
 
 /**
  * @author vothimaihoa
@@ -40,4 +37,6 @@ public interface AppointmentService {
     ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, RequestReScheduleDto dto);
   
     ResponseEntity<AppointmentSlotDto> cancelSlotsInAppointment(int accountId, int timeslotId);
+
+    void sendCreateBookingEmail(int appointmentId);
 }

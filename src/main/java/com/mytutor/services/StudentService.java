@@ -5,6 +5,7 @@
 
 package com.mytutor.services;
 
+import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.student.RequestQuestionDto;
 import org.springframework.http.ResponseEntity;
@@ -29,4 +30,5 @@ public interface StudentService {
 
     ResponseEntity<?> getAllQuestionsByStudent(int studentId, int pageNo, int pageSize, String status, String subject);
 
+    ResponseEntity<?> updateQuestionStatus(Integer studentId, Integer questionId, QuestionStatus status);
 }

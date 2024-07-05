@@ -1,13 +1,13 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.LessonStatisticDto;
-import com.mytutor.dto.timeslot.TimeslotDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -20,10 +20,14 @@ import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.repositories.TimeslotRepository;
 import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +67,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private SubjectRepository subjectRepository;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     @Override
     public ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId) {
@@ -112,6 +119,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // current month
         LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        System.out.println(startDate);
         LocalDateTime endDate = startDate.plusMonths(1);
 
         List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRange(
@@ -138,9 +146,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
                 tutorId, null, null);
 
-        Set<Subject> subjects = getSubjectsFromAppointments(appointments);
-        Set<Account> students = getStudentsFromAppointments(appointments);
         if (!appointments.isEmpty()) {
+            Set<Subject> subjects = getSubjectsFromAppointments(appointments);
+            Set<Account> students = getStudentsFromAppointments(appointments);
             dto.setTotalSubjects(subjects);
             dto.setTotalTaughtStudent(students.size());
             dto.setTotalLessons(getTotalLessons(appointments));
@@ -155,13 +163,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 tutorId, startDate, endDate
         );
         if (!thisMonthAppointments.isEmpty()) {
-        Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-        Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
+            Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
+            Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
 
-        dto.setThisMonthSubjects(thisMonthSubjects);
-        dto.setThisMonthStudent(thisMonthStudents.size());
-        dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
-        dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
+            dto.setThisMonthSubjects(thisMonthSubjects);
+            dto.setThisMonthStudent(thisMonthStudents.size());
+            dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
+            dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
         }
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
@@ -246,6 +254,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
             throw new PaymentFailedException("This student is having another booking " +
                     "in pending payment status!");
+        }
+
+        Account student = accountRepository.findById(studentId)
+                .orElseThrow(() -> new AccountNotFoundException("Student not found!"));
+
+        if (!student.getRole().equals(Role.STUDENT)) {
+            throw new AccountNotFoundException("Only student can book lessons!");
         }
 
         Appointment appointment = createAppointmentInstance(studentId, inputAppointmentDto);
@@ -359,7 +374,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new InvalidStatusException("Not allowed to reschedule an appointment not in PAID status");
         }
 
-        // 1. if current time before old slot <= 1 days -> error
+        // 1. if current time before old slot < 1 days -> error
         // (only allows if current time >= 1 days with old slot)
         Timeslot oldTimeslot = timeslotRepository.findById(dto.getOldTimeslotId())
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
@@ -376,27 +391,28 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new ConflictTimeslotException("New schedule must be after current day!");
         }
 
-        // 3. new slot must has length == old slot
-        List<Timeslot> timeslots = new ArrayList<>();
-        timeslots.add(oldTimeslot);
-        double oldLength = calculateTotalHoursBySlots(timeslots);
+        // 3. new slot must has length <= old slot
+        double oldLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
         double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
         if (newLength > oldLength) {
             throw new ConflictTimeslotException("New slot cannot longer than old slot!");
         }
 
-        // update timeslot for appointment
-
-        // remove old slot
-        appointment.getTimeslots().remove(oldTimeslot);
-
         // add new slot
-        Timeslot t = new Timeslot();
-        t.setWeeklySchedule(newWeeklySchedule);
-        t.setScheduleDate(newScheduleDate);
-//        t.setOccupied(true);
-        t.setAppointment(appointment);
-        appointment.getTimeslots().add(t);
+        Timeslot newTimeslot = new Timeslot();
+        newTimeslot.setWeeklySchedule(newWeeklySchedule);
+        newTimeslot.setScheduleDate(newScheduleDate);
+        newTimeslot.setAppointment(appointment);
+
+        // send emails
+        String mailSubject = getRescheduleEmailContent(appointment, oldTimeslot, newTimeslot)[0];
+        String content = getRescheduleEmailContent(appointment, oldTimeslot, newTimeslot)[1];
+        String[] receivers = new String[] {appointment.getStudent().getEmail(), appointment.getTutor().getEmail()};
+        sendEmail(receivers, mailSubject, content);
+
+        // remove old slot, add new slot and save
+        appointment.getTimeslots().remove(oldTimeslot);
+        appointment.getTimeslots().add(newTimeslot);
 
         appointmentRepository.save(appointment);
 
@@ -427,6 +443,216 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.save(appointment);
 
         return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
+    @Override
+    public void sendCreateBookingEmail(int appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
+        String mailSubject = getBookEmailContent(appointment)[0];
+        String content = getBookEmailContent(appointment)[1];
+        String[] receivers = new String[] {appointment.getStudent().getEmail(), appointment.getTutor().getEmail()};
+        sendEmail(receivers, mailSubject, content);
+    }
+
+    private void sendEmail(String[] receivers, String subject, String content) {
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo(receivers);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+        mailSender.send(message);
+    }
+    private String getStyle() {
+        return "<style>\n" +
+                "        body {\n" +
+                "            font-family: Arial, sans-serif;\n" +
+                "            background-color: #f3f2f7;\n" +
+                "            margin: 0;\n" +
+                "            padding: 0;\n" +
+                "            color: #333;\n" +
+                "        }\n" +
+                "        .container {\n" +
+                "            width: 100%;\n" +
+                "            max-width: 600px;\n" +
+                "            margin: 20px auto;\n" +
+                "            background-color: #ffffff;\n" +
+                "            padding: 20px;\n" +
+                "            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n" +
+                "        }\n" +
+                "        .header {\n" +
+                "            background: linear-gradient(90deg, #672DEF 0%, #FA6EAD 100%);\n" +
+                "            color: #ffffff;\n" +
+                "            padding: 10px 0;\n" +
+                "            text-align: center;\n" +
+                "            border-radius: 5px;\n" +
+                "        }\n" +
+                "        .content {\n" +
+                "            margin: 20px 0;\n" +
+                "        }\n" +
+                "        .footer {\n" +
+                "            margin-top: 20px;\n" +
+                "            text-align: center;\n" +
+                "            color: #777;\n" +
+                "            font-size: 12px;\n" +
+                "        }\n" +
+                "        .button {\n" +
+                "            display: inline-block;\n" +
+                "            padding: 10px 20px;\n" +
+                "            margin-top: 10px;\n" +
+                "            font-size: 16px;\n" +
+                "            color: #ffffff !important;\n" +
+                "            background: linear-gradient(90deg, #672DEF 0%, #FA6EAD 100%);\n" +
+                "            text-decoration: none;\n" +
+                "            border-radius: 5px;\n" +
+                "        }\n" +
+                "        table {\n" +
+                "            width: 100%;\n" +
+                "            border-collapse: collapse;\n" +
+                "            margin: 20px 0;\n" +
+                "        }\n" +
+                "        th, td {\n" +
+                "            border: 1px solid #ddd;\n" +
+                "            padding: 8px;\n" +
+                "            text-align: center;\n" +
+                "        }\n" +
+                "        th {\n" +
+                "            background-color: #672DEF;\n" +
+                "            color: #ffffff;\n" +
+                "        }\n" +
+                "        .appointment-details {\n" +
+                "            font-size: 1.2em;\n" +
+                "            text-align: center;\n" +
+                "            font-weight: bold;\n" +
+                "            margin: 20px 0;\n" +
+                "        }\n" +
+                "        .center-text {\n" +
+                "            text-align: center;\n" +
+                "        }\n" +
+                "    </style>\n";
+    }
+
+    private String getTimeslotTable(List<Timeslot> timeslots) {
+        String[] timeslotsHtml = timeslots.stream()
+                .map(timeslot -> "<tr>" +
+                        "<td style=\"border: 1px solid #ddd; padding: 8px;\">" + timeslot.getScheduleDate() + "</td>" +
+                        "<td style=\"border: 1px solid #ddd; padding: 8px;\">" + timeslot.getWeeklySchedule().getStartTime() + "</td>" +
+                        "<td style=\"border: 1px solid #ddd; padding: 8px;\">" + timeslot.getWeeklySchedule().getEndTime() + "</td>" +
+                        "</tr>")
+                .toArray(String[]::new);
+
+        return "<table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">" +
+                "<thead>" +
+                "<tr>" +
+                "<th style=\"border: 1px solid #ddd; padding: 8px; background-color: #672DEF; color: #ffffff;\">Date</th>" +
+                "<th style=\"border: 1px solid #ddd; padding: 8px; background-color: #672DEF; color: #ffffff;\">Start Time</th>" +
+                "<th style=\"border: 1px solid #ddd; padding: 8px; background-color: #672DEF; color: #ffffff;\">End Time</th>" +
+                "</tr>" +
+                "</thead>" +
+                "<tbody>" +
+                String.join("", timeslotsHtml) +
+                "</tbody>" +
+                "</table>";
+    }
+
+    private String[] getBookEmailContent(Appointment appointment) {
+        String[] result = new String[2]; // 0: subject, 1: content
+        String studentName = appointment.getStudent().getFullName();
+        String tutorName = appointment.getTutor().getFullName();
+        String subjectName = appointment.getSubject().getSubjectName();
+        LocalDateTime appointmentDate = appointment.getCreatedAt();
+        List<Timeslot> timeslots = appointment.getTimeslots();
+        String meetingLink = appointment.getTutor().getTutorDetail().getMeetingLink();
+        String description = appointment.getDescription();
+
+        String emailContent = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>New Booking</title>\n" +
+                getStyle() +
+                "</head>\n" +
+                "<body>\n" +
+                "    <div class=\"container\">\n" +
+                "        <div class=\"header\">\n" +
+                "            <h1>New Booking</h1>\n" +
+                "        </div>\n" +
+                "        <div class=\"content\">\n" +
+                "            <p>Dear User,</p>\n" +
+                "            <p>You have a new booking at MyTutor!</p>\n" +
+                "            <p class=\"appointment-details\"><strong>Booking Details:</strong></p>\n" +
+                "            <p><strong>Created Date: </strong> " + appointmentDate.toLocalDate() + " <strong>At: </strong>" + appointmentDate.toLocalTime() + "</p>\n" +
+                "            <p><strong>Student: </strong> " + studentName + "</p>\n" +
+                "            <p><strong>Tutor: </strong> " + tutorName + "</p>\n" +
+                "            <p><strong>Subject: </strong> " + subjectName + "</p>\n" +
+                "            <p><strong>Tuition: </strong> " + Math.round(appointment.getTuition()) + " VND</p>\n" +
+                "            <p><strong>Description:</strong> " + description + "</p>\n" +
+                "            <p><strong>Schedules: </strong> </p>" + getTimeslotTable(timeslots) + "\n" +
+                "            <div class=\"center-text\">\n" +
+                "                <a href=\"" + meetingLink + "\" class=\"button\">Meeting link</a>\n" +
+                "            </div>\n" +
+                "            <p>Thank you for choosing MyTutor. We look forward to connecting tutors and students to achieve your learning goals.</p>\n" +
+                "        </div>\n" +
+                "        <div class=\"footer\">\n" +
+                "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
+                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "        </div>\n" +
+                "    </div>\n" +
+                "</body>\n" +
+                "</html>\n";
+
+        result[0] = "[MyTutor] New Booking!";
+        result[1] = emailContent;
+        return result;
+    }
+
+    private String[] getRescheduleEmailContent(Appointment appointment, Timeslot oldSlot, Timeslot newSlot) {
+        String[] result = new String[2]; // 0: subject, 1: content
+        String studentName = appointment.getStudent().getFullName();
+        String tutorName = appointment.getTutor().getFullName();
+        String subjectName = appointment.getSubject().getSubjectName();
+        String studentEmailContent = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>Reschedule Announcement</title>\n" +
+                getStyle() +
+                "</head>\n" +
+                "<body>\n" +
+                "    <div class=\"container\">\n" +
+                "        <div class=\"header\">\n" +
+                "            <h1>Reschedule Announcement</h1>\n" +
+                "        </div>\n" +
+                "        <div class=\"content\">\n" +
+                "            <p>Dear User,</p>\n" +
+                "            <p>A booking of yours has been rescheduled!</p>\n" +
+                "            <p class=\"appointment-details\"><strong>Schedule Details:</strong></p>\n" +
+                "            <p><strong>Student: </strong> " + studentName + "</p>\n" +
+                "            <p><strong>Tutor: </strong> " + tutorName + "</p>\n" +
+                "            <p><strong>Subject: </strong> " + subjectName + "</p>\n" +
+                "            <p><strong>Old Schedule: </strong> " + oldSlot.getScheduleDate() + ", time: "
+                + oldSlot.getWeeklySchedule().getStartTime() + " - " + oldSlot.getWeeklySchedule().getEndTime() + "</p>\n" +
+                "            <p><strong>New Schedule: </strong> " + newSlot.getScheduleDate() + ", time: "
+                + newSlot.getWeeklySchedule().getStartTime() + " - " + newSlot.getWeeklySchedule().getEndTime() + "</p>\n" +
+                "            <p>Thank you for choosing MyTutor. We look forward to helping you achieve your learning goals.</p>\n" +
+                "        </div>\n" +
+                "        <div class=\"footer\">\n" +
+                "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
+                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "        </div>\n" +
+                "    </div>\n" +
+                "</body>\n" +
+                "</html>\n";
+
+        result[0] = "[MyTutor] Reschedule Announcement!";
+        result[1] = studentEmailContent;
+        return result;
     }
 
     // tutor update appointment status: DONE from PAID or CANCELED from PAID
@@ -480,9 +706,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 60000) // Run to check every minute
+    @Scheduled(fixedRate = 60000) // Run to check every minute - 15p ch thanh toan => rollback
     public void checkPendingAppointments() {
-        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(30);
+        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(15);
         List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
                 AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
         );
