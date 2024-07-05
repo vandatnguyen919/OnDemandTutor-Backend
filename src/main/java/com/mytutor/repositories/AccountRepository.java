@@ -6,8 +6,10 @@ package com.mytutor.repositories;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.dto.statistics.RoleCount;
 import com.mytutor.entities.Account;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,4 +41,14 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     @Query("SELECT a FROM Account a WHERE a.role = :role AND a.status = :status")
     Page<Account> findByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
+
+    @Query("SELECT COUNT(a) " +
+            "FROM Account a " +
+            "WHERE a.role = :role")
+    Long countByRole(@Param("role") Role role);
+
+    @Query("SELECT new com.mytutor.dto.statistics.RoleCount(a.role, COUNT(a)) " +
+            "FROM Account a " +
+            "GROUP BY a.role")
+    List<RoleCount> countAccountsByRole();
 }

@@ -1,5 +1,6 @@
 package com.mytutor.controllers;
 
+import com.mytutor.constants.Role;
 import com.mytutor.dto.statistics.DateTuitionSum;
 import com.mytutor.dto.statistics.LessonStatisticDto;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
@@ -69,5 +70,11 @@ public class StatisticsController {
     public ResponseEntity<?> countTutorsBySubject() {
         List<SubjectTutorCount> subjectTutorCounts = statisticsService.countTutorsBySubject();
         return ResponseEntity.status(HttpStatus.OK).body(subjectTutorCounts);
+    }
+
+    @GetMapping("/count-by-role")
+    public ResponseEntity<?> countByRole(
+            @RequestParam(value = "role", required = false) Role role
+    ) {        return statisticsService.countAccountsByRole(role);
     }
 }
