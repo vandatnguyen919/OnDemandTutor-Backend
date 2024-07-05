@@ -15,6 +15,7 @@ import com.mytutor.entities.Account;
 import com.mytutor.entities.Question;
 import com.mytutor.entities.Subject;
 import com.mytutor.exceptions.AccountNotFoundException;
+import com.mytutor.exceptions.InvalidStatusException;
 import com.mytutor.exceptions.QuestionNotFoundException;
 import com.mytutor.exceptions.SubjectNotFoundException;
 import com.mytutor.repositories.AccountRepository;
@@ -219,6 +220,27 @@ public class StudentServiceImpl implements StudentService {
                 null,
                 pageable);
         return getResponseEntity(questions);
+    }
+
+    @Override
+    public ResponseEntity<?> updateQuestionStatus(Integer studentId, Integer questionId, QuestionStatus status) {
+        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new QuestionNotFoundException("Question not found"));
+
+        if (student.getId() != question.getAccount().getId()) {
+            throw new QuestionNotFoundException("Question does not belong to this account");
+        }
+
+        if (question.getStatus().equals(QuestionStatus.PROCESSING) || question.getStatus().equals(QuestionStatus.REJECTED)) {
+            throw new InvalidStatusException("Cannot update status of this question!");
+        }
+
+        question.setStatus(status);
+        questionRepository.save(question);
+        QuestionDto questionResponse = QuestionDto.mapToDto(question, question.getSubject().getSubjectName());
+
+        return ResponseEntity.status(HttpStatus.OK).body(questionResponse);
     }
 
     @NotNull
