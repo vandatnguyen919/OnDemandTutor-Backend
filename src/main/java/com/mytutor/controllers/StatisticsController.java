@@ -29,7 +29,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/{tutorId}/salary")
-    public ResponseEntity<Double> getStudentSalaryStatistic
+    public ResponseEntity<Double> getTutorSalaryStatistic
             (@PathVariable Integer tutorId,
              @RequestParam Integer month,
              @RequestParam Integer year) {
