@@ -3,6 +3,7 @@ package com.mytutor.controllers;
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.moderator.RequestCheckDocumentDto;
 import com.mytutor.dto.moderator.RequestCheckTutorDto;
 import com.mytutor.dto.moderator.TutorVerificationEmailDto;
 import com.mytutor.dto.student.QuestionDto;
@@ -23,20 +24,12 @@ public class ModeratorController {
     @Autowired
     ModeratorService moderatorService;
 
-    // duyet bang cap cua tutor - education
-    @PutMapping("/educations/{educationId}")
-    public ResponseEntity<?> checkEducations(
-           @PathVariable int educationId,
-           @RequestParam String status) {
-        return moderatorService.checkAnEducation(educationId, status);
-    }
-
-    // duyet chung chi cua tutor - certificate
-    @PutMapping("/certificates/{certificateId}")
-    public ResponseEntity<?> checkCertificates(
-            @PathVariable int certificateId,
-            @RequestParam String status) {
-        return moderatorService.checkACertificate(certificateId, status);
+    // duyet bang cap, chung chi cua tutor - education
+    @PutMapping("/documents/{tutorId}")
+    public ResponseEntity<?> checkDocuments(
+           @PathVariable int tutorId,
+           @RequestBody RequestCheckDocumentDto dto) {
+        return moderatorService.checkEducationsAndCertificatesByTutor(tutorId, dto);
     }
 
     // duyet cau hoi
