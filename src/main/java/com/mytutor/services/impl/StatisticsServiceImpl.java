@@ -13,6 +13,7 @@ import com.mytutor.services.StatisticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -54,6 +55,16 @@ public class StatisticsServiceImpl implements StatisticsService {
             List<RoleCount> roleCounts = accountRepository.countAccountsByRole();
             return ResponseEntity.ok(roleCounts);
         }
+    }
+
+    @Override
+    public Double getRevenue() {
+        return appointmentRepository.getRevenue(new Date());
+    }
+
+    @Override
+    public Double getProfit() {
+        return appointmentRepository.getProfit(new Date());
     }
 
 

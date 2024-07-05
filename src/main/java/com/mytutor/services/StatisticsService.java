@@ -17,4 +17,8 @@ public interface StatisticsService {
     List<SubjectTutorCount> countTutorsBySubject();
 
     ResponseEntity<?> countAccountsByRole(Role role);
+
+    Double getRevenue();
+
+    Double getProfit();
 }

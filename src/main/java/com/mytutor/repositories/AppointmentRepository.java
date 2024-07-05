@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -61,4 +62,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "GROUP BY DATE(a.createdAt) " +
             "ORDER BY DATE(a.createdAt) ASC")
     List<DateTuitionSum> findTotalTuitionByDate(@Param("status") AppointmentStatus status);
+
+    @Query("SELECT SUM(a.tuition) " +
+            "FROM Appointment a " +
+            "WHERE a.status = 'PAID' AND MONTH(a.createdAt) = MONTH(:date) AND YEAR(a.createdAt) = YEAR(:date)")
+    Double getRevenue(@Param("date") Date date);
+
+    @Query("SELECT SUM(a.tuition * td.percentage / 100) " +
+            "FROM Appointment a " +
+            "JOIN a.tutor t " +
+            "JOIN t.tutorDetail td " +
+            "WHERE a.status = 'PAID' AND MONTH(a.createdAt) = MONTH(:date) AND YEAR(a.createdAt) = YEAR(:date)")
+    Double getProfit(@Param("date") Date date);
 }

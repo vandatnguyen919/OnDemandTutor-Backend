@@ -74,7 +74,26 @@ public class StatisticsController {
 
     @GetMapping("/count-by-role")
     public ResponseEntity<?> countByRole(
-            @RequestParam(value = "role", required = false) Role role
-    ) {        return statisticsService.countAccountsByRole(role);
+            @RequestParam(value = "role", required = false) Role role) {
+        return statisticsService.countAccountsByRole(role);
     }
+
+    record RevenueProfitResponse(String queryBy, Double revenue){};
+
+    @GetMapping("/revenue")
+    public ResponseEntity<?> getRevenue(
+            @RequestParam(value = "queryBy", defaultValue = "this-month") String query
+    ) {
+        RevenueProfitResponse revenueResponse = new RevenueProfitResponse("this-month", statisticsService.getRevenue());
+        return ResponseEntity.status(HttpStatus.OK).body(revenueResponse);
+    }
+
+    @GetMapping("/profit")
+    public ResponseEntity<?> getProfit(
+            @RequestParam(value = "queryBy", defaultValue = "this-month") String query
+    ) {
+        RevenueProfitResponse profitResponse = new RevenueProfitResponse("this-month", statisticsService.getProfit());
+        return ResponseEntity.status(HttpStatus.OK).body(profitResponse);
+    }
+
 }
