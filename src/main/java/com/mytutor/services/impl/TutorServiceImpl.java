@@ -5,8 +5,11 @@
 package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.DegreeType;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.tutor.CertificateDto;
 import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
@@ -53,13 +56,16 @@ public class TutorServiceImpl implements TutorService {
     private SubjectRepository subjectRepository;
 
     @Autowired
+    private TutorDetailRepository tutorDetailRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
     private FeedbackRepository feedbackRepository;
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private TutorDetailRepository tutorDetailRepository;
 
     @Override
     public ResponseEntity<PaginationDto<TutorInfoDto>> getAllTutors(int pageNo,
@@ -88,11 +94,9 @@ public class TutorServiceImpl implements TutorService {
 
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
-                    TutorDetail td = tutorDetailRepository.findByAccountId(a.getId())
-                            .orElse(new TutorDetail());
-                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, td);
+                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
                     tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
-                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId(), true).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
                     return tutorInfoDto;
                 })
@@ -111,16 +115,22 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
-        Account tutor = accountRepository.findById(tutorId)
+        Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
-        TutorDetail td = tutorDetailRepository.findByAccountId(tutor.getId())
-                .orElse(new TutorDetail());
-        System.out.println(td.getAccount().getEmail());
-        TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, td);
+        TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
 
         return ResponseEntity.status(HttpStatus.OK).body(tutorInfoDto);
+    }
+
+    @Override
+    public ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId) {
+
+        List<Account> tutors = appointmentRepository.findAllBookedTutorsByStudentIdAndStatus(studentId, AppointmentStatus.PAID);
+
+        List<ResponseAccountDetailsDto> tutorDtos = tutors.stream().map(ResponseAccountDetailsDto::mapToDto).toList();
+        return ResponseEntity.status(HttpStatus.OK).body(tutorDtos);
     }
 
     @Override
@@ -287,12 +297,13 @@ public class TutorServiceImpl implements TutorService {
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         // neu accountid da nam trong danh sach thi return luon
-        if (tutorDetailRepository.findByAccountId(accountId).orElse(null) != null) {
+        if (account.getTutorDetail() != null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
-        tutorDetail.setAccount(account);
+        account.setTutorDetail(tutorDetail);
+//        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
@@ -302,6 +313,7 @@ public class TutorServiceImpl implements TutorService {
             subjects.add(subject);
         }
         account.setSubjects(subjects);
+        account.setTutorDetail(tutorDetail);
 
         accountRepository.save(account);
 
@@ -310,9 +322,11 @@ public class TutorServiceImpl implements TutorService {
 
     @Override
     public ResponseEntity<?> updateTutorDescription(Integer accountId, TutorDescriptionDto tutorDescriptionDto) {
-        TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("No tutor detail found!"));
-        ;
+        Account tutor = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+
+        TutorDetail tutorDetail = tutor.getTutorDetail();
+
 
         String background = tutorDescriptionDto.getBackgroundDescription();
         if (background != null) {
@@ -342,20 +356,20 @@ public class TutorServiceImpl implements TutorService {
                 subjects.add(subject);
             }
         }
-        tutorDetail.getAccount().setSubjects(subjects);
+        tutor.setSubjects(subjects);
 
         tutorDetailRepository.save(tutorDetail);
+        accountRepository.save(tutor);
 
         return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
     }
 
     @Override
     public ResponseEntity<?> getTutorDescriptionById(Integer accountId) {
-        TutorDetail tutorDetail = tutorDetailRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new AccountNotFoundException("No tutor detail found!"));
-        TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutorDetail, TutorDescriptionDto.class);
+        Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutor.getTutorDetail(), TutorDescriptionDto.class);
         Set<String> subjectNames = new HashSet<>();
-        for (Subject s : tutorDetail.getAccount().getSubjects()) {
+        for (Subject s : tutor.getSubjects()) {
             subjectNames.add(s.getSubjectName());
         }
         tutorDescriptionDto.setSubjects(subjectNames);

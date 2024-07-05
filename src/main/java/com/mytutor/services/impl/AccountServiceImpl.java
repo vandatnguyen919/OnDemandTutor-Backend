@@ -10,13 +10,13 @@ import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.entities.Account;
 import com.mytutor.exceptions.AccountNotFoundException;
+import com.mytutor.exceptions.PhoneNumberAlreadyUsedException;
 import com.mytutor.repositories.AccountRepository;
 
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.Set;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,6 +57,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account getAccountById(Integer accountId) {
+
         return accountRepository.findById(accountId).orElse(null);
     }
 
@@ -68,16 +69,46 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> updateAccountDetails(Principal principal, Integer accountId,
                                                   UpdateAccountDetailsDto updateAccountDetailsDto) {
         Account accountDB = getAccountById(accountId);
-        updateAccountDetailsDto.setPhoneNumber(accountDB.getPhoneNumber());
 
 //        if (!checkCurrentAccount(principal, accountId)) {
 //            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this account!");
 //        }
-        modelMapper.map(updateAccountDetailsDto, accountDB);
+
+        // chỉ cập nhật khi điền vào != null và khác rỗng
+
+        if (updateAccountDetailsDto.getDateOfBirth() != null
+                && !updateAccountDetailsDto.getDateOfBirth().toString().isEmpty()) {
+            accountDB.setDateOfBirth(updateAccountDetailsDto.getDateOfBirth());
+        }
+
+        if (updateAccountDetailsDto.getGender() != null
+                && !updateAccountDetailsDto.getGender().toString().isEmpty()) {
+            accountDB.setGender(updateAccountDetailsDto.getGender());
+        }
+        if (checkFilled(updateAccountDetailsDto.getAddress())) {
+            accountDB.setAddress(updateAccountDetailsDto.getAddress());
+        }
+        if (checkFilled(updateAccountDetailsDto.getAvatarUrl())) {
+            accountDB.setAvatarUrl(updateAccountDetailsDto.getAvatarUrl());
+        }
+        if (checkFilled(updateAccountDetailsDto.getFullName())) {
+            accountDB.setFullName(updateAccountDetailsDto.getFullName());
+        }
 
         accountRepository.save(accountDB);
+        Account existedPhoneAccount = accountRepository.findByPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+        if (existedPhoneAccount == null || existedPhoneAccount.getId() == accountDB.getId()) {
+            accountDB.setPhoneNumber(updateAccountDetailsDto.getPhoneNumber());
+            accountRepository.save(accountDB);
+        } else {
+            throw new PhoneNumberAlreadyUsedException("This phone number has been registered by someone else!");
+        }
 
-        return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(accountDB, ResponseAccountDetailsDto.class));
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(accountDB));
+    }
+
+    private boolean checkFilled(String fieldName) {
+        return fieldName != null && !fieldName.isBlank();
     }
 
     @Override
@@ -91,9 +122,7 @@ public class AccountServiceImpl implements AccountService {
 
     public ResponseEntity<?> readAccountById(Integer id) {
         Account account = getAccountById(id);
-        ResponseAccountDetailsDto dto = new ResponseAccountDetailsDto();
-        modelMapper.map(account, dto);
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
 
 

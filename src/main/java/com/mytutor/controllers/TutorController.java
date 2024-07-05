@@ -1,9 +1,13 @@
 package com.mytutor.controllers;
+import com.mytutor.constants.AccountStatus;
+import com.mytutor.constants.VerifyStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.*;
+import com.mytutor.services.ScheduleService;
 import com.mytutor.services.TutorService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,7 +96,7 @@ public class TutorController {
     public ResponseEntity<?> deleteCertificate(
             @PathVariable Integer tutorId,
             @PathVariable Integer certificateId) {
-        return tutorService.deleteEducation(tutorId, certificateId);
+        return tutorService.deleteCertificate(tutorId, certificateId);
     }
 
     // insert tutor-description
@@ -117,5 +121,4 @@ public class TutorController {
             @PathVariable Integer tutorId) {
         return tutorService.getTutorDescriptionById(tutorId);
     }
-
 }

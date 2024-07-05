@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 /**
  *
  * @author Nguyen Van Dat
@@ -27,4 +29,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
 
     @Query("SELECT ROUND(AVG(f.rating), 1) FROM Feedback f WHERE f.tutor = :account")
     Double getAverageRatingByAccount(@Param("account") Account account);
+
+    List<Feedback> findByTutorAndCreatedBy(Account tutor, Account createdBy);
 }
