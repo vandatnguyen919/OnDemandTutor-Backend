@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 /**
  *
@@ -100,4 +101,12 @@ public class StatisticsController {
         return ResponseEntity.status(HttpStatus.OK).body(profitResponse);
     }
 
+
+    @GetMapping("/{tutorId}/salary")
+    public ResponseEntity<Double> getTutorSalaryStatistic
+            (@PathVariable Integer tutorId,
+             @RequestParam Integer month,
+             @RequestParam Integer year) {
+        return ResponseEntity.status(HttpStatus.OK).body(appointmentService.getTutorSalary(tutorId,month,year));
+    }
 }

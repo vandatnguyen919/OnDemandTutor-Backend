@@ -37,4 +37,10 @@ public class TutorDetail {
     @Column(name = "percentage")
     private Integer percentage = 15;
 
+    @Column(name = "transaction_account")
+    private String transactionAccount;
+
+    @Column(name = "transaction_provider")
+    private String transactionProvider;
+
 }
