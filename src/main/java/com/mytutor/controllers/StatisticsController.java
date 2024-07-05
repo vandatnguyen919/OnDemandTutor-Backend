@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,13 +80,14 @@ public class StatisticsController {
         return statisticsService.countAccountsByRole(role);
     }
 
-    record RevenueProfitResponse(String queryBy, Double revenue){};
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM"); // Use "MM" for month with leading zeros
 
     @GetMapping("/revenue")
     public ResponseEntity<?> getRevenue(
             @RequestParam(value = "queryBy", defaultValue = "this-month") String query
     ) {
-        RevenueProfitResponse revenueResponse = new RevenueProfitResponse("this-month", statisticsService.getRevenue());
+        record RevenueResponse(String month, Double revenue){};
+        RevenueResponse revenueResponse = new RevenueResponse(formatter.format(new Date()), statisticsService.getRevenue());
         return ResponseEntity.status(HttpStatus.OK).body(revenueResponse);
     }
 
@@ -92,7 +95,8 @@ public class StatisticsController {
     public ResponseEntity<?> getProfit(
             @RequestParam(value = "queryBy", defaultValue = "this-month") String query
     ) {
-        RevenueProfitResponse profitResponse = new RevenueProfitResponse("this-month", statisticsService.getProfit());
+        record ProfitResponse(String month, Double profit){};
+        ProfitResponse profitResponse = new ProfitResponse(formatter.format(new Date()), statisticsService.getProfit());
         return ResponseEntity.status(HttpStatus.OK).body(profitResponse);
     }
 
