@@ -41,11 +41,19 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findByStatusAndCreatedAtBefore(AppointmentStatus status, LocalDateTime dateTime);
 
     @Query("SELECT a FROM Appointment a " +
-            " WHERE (a.student.id = :id OR a.tutor.id = :id) AND " +
+            " WHERE (a.student.id = :id) AND " +
             " (:startDate IS NULL OR a.createdAt >= :startDate) AND " +
             "(:endDate IS NULL OR a.createdAt < :endDate)")
-    List<Appointment> findAppointmentsInTimeRange(@Param("id") Integer id,
+    List<Appointment> findAppointmentsInTimeRangeByStudent(@Param("id") Integer id,
                                     @Param("startDate") LocalDateTime startDate,
                                     @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT a FROM Appointment a " +
+            " WHERE (a.tutor.id = :id) AND " +
+            " (:startDate IS NULL OR a.createdAt >= :startDate) AND " +
+            "(:endDate IS NULL OR a.createdAt < :endDate)")
+    List<Appointment> findAppointmentsInTimeRangeByTutor(@Param("id") Integer id,
+                                                           @Param("startDate") LocalDateTime startDate,
+                                                           @Param("endDate") LocalDateTime endDate);
 
 }
