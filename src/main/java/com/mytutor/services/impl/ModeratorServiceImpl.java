@@ -63,6 +63,7 @@ public class ModeratorServiceImpl implements ModeratorService {
 
     @Autowired
     private JavaMailSender mailSender;
+
     @Autowired
     private SubjectRepository subjectRepository;
 
@@ -289,12 +290,12 @@ public class ModeratorServiceImpl implements ModeratorService {
                 "        </div>\n" +
                 "        <div class=\"content\">\n" +
                 "            <p>Dear " + receiver.getFullName() + ",</p>\n" +
-                "            <p>We are pleased to inform you that your profile has been reviewed and " + "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: </p>\n" +
+                "            <p>We are inclined to inform you that your profile has been reviewed and " + "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: </p>\n" +
                 "            <p class=\"" + messageClass + "\">" + moderateMessage + "</p>\n" +
                 "            <p>Thank you for your patience and welcome to our tutoring community!</p>\n" +
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
-                "            <p>© 2024 My Tutor. All rights reserved.</p>\n" +
+                "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
                 "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
