@@ -26,4 +26,7 @@ public interface StudentService {
     ResponseEntity<?> updateQuestion(Integer studentId, Integer questionId, RequestQuestionDto requestQuestionDto);
     
     ResponseEntity<?> deleteQuestion(Integer studentId, Integer questionId);
+
+    ResponseEntity<?> getAllQuestionsByStudent(int studentId, int pageNo, int pageSize, String status, String subject);
+
 }

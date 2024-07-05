@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -94,24 +95,12 @@ public class StudentServiceImpl implements StudentService {
                 .map(s -> s.trim().toLowerCase()).collect(Collectors.toSet());
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Question> questions = questionRepositoryCustom.findQuestionsByFilter(
+                null,
                 type.equalsIgnoreCase("all") ? null :QuestionStatus.valueOf(type.toUpperCase()),
                 subjectSet,
                 questionContent,
                 pageable);
-        List<Question> listOfQuestions = questions.getContent();
-
-        List<QuestionDto> content = listOfQuestions.stream()
-                .map(q -> QuestionDto.mapToDto(q, q.getSubject().getSubjectName())).toList();
-
-        PaginationDto<QuestionDto> questionResponseDto = new PaginationDto<>();
-        questionResponseDto.setContent(content);
-        questionResponseDto.setPageNo(questions.getNumber());
-        questionResponseDto.setPageSize(questions.getSize());
-        questionResponseDto.setTotalElements(questions.getTotalElements());
-        questionResponseDto.setTotalPages(questions.getTotalPages());
-        questionResponseDto.setLast(questions.isLast());
-
-        return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
+        return getResponseEntity(questions);
     }
 
     @Override
@@ -201,6 +190,42 @@ public class StudentServiceImpl implements StudentService {
         questionRepository.delete(question);
         
         return ResponseEntity.status(HttpStatus.OK).body("Question deleted");
+    }
+
+    @Override
+    public ResponseEntity<?> getAllQuestionsByStudent(int studentId, int pageNo,
+                                                      int pageSize, String status, String subjects) {
+        Account student = accountRepository.findById(studentId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        Set<String> subjectSet = subjects.equalsIgnoreCase("all") ? null
+                : Arrays.stream(subjects.split("[,\\s+]+"))
+                .map(s -> s.trim().toLowerCase()).collect(Collectors.toSet());
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Question> questions = questionRepositoryCustom.findQuestionsByFilter(
+                student,
+                status.equalsIgnoreCase("all") ? null :QuestionStatus.valueOf(status.toUpperCase()),
+                subjectSet,
+                null,
+                pageable);
+        return getResponseEntity(questions);
+    }
+
+    @NotNull
+    private ResponseEntity<?> getResponseEntity(Page<Question> questions) {
+        List<Question> listOfQuestions = questions.getContent();
+
+        List<QuestionDto> content = listOfQuestions.stream()
+                .map(q -> QuestionDto.mapToDto(q, q.getSubject().getSubjectName())).toList();
+
+        PaginationDto<QuestionDto> questionResponseDto = new PaginationDto<>();
+        questionResponseDto.setContent(content);
+        questionResponseDto.setPageNo(questions.getNumber());
+        questionResponseDto.setPageSize(questions.getSize());
+        questionResponseDto.setTotalElements(questions.getTotalElements());
+        questionResponseDto.setTotalPages(questions.getTotalPages());
+        questionResponseDto.setLast(questions.isLast());
+
+        return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
     }
 
 }
