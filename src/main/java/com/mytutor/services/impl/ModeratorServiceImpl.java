@@ -196,17 +196,18 @@ public class ModeratorServiceImpl implements ModeratorService {
     }
 
     @Override
-    public void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved ) {
+    public void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved, String approvalType) {
         Account receiver = accountRepository.findByEmail(receiverEmail)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
 
-        String content = getEmailContent(moderateMessage, receiver, isApproved);
+        String subject = getEmailSubjectAndContent(moderateMessage, receiver, isApproved, approvalType)[0];
+        String content = getEmailSubjectAndContent(moderateMessage, receiver, isApproved, approvalType)[1];
 
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(receiverEmail);
-            helper.setSubject("[MyTutor] Tutor Registration Status");
+            helper.setSubject(subject);
             helper.setText(content, true);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
@@ -214,16 +215,8 @@ public class ModeratorServiceImpl implements ModeratorService {
         mailSender.send(message);
     }
 
-    private String getEmailContent(String moderateMessage, Account receiver, boolean isApproved) {
-        String messageClass = isApproved ? "approvedMessage" : "rejectedMessage";
-        String status = isApproved ? "approved" : "rejected";
-        String content = "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                "    <title>Tutor Registration Status</title>\n" +
-                "    <style>\n" +
+    private String getStyle() {
+        return "    <style>\n" +
                 "        body {\n" +
                 "            font-family: Arial, sans-serif;\n" +
                 "            background-color: #f3f2f7;\n" +
@@ -281,16 +274,48 @@ public class ModeratorServiceImpl implements ModeratorService {
                 "            text-decoration: none;\n" +
                 "            border-radius: 5px;\n" +
                 "        }\n" +
-                "    </style>\n" +
+                "    </style>\n";
+    }
+
+    private String[] getEmailSubjectAndContent(String moderateMessage, Account receiver, boolean isApproved, String approvalType) {
+        String messageClass = isApproved ? "approvedMessage" : "rejectedMessage";
+        String status = isApproved ? "approved" : "rejected";
+        String subject = "";
+        String title = "";
+        String contentMessage = "";
+        if ("question".equalsIgnoreCase(approvalType)) {
+            title = "Question Review Status";
+            subject = "[MyTutor] " + title;
+            contentMessage = "We are inclined to inform you that your question has been reviewed and " +
+                    "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: ";
+        } else if ("document".equalsIgnoreCase(approvalType)) {
+            title = "Document Review Status";
+            subject = "[MyTutor] " + title;
+            contentMessage = "We are inclined to inform you that your qualification/certificate has been reviewed and " +
+                    "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: ";
+        } else {
+            title = "Tutor Registration Status";
+            subject = "[MyTutor] " + title;
+            contentMessage = "We are inclined to inform you that your profile has been reviewed and " +
+                    "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: ";
+        }
+
+        String content = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>" + title + "</title>\n" +
+                getStyle() +
                 "</head>\n" +
                 "<body>\n" +
                 "    <div class=\"container\">\n" +
                 "        <div class=\"header\">\n" +
-                "            <h1>Tutor Registration Status</h1>\n" +
+                "            <h1>" + title + "</h1>\n" +
                 "        </div>\n" +
                 "        <div class=\"content\">\n" +
                 "            <p>Dear " + receiver.getFullName() + ",</p>\n" +
-                "            <p>We are inclined to inform you that your profile has been reviewed and " + "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: </p>\n" +
+                "            <p>" + contentMessage + "</p>\n" +
                 "            <p class=\"" + messageClass + "\">" + moderateMessage + "</p>\n" +
                 "            <p>Thank you for your patience and welcome to our tutoring community!</p>\n" +
                 "        </div>\n" +
@@ -301,8 +326,10 @@ public class ModeratorServiceImpl implements ModeratorService {
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>\n";
-        return content;
+        String[] result = new String[] {subject, content};
+        return result;
     }
+
 
     // status: ok: UNSOLVED, ko ok: REJECTED
     @Override
