@@ -74,9 +74,10 @@ public class ModeratorController {
 
     @PostMapping("/send-verification-email")
     public ResponseEntity<String> sendVerificationEmail(
+            @RequestParam(value = "approvalType", defaultValue = "", required = false) String approvalType,
             @RequestBody TutorVerificationEmailDto dto
     ) {
-        moderatorService.sendApprovalEmail(dto.getEmail(), dto.getModeratorMessage(), dto.isApproved());
+        moderatorService.sendApprovalEmail(dto.getEmail(), dto.getModeratorMessage(), dto.isApproved(), approvalType);
         return ResponseEntity.status(HttpStatus.OK).body("Verification email sent");
     }
 }

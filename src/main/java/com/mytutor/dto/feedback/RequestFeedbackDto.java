@@ -1,5 +1,6 @@
 package com.mytutor.dto.feedback;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
@@ -19,5 +20,6 @@ public class RequestFeedbackDto {
     @Size(min = 1, max = 1000, message = "must be between 1 and 1000 characters")
     private String content;
 
+    @JsonIgnore
     private Boolean isBanned;
 }

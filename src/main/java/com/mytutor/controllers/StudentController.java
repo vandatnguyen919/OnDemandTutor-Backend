@@ -4,6 +4,7 @@
  */
 package com.mytutor.controllers;
 
+import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.student.RequestQuestionDto;
 import com.mytutor.services.AppointmentService;
@@ -77,11 +78,31 @@ public class StudentController {
         return studentService.updateQuestion(studentId, questionId, requestQuestionDto);
     }
 
+    @PutMapping("/students/{studentId}/update-questions-status/{questionId}")
+    public ResponseEntity<?> updateQuestionStatus(
+            @PathVariable Integer studentId,
+            @PathVariable Integer questionId,
+            @RequestParam QuestionStatus status) {
+        return studentService.updateQuestionStatus(studentId, questionId, status);
+    }
+
     @DeleteMapping("/students/{studentId}/questions/{questionId}")
     public ResponseEntity<?> deleteQuestion(
             @PathVariable Integer studentId,
             @PathVariable Integer questionId) {
         return studentService.deleteQuestion(studentId, questionId);
     }
+
+    @GetMapping("/students/{studentId}/questions")
+    public ResponseEntity<?> getQuestionsByStudent(
+            @PathVariable int studentId,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "type", defaultValue = "all", required = false) String type,
+            @RequestParam(value = "subjects", defaultValue = "all", required = false) String subjects
+    ){
+        return studentService.getAllQuestionsByStudent(studentId, pageNo, pageSize, type, subjects);
+    }
+
 
 }
