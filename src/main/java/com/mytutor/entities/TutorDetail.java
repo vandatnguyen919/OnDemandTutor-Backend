@@ -43,4 +43,7 @@ public class TutorDetail {
     @Column(name = "transaction_provider")
     private String transactionProvider;
 
+    @Column(name = "account_owner")
+    private String accountOwner;
+
 }

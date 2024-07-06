@@ -303,7 +303,6 @@ public class TutorServiceImpl implements TutorService {
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
         account.setTutorDetail(tutorDetail);
-//        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
@@ -326,8 +325,24 @@ public class TutorServiceImpl implements TutorService {
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         TutorDetail tutorDetail = tutor.getTutorDetail();
+        setDataToField(tutorDescriptionDto, tutorDetail);
+        Set<Subject> subjects = new HashSet<>();
+        if (!tutorDescriptionDto.getSubjects().isEmpty()) {
+            for (String subjectName : tutorDescriptionDto.getSubjects()) {
+                Subject subject = subjectRepository.findBySubjectName(subjectName)
+                        .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
+                subjects.add(subject);
+            }
+        }
+        tutor.setSubjects(subjects);
 
+        tutorDetailRepository.save(tutorDetail);
+        accountRepository.save(tutor);
 
+        return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
+    }
+
+    private void setDataToField(TutorDescriptionDto tutorDescriptionDto, TutorDetail tutorDetail) {
         String background = tutorDescriptionDto.getBackgroundDescription();
         if (background != null) {
             tutorDetail.setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
@@ -348,20 +363,20 @@ public class TutorServiceImpl implements TutorService {
             tutorDetail.setVideoIntroductionLink(video);
         }
 
-        Set<Subject> subjects = new HashSet<>();
-        if (!tutorDescriptionDto.getSubjects().isEmpty()) {
-            for (String subjectName : tutorDescriptionDto.getSubjects()) {
-                Subject subject = subjectRepository.findBySubjectName(subjectName)
-                        .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
-                subjects.add(subject);
-            }
+        String transAccount = tutorDescriptionDto.getTransactionAccount();
+        if (transAccount != null) {
+            tutorDetail.setTransactionAccount(transAccount);
         }
-        tutor.setSubjects(subjects);
 
-        tutorDetailRepository.save(tutorDetail);
-        accountRepository.save(tutor);
+        String transProvider = tutorDescriptionDto.getTransactionProvider();
+        if (transProvider != null) {
+            tutorDetail.setTransactionProvider(transProvider);
+        }
 
-        return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
+        String accountOwner = tutorDescriptionDto.getAccountOwner();
+        if (accountOwner != null) {
+            tutorDetail.setAccountOwner(accountOwner);
+        }
     }
 
     @Override
