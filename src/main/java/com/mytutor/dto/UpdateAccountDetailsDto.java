@@ -1,5 +1,6 @@
 package com.mytutor.dto;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.RegexConsts;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -35,4 +36,6 @@ public class UpdateAccountDetailsDto {
     @NotBlank(message = "Phone number cannot be empty")
     @Pattern(regexp = RegexConsts.PHONE_NUMBER_REGEX, message = "Invalid phone number format")
     private String phoneNumber;
+
+    private AccountStatus status;
 }

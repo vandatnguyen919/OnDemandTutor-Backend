@@ -7,13 +7,19 @@ package com.mytutor.dto.tutor;
 import com.mytutor.entities.Subject;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.Column;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author vothimaihoa
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TutorDescriptionDto {
     
     private Double teachingPricePerHour;
@@ -25,5 +31,12 @@ public class TutorDescriptionDto {
     private String videoIntroductionLink;
 
     private Set<String> subjects = new HashSet<>();
+
+    private String transactionAccount;
+
+    private String transactionProvider;
+
+    private String accountOwner;
+
 
 }
