@@ -59,7 +59,7 @@ public class Account {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "tutor_subject",
             joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))

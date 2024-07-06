@@ -7,7 +7,7 @@ import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
-import com.mytutor.dto.LessonStatisticDto;
+import com.mytutor.dto.statistics.LessonStatisticDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -103,7 +103,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
-        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
+        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByStudent(
                 studentId, null, null);
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(studentId);
@@ -118,11 +118,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // current month
-        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         System.out.println(startDate);
         LocalDateTime endDate = startDate.plusMonths(1);
 
-        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRange(
+        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRangeByStudent(
                 studentId, startDate, endDate
         );
         if (!thisMonthAppointments.isEmpty()) {
@@ -143,7 +143,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         dto.setAccountId(tutorId);
 
         // total
-        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRange(
+        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                 tutorId, null, null);
 
         if (!appointments.isEmpty()) {
@@ -156,10 +156,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // current month
-        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1);
+        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime endDate = startDate.plusMonths(1);
 
-        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRange(
+        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                 tutorId, startDate, endDate
         );
         if (!thisMonthAppointments.isEmpty()) {
@@ -198,7 +198,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return tutors;
     }
 
-    private double getTotalIncome(int tutorId, List<Appointment> appointments) {
+    public double getTotalIncome(int tutorId, List<Appointment> appointments) {
         double income = 0;
 
         for (Appointment a : appointments) {
@@ -453,6 +453,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         String content = getBookEmailContent(appointment)[1];
         String[] receivers = new String[] {appointment.getStudent().getEmail(), appointment.getTutor().getEmail()};
         sendEmail(receivers, mailSubject, content);
+    }
+
+    @Override
+    public double getTutorSalary(Integer tutorId, Integer month, Integer year) {
+        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDate = startDate.plusMonths(1);
+        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(tutorId, startDate, endDate);
+        return getTotalIncome(tutorId, appointments);
     }
 
     private void sendEmail(String[] receivers, String subject, String content) {

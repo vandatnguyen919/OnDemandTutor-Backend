@@ -95,6 +95,8 @@ public class TutorServiceImpl implements TutorService {
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                     tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
                     tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId(), true).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
@@ -117,6 +119,11 @@ public class TutorServiceImpl implements TutorService {
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
         Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        if (tutor.getSubjects().isEmpty()) {
+            System.out.println("Empty!");
+        }
+        Set<Subject> subjects = subjectRepository.findByTutorId(tutorId);
+        tutor.setSubjects(subjects);
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
@@ -303,7 +310,6 @@ public class TutorServiceImpl implements TutorService {
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
         account.setTutorDetail(tutorDetail);
-//        tutorDetail.setAccount(account);
         tutorDetailRepository.save(tutorDetail);
 
         Set<Subject> subjects = new HashSet<>();
@@ -326,8 +332,24 @@ public class TutorServiceImpl implements TutorService {
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
         TutorDetail tutorDetail = tutor.getTutorDetail();
+        setDataToField(tutorDescriptionDto, tutorDetail);
+        Set<Subject> subjects = new HashSet<>();
+        if (!tutorDescriptionDto.getSubjects().isEmpty()) {
+            for (String subjectName : tutorDescriptionDto.getSubjects()) {
+                Subject subject = subjectRepository.findBySubjectName(subjectName)
+                        .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
+                subjects.add(subject);
+            }
+        }
+        tutor.setSubjects(subjects);
 
+        tutorDetailRepository.save(tutorDetail);
+        accountRepository.save(tutor);
 
+        return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
+    }
+
+    private void setDataToField(TutorDescriptionDto tutorDescriptionDto, TutorDetail tutorDetail) {
         String background = tutorDescriptionDto.getBackgroundDescription();
         if (background != null) {
             tutorDetail.setBackgroundDescription(tutorDescriptionDto.getBackgroundDescription());
@@ -348,25 +370,27 @@ public class TutorServiceImpl implements TutorService {
             tutorDetail.setVideoIntroductionLink(video);
         }
 
-        Set<Subject> subjects = new HashSet<>();
-        if (!tutorDescriptionDto.getSubjects().isEmpty()) {
-            for (String subjectName : tutorDescriptionDto.getSubjects()) {
-                Subject subject = subjectRepository.findBySubjectName(subjectName)
-                        .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
-                subjects.add(subject);
-            }
+        String transAccount = tutorDescriptionDto.getTransactionAccount();
+        if (transAccount != null) {
+            tutorDetail.setTransactionAccount(transAccount);
         }
-        tutor.setSubjects(subjects);
 
-        tutorDetailRepository.save(tutorDetail);
-        accountRepository.save(tutor);
+        String transProvider = tutorDescriptionDto.getTransactionProvider();
+        if (transProvider != null) {
+            tutorDetail.setTransactionProvider(transProvider);
+        }
 
-        return ResponseEntity.status(HttpStatus.OK).body("Tutor description updated successfully!");
+        String accountOwner = tutorDescriptionDto.getAccountOwner();
+        if (accountOwner != null) {
+            tutorDetail.setAccountOwner(accountOwner);
+        }
     }
 
     @Override
     public ResponseEntity<?> getTutorDescriptionById(Integer accountId) {
         Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Set<Subject> subjects = subjectRepository.findByTutorId(accountId);
+        tutor.setSubjects(subjects);
         TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutor.getTutorDetail(), TutorDescriptionDto.class);
         Set<String> subjectNames = new HashSet<>();
         for (Subject s : tutor.getSubjects()) {
