@@ -96,7 +96,6 @@ public class TutorInfoDto {
         dto.setMeetingLink(tutorDetail.getMeetingLink());
         dto.setVideoIntroductionLink(tutorDetail.getVideoIntroductionLink());
         dto.setSubjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()));
-
         return dto;
     }
 }

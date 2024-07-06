@@ -28,4 +28,6 @@ public interface ModeratorService {
     ResponseEntity<PaginationDto<QuestionDto>> getQuestionListByStatus(QuestionStatus status, int pageNo, int pageSize);
 
     void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved, String approvalType );
+
+    PaginationDto<TutorInfoDto> getTutorListHasNotVerifiedDocuments(int pageNo, int pageSize);
 }

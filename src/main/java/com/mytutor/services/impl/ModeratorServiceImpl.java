@@ -84,6 +84,7 @@ public class ModeratorServiceImpl implements ModeratorService {
         return ResponseEntity.ok().body("Checked documents! Please send email to tutor!");
     }
 
+
     @Transactional
     @Override
     public ResponseEntity<?> checkTutor(Integer tutorId, String status, RequestCheckTutorDto dto) {
@@ -350,6 +351,8 @@ public class ModeratorServiceImpl implements ModeratorService {
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                     tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
                     return tutorInfoDto;
@@ -387,6 +390,34 @@ public class ModeratorServiceImpl implements ModeratorService {
         questionResponseDto.setTotalPages(questionListPage.getTotalPages());
         questionResponseDto.setLast(questionListPage.isLast());
         return ResponseEntity.ok(questionResponseDto);
+    }
+
+
+    @Override
+    public PaginationDto<TutorInfoDto> getTutorListHasNotVerifiedDocuments(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Account> tutorListPage = accountRepository.findTutorByUnverifiedDocuments(Role.TUTOR, AccountStatus.ACTIVE, pageable);
+        List<Account> listOfTutors = tutorListPage.getContent();
+
+        List<TutorInfoDto> content = listOfTutors.stream()
+                .map(a -> {
+                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                            .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+                    return tutorInfoDto;
+                })
+                .collect(Collectors.toList());
+
+        PaginationDto<TutorInfoDto> tutorResponseDto = new PaginationDto<>();
+        tutorResponseDto.setContent(content);
+        tutorResponseDto.setPageNo(tutorListPage.getNumber());
+        tutorResponseDto.setPageSize(tutorListPage.getSize());
+        tutorResponseDto.setTotalElements(tutorListPage.getTotalElements());
+        tutorResponseDto.setTotalPages(tutorListPage.getTotalPages());
+        tutorResponseDto.setLast(tutorListPage.isLast());
+        return tutorResponseDto;
     }
 
 }

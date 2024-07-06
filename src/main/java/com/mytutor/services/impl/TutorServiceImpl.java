@@ -95,6 +95,8 @@ public class TutorServiceImpl implements TutorService {
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                     tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
                     tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId(), true).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
@@ -117,6 +119,11 @@ public class TutorServiceImpl implements TutorService {
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
         Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        if (tutor.getSubjects().isEmpty()) {
+            System.out.println("Empty!");
+        }
+        Set<Subject> subjects = subjectRepository.findByTutorId(tutorId);
+        tutor.setSubjects(subjects);
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
@@ -382,6 +389,8 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<?> getTutorDescriptionById(Integer accountId) {
         Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Set<Subject> subjects = subjectRepository.findByTutorId(accountId);
+        tutor.setSubjects(subjects);
         TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutor.getTutorDetail(), TutorDescriptionDto.class);
         Set<String> subjectNames = new HashSet<>();
         for (Subject s : tutor.getSubjects()) {

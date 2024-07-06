@@ -38,5 +38,4 @@ public class TutorDescriptionDto {
 
     private String accountOwner;
 
-
 }

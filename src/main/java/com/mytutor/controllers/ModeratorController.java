@@ -73,4 +73,11 @@ public class ModeratorController {
         moderatorService.sendApprovalEmail(dto.getEmail(), dto.getModeratorMessage(), dto.isApproved(), approvalType);
         return ResponseEntity.status(HttpStatus.OK).body("Verification email sent");
     }
+
+    @GetMapping("/documents/tutors")
+    public ResponseEntity<PaginationDto<TutorInfoDto>> getTutorListHasNotVerifiedDocuments(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        return ResponseEntity.status(HttpStatus.OK).body(moderatorService.getTutorListHasNotVerifiedDocuments(pageNo, pageSize));
+    }
 }
