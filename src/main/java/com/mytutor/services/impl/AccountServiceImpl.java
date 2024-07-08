@@ -11,12 +11,14 @@ import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.entities.Account;
+import com.mytutor.entities.Subject;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.PhoneNumberAlreadyUsedException;
 import com.mytutor.repositories.AccountRepository;
 
 import com.mytutor.repositories.EducationRepository;
 import com.mytutor.repositories.FeedbackRepository;
+import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
@@ -44,6 +46,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private EducationRepository educationRepository;
+
+    @Autowired
+    private SubjectRepository subjectRepository;
 
     @Autowired
     private FeedbackRepository feedbackRepository;
@@ -75,6 +80,8 @@ public class AccountServiceImpl implements AccountService {
                         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
                         tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId(), true).stream()
                                 .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+                        tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                                .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                         return tutorInfoDto;
                     })
                     .collect(Collectors.toList());
