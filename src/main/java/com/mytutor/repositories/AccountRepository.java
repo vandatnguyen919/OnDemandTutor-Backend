@@ -6,8 +6,10 @@ package com.mytutor.repositories;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.dto.statistics.RoleCount;
 import com.mytutor.entities.Account;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,15 +29,35 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     Account findByPhoneNumber(String phoneNumber);
 
-
     Optional<Account> findByIdAndRole(Integer id, Role role);
 
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    Page<Account> findByRole(Role role, Pageable pageable);
+    Page<Account> findByOrderByCreatedAtDesc(Pageable pageable);
+
+    Page<Account> findByRoleOrderByCreatedAtDesc(Role role, Pageable pageable);
 
     @Query("SELECT a FROM Account a WHERE a.role = :role AND a.status = :status")
     Page<Account> findByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
+
+    @Query("SELECT COUNT(a) " +
+            "FROM Account a " +
+            "WHERE a.role = :role")
+    Long countByRole(@Param("role") Role role);
+
+    @Query("SELECT new com.mytutor.dto.statistics.RoleCount(a.role, COUNT(a)) " +
+            "FROM Account a " +
+            "GROUP BY a.role")
+    List<RoleCount> countAccountsByRole();
+
+    @Query("SELECT a FROM Account a WHERE " +
+            " a.role = :role AND a.status = :status " +
+            " AND (" +
+                " a.id IN (SELECT e.account.id FROM Education e WHERE e.isVerified = false) " +
+                " OR a.id IN (SELECT c.account.id FROM Certificate c WHERE c.isVerified = false)" +
+            " )"
+    )
+    Page<Account> findTutorByUnverifiedDocuments(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
 }

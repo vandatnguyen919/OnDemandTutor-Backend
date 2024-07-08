@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto.feedback;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mytutor.constants.FeedbackType;
 import com.mytutor.constants.RegexConsts;
 import com.mytutor.dto.ReplyDto;
@@ -35,6 +36,7 @@ public class FeedbackDto {
     private String modifiedAt;
     private Boolean isBanned;
     private FeedbackType type;
+    @JsonIgnore
     private List<ReplyDto> replies = new ArrayList<>();
 
     public static FeedbackDto mapToDto(Feedback feedback) {

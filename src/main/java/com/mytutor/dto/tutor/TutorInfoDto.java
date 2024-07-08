@@ -4,6 +4,7 @@
  */
 package com.mytutor.dto.tutor;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.DegreeType;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Subject;
@@ -46,6 +47,8 @@ public class TutorInfoDto {
 
     private String phoneNumber;
 
+    private AccountStatus status;
+
     private Double averageRating;
 
     private Double teachingPricePerHour;
@@ -87,12 +90,12 @@ public class TutorInfoDto {
         dto.setEmail(account.getEmail());
         dto.setFullName(account.getFullName());
         dto.setPhoneNumber(account.getPhoneNumber());
+        dto.setStatus(account.getStatus());
         dto.setTeachingPricePerHour(tutorDetail.getTeachingPricePerHour());
         dto.setBackgroundDescription(tutorDetail.getBackgroundDescription());
         dto.setMeetingLink(tutorDetail.getMeetingLink());
         dto.setVideoIntroductionLink(tutorDetail.getVideoIntroductionLink());
         dto.setSubjects(account.getSubjects().stream().map(s -> s.getSubjectName()).collect(Collectors.toSet()));
-
         return dto;
     }
 }

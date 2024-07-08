@@ -1,6 +1,5 @@
 server:
   port: 8080
-  timezone: Asia/Ho_Chi_Minh
 
 mytutor:
   jwt:
@@ -54,15 +53,14 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: datnguyen.dev.demo@gmail.com
-    password: "hvcj bovp bova upce"
+#    username: datnguyen.dev.demo@gmail.com
+#    password: "hvcj bovp bova upce"
+    # test email moderator
+    username: hoavo.dev.demo@gmail.com
+    password: "tcsq bpbl oypv xhpt"
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-
-
-
-
