@@ -4,6 +4,7 @@ import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.constants.Role;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.moderator.RequestCheckDocumentDto;
 import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.moderator.RequestCheckTutorDto;
 import com.mytutor.dto.tutor.CertificateDto;
@@ -63,32 +64,26 @@ public class ModeratorServiceImpl implements ModeratorService {
 
     @Autowired
     private JavaMailSender mailSender;
+
     @Autowired
     private SubjectRepository subjectRepository;
 
     @Override
-    public ResponseEntity<?> checkAnEducation(int educationId, String status) {
-        Education education = educationRepository.findById(educationId).orElseThrow(
-                () -> new EducationNotFoundException("Education not found!"));
-        if (education.isVerified()) {
-            throw new EducationNotFoundException("Education has been checked!");
+    public ResponseEntity<?> checkEducationsAndCertificatesByTutor(int tutorId, RequestCheckDocumentDto dto) {
+        // Handle educations
+        Account tutor = accountRepository.findById(tutorId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        if (!tutor.getRole().equals(Role.TUTOR)) {
+            throw new InvalidStatusException("This account is not tutor");
         }
-        educationRepository.save(education);
-        EducationDto dto = modelMapper.map(education, EducationDto.class);
-        return ResponseEntity.ok().body(dto);
+
+        handleApprovingEducations(tutor, dto.getApprovedEducations());
+
+        handleApprovingCertificates(tutor, dto.getApprovedCertificates());
+
+        return ResponseEntity.ok().body("Checked documents! Please send email to tutor!");
     }
 
-    @Override
-    public ResponseEntity<?> checkACertificate(int certificateId, String status) {
-        Certificate certificate = certificateRepository.findById(certificateId).orElseThrow(
-                () -> new EducationNotFoundException("Certificate not found!"));
-        if (certificate.isVerified()) {
-            throw new EducationNotFoundException("Certificate has been checked!");
-        }
-        certificateRepository.save(certificate);
-        CertificateDto dto = modelMapper.map(certificate, CertificateDto.class);
-        return ResponseEntity.ok().body(dto);
-    }
 
     @Transactional
     @Override
@@ -114,7 +109,7 @@ public class ModeratorServiceImpl implements ModeratorService {
             throw new InvalidStatusException("Status not found!");
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body("Checked tutor! Please send email to tutor");
+        return ResponseEntity.status(HttpStatus.OK).body("Checked tutor! Please send email to tutor!");
     }
 
     private void handleApprovingTutor(Account tutor, RequestCheckTutorDto dto) {
@@ -130,10 +125,10 @@ public class ModeratorServiceImpl implements ModeratorService {
         tutor.setSubjects(approvedSubjects);
 
         // Handle educations
-        handleApprovingEducations(tutor, dto);
+        handleApprovingEducations(tutor, dto.getApprovedEducations());
 
         // Handle certificates
-        handleApprovingCertificates(tutor, dto);
+        handleApprovingCertificates(tutor, dto.getApprovedCertificates());
 
         // Update tutor details
         TutorDetail tutorDetail = tutor.getTutorDetail();
@@ -144,37 +139,38 @@ public class ModeratorServiceImpl implements ModeratorService {
         accountRepository.save(tutor);
     }
 
-    private void handleApprovingEducations(Account tutor, RequestCheckTutorDto dto) {
+    private void handleApprovingEducations(Account tutor, List<Integer> approvedEducations) {
         List<Education> allEducations = educationRepository.findByAccountId(tutor.getId());
-        List<Education> educationsToSave = new ArrayList<>();
+        List<Education> newEducationsToSave = new ArrayList<>();
         List<Education> educationsToDelete = new ArrayList<>();
 
         for (Education education : allEducations) {
-            if (dto.getApprovedEducations().contains(education.getId())) {
+            if (approvedEducations.contains(education.getId())) {
                 education.setVerified(true);
-                educationsToSave.add(education);
-            } else {
+                newEducationsToSave.add(education);
+            } else if (!education.isVerified()) {
                 educationsToDelete.add(education);
             }
         }
-        educationRepository.saveAll(educationsToSave);
+        educationRepository.saveAll(newEducationsToSave);
         educationRepository.deleteAll(educationsToDelete);
     }
 
-    private void handleApprovingCertificates(Account tutor, RequestCheckTutorDto dto) {
+    private void handleApprovingCertificates(Account tutor, List<Integer> approvedCertificates) {
         List<Certificate> allCertificates = certificateRepository.findByAccountId(tutor.getId());
-        List<Certificate> certificatesToSave = new ArrayList<>();
+        List<Certificate> newCertificatesToSave = new ArrayList<>();
         List<Certificate> certificatesToDelete = new ArrayList<>();
 
         for (Certificate certificate : allCertificates) {
-            if (dto.getApprovedCertificates().contains(certificate.getId())) {
+            if (approvedCertificates.contains(certificate.getId())) {
                 certificate.setVerified(true);
-                certificatesToSave.add(certificate);
-            } else {
+                newCertificatesToSave.add(certificate);
+            } else if (!certificate.isVerified()){
+                // ko dc duyet tu truoc khi goi api nay va hien tai cung khong duoc duyet -> xoa
                 certificatesToDelete.add(certificate);
             }
         }
-        certificateRepository.saveAll(certificatesToSave);
+        certificateRepository.saveAll(newCertificatesToSave);
         certificateRepository.deleteAll(certificatesToDelete);
     }
 
@@ -195,17 +191,18 @@ public class ModeratorServiceImpl implements ModeratorService {
     }
 
     @Override
-    public void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved ) {
+    public void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved, String approvalType) {
         Account receiver = accountRepository.findByEmail(receiverEmail)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found!"));
 
-        String content = getEmailContent(moderateMessage, receiver, isApproved);
+        String subject = getEmailSubjectAndContent(moderateMessage, receiver, isApproved, approvalType)[0];
+        String content = getEmailSubjectAndContent(moderateMessage, receiver, isApproved, approvalType)[1];
 
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(receiverEmail);
-            helper.setSubject("[MyTutor] Tutor Registration Status");
+            helper.setSubject(subject);
             helper.setText(content, true);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
@@ -213,16 +210,8 @@ public class ModeratorServiceImpl implements ModeratorService {
         mailSender.send(message);
     }
 
-    private String getEmailContent(String moderateMessage, Account receiver, boolean isApproved) {
-        String messageClass = isApproved ? "approvedMessage" : "rejectedMessage";
-        String status = isApproved ? "approved" : "rejected";
-        String content = "<!DOCTYPE html>\n" +
-                "<html lang=\"en\">\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                "    <title>Tutor Registration Status</title>\n" +
-                "    <style>\n" +
+    private String getStyle() {
+        return "    <style>\n" +
                 "        body {\n" +
                 "            font-family: Arial, sans-serif;\n" +
                 "            background-color: #f3f2f7;\n" +
@@ -280,28 +269,62 @@ public class ModeratorServiceImpl implements ModeratorService {
                 "            text-decoration: none;\n" +
                 "            border-radius: 5px;\n" +
                 "        }\n" +
-                "    </style>\n" +
+                "    </style>\n";
+    }
+
+    private String[] getEmailSubjectAndContent(String moderateMessage, Account receiver, boolean isApproved, String approvalType) {
+        String messageClass = isApproved ? "approvedMessage" : "rejectedMessage";
+        String status = isApproved ? "approved" : "rejected";
+        String subject = "";
+        String title = "";
+        String contentMessage = "";
+        if ("question".equalsIgnoreCase(approvalType)) {
+            title = "Question Review Status";
+            subject = "[MyTutor] " + title;
+            contentMessage = "We are inclined to inform you that your question has been reviewed and " +
+                    "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: ";
+        } else if ("document".equalsIgnoreCase(approvalType)) {
+            title = "Document Review Status";
+            subject = "[MyTutor] " + title;
+            contentMessage = "We are inclined to inform you that your qualifications/certificates has been reviewed and " +
+                    "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: ";
+        } else {
+            title = "Tutor Registration Status";
+            subject = "[MyTutor] " + title;
+            contentMessage = "We are inclined to inform you that your profile has been reviewed and " +
+                    "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: ";
+        }
+
+        String content = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>" + title + "</title>\n" +
+                getStyle() +
                 "</head>\n" +
                 "<body>\n" +
                 "    <div class=\"container\">\n" +
                 "        <div class=\"header\">\n" +
-                "            <h1>Tutor Registration Status</h1>\n" +
+                "            <h1>" + title + "</h1>\n" +
                 "        </div>\n" +
                 "        <div class=\"content\">\n" +
                 "            <p>Dear " + receiver.getFullName() + ",</p>\n" +
-                "            <p>We are pleased to inform you that your profile has been reviewed and " + "<span style=\"font-weight: bold;\">" + status + "</span> by our moderators. Here are detail messages from our moderators: </p>\n" +
+                "            <p>" + contentMessage + "</p>\n" +
                 "            <p class=\"" + messageClass + "\">" + moderateMessage + "</p>\n" +
                 "            <p>Thank you for your patience and welcome to our tutoring community!</p>\n" +
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
-                "            <p>© 2024 My Tutor. All rights reserved.</p>\n" +
+                "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
                 "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>\n";
-        return content;
+        String[] result = new String[] {subject, content};
+        return result;
     }
+
 
     // status: ok: UNSOLVED, ko ok: REJECTED
     @Override
@@ -328,6 +351,8 @@ public class ModeratorServiceImpl implements ModeratorService {
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                     tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
                     return tutorInfoDto;
@@ -365,6 +390,34 @@ public class ModeratorServiceImpl implements ModeratorService {
         questionResponseDto.setTotalPages(questionListPage.getTotalPages());
         questionResponseDto.setLast(questionListPage.isLast());
         return ResponseEntity.ok(questionResponseDto);
+    }
+
+
+    @Override
+    public PaginationDto<TutorInfoDto> getTutorListHasNotVerifiedDocuments(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Account> tutorListPage = accountRepository.findTutorByUnverifiedDocuments(Role.TUTOR, AccountStatus.ACTIVE, pageable);
+        List<Account> listOfTutors = tutorListPage.getContent();
+
+        List<TutorInfoDto> content = listOfTutors.stream()
+                .map(a -> {
+                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                            .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+                    return tutorInfoDto;
+                })
+                .collect(Collectors.toList());
+
+        PaginationDto<TutorInfoDto> tutorResponseDto = new PaginationDto<>();
+        tutorResponseDto.setContent(content);
+        tutorResponseDto.setPageNo(tutorListPage.getNumber());
+        tutorResponseDto.setPageSize(tutorListPage.getSize());
+        tutorResponseDto.setTotalElements(tutorListPage.getTotalElements());
+        tutorResponseDto.setTotalPages(tutorListPage.getTotalPages());
+        tutorResponseDto.setLast(tutorListPage.isLast());
+        return tutorResponseDto;
     }
 
 }

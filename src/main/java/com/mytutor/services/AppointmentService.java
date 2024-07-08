@@ -37,4 +37,9 @@ public interface AppointmentService {
     ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, RequestReScheduleDto dto);
   
     ResponseEntity<AppointmentSlotDto> cancelSlotsInAppointment(int accountId, int timeslotId);
+
+    void sendCreateBookingEmail(int appointmentId);
+
+    double getTutorSalary(Integer accountId, Integer month, Integer year);
+
 }

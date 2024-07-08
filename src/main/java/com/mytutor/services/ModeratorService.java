@@ -3,6 +3,7 @@ package com.mytutor.services;
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.QuestionStatus;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.moderator.RequestCheckDocumentDto;
 import com.mytutor.dto.moderator.RequestCheckTutorDto;
 import com.mytutor.dto.student.QuestionDto;
 import com.mytutor.dto.tutor.TutorInfoDto;
@@ -16,9 +17,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public interface ModeratorService {
-    ResponseEntity<?> checkAnEducation(int educationId, String status); // sua lai: truyen vao dto gom list cac educationId trong requestbody
-
-    ResponseEntity<?> checkACertificate(int certificateId, String status);
+    ResponseEntity<?> checkEducationsAndCertificatesByTutor(int tutorId, RequestCheckDocumentDto documents); // sua lai: truyen vao dto gom list cac educationId trong requestbody
 
     ResponseEntity<?> checkTutor(Integer tutorId, String status, RequestCheckTutorDto dto);
 
@@ -28,5 +27,7 @@ public interface ModeratorService {
 
     ResponseEntity<PaginationDto<QuestionDto>> getQuestionListByStatus(QuestionStatus status, int pageNo, int pageSize);
 
-    void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved );
+    void sendApprovalEmail(String receiverEmail, String moderateMessage, boolean isApproved, String approvalType );
+
+    PaginationDto<TutorInfoDto> getTutorListHasNotVerifiedDocuments(int pageNo, int pageSize);
 }
