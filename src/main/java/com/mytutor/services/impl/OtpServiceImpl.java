@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -39,6 +40,9 @@ public class OtpServiceImpl implements OtpService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
 
     private static final long EXPIRATION_TIME = 5; // 5 minutes 
 
@@ -129,7 +133,7 @@ public class OtpServiceImpl implements OtpService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 My Tutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +

@@ -19,6 +19,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,6 +68,9 @@ public class ModeratorServiceImpl implements ModeratorService {
 
     @Autowired
     private SubjectRepository subjectRepository;
+
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
 
     @Override
     public ResponseEntity<?> checkEducationsAndCertificatesByTutor(int tutorId, RequestCheckDocumentDto dto) {
@@ -316,7 +320,7 @@ public class ModeratorServiceImpl implements ModeratorService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
