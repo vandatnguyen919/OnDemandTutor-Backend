@@ -7,11 +7,11 @@ mytutor:
     # 2 weeks in second
     token-validity-in-second: 1209600
   url:
-    client: http://localhost:5173
+    client: https://on-demand-tutor-frontend.vercel.app
 
 vnp:
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: http://localhost:5173/confirm-payment
+  returnUrl: https://on-demand-tutor-frontend.vercel.app/confirm-payment
   tmnCode: 0ZLJX97B
   secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
   version: 2.1.0
