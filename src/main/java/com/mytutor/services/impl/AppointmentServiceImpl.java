@@ -2,6 +2,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
@@ -107,12 +108,16 @@ public class AppointmentServiceImpl implements AppointmentService {
                 studentId, null, null);
         LessonStatisticDto dto = new LessonStatisticDto();
         dto.setAccountId(studentId);
+        List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
             Set<Subject> subjects = getSubjectsFromAppointments(appointments);
+            for (Subject s : subjects) {
+                subjectDtos.add(SubjectDto.mapToDto(s));
+            }
             Set<Account> tutors = getTutorsFromAppointments(appointments);
 
             // total
-            dto.setTotalSubjects(subjects);
+            dto.setTotalSubjects(subjectDtos);
             dto.setTotalLessons(getTotalLessons(appointments));
             dto.setTotalLearntTutor(tutors.size());
         }
@@ -125,11 +130,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRangeByStudent(
                 studentId, startDate, endDate
         );
+        List<SubjectDto> thisMonthSubjectDtos = new ArrayList<>();
         if (!thisMonthAppointments.isEmpty()) {
             Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
             Set<Account> thisMonthTutors = getTutorsFromAppointments(thisMonthAppointments);
-
-            dto.setThisMonthSubjects(thisMonthSubjects);
+            for (Subject s : thisMonthSubjects) {
+                thisMonthSubjectDtos.add(SubjectDto.mapToDto(s));
+            }
+            dto.setThisMonthSubjects(thisMonthSubjectDtos);
             dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
             dto.setThisMonthTutor(thisMonthTutors.size());
         }
@@ -145,11 +153,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         // total
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                 tutorId, null, null);
-
+        List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
             Set<Subject> subjects = getSubjectsFromAppointments(appointments);
             Set<Account> students = getStudentsFromAppointments(appointments);
-            dto.setTotalSubjects(subjects);
+            for (Subject s : subjects) {
+                subjectDtos.add(SubjectDto.mapToDto(s));
+            }
+            dto.setTotalSubjects(subjectDtos);
             dto.setTotalTaughtStudent(students.size());
             dto.setTotalLessons(getTotalLessons(appointments));
             dto.setTotalIncome(getTotalIncome(tutorId, appointments));
@@ -162,11 +173,14 @@ public class AppointmentServiceImpl implements AppointmentService {
         List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                 tutorId, startDate, endDate
         );
+        List<SubjectDto> thisMonthSubjectDtos = new ArrayList<>();
         if (!thisMonthAppointments.isEmpty()) {
             Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
             Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
-
-            dto.setThisMonthSubjects(thisMonthSubjects);
+            for (Subject s : thisMonthSubjects) {
+                thisMonthSubjectDtos.add(SubjectDto.mapToDto(s));
+            }
+            dto.setThisMonthSubjects(thisMonthSubjectDtos);
             dto.setThisMonthStudent(thisMonthStudents.size());
             dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
             dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
