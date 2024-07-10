@@ -119,9 +119,12 @@ public class ModeratorServiceImpl implements ModeratorService {
         // Handle subjects
         Set<Subject> approvedSubjects = new HashSet<>();
         for (String subjectName : dto.getApprovedSubjects()) {
-            approvedSubjects.add(subjectRepository.findBySubjectName(subjectName)
-                    .orElseThrow(() -> new SubjectNotFoundException("Subject not found!")));
+            Subject subject = subjectRepository.findBySubjectName(subjectName)
+                    .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
+            approvedSubjects.add(subject);
         }
+
+        tutor.getSubjects().clear();
         tutor.setSubjects(approvedSubjects);
 
         // Handle educations
