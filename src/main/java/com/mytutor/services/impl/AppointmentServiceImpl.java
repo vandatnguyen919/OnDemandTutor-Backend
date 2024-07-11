@@ -360,7 +360,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             for (Timeslot existedSlot : a.getTimeslots()) {
                 for (Timeslot newSlot : timeslots) {
                     if (isConflicted(existedSlot, newSlot)) {
-                        throw new ConflictTimeslotException("Cannot book because one of the slots here are conflict with your schedule. \n" +
+                        throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
                                 "Please check your schedule in Schedule Session carefully before booking!");
                     } else {
                         System.out.println("Existed slot: " + existedSlot.getScheduleDate() + " - " + existedSlot.getWeeklySchedule().getStartTime() + " - " +existedSlot.getWeeklySchedule().getEndTime() );
