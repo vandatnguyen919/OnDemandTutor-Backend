@@ -203,6 +203,4 @@ public class AccountServiceImpl implements AccountService {
         Account account = getAccountById(id);
         return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
     }
-
-
 }

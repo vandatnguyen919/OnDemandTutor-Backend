@@ -47,7 +47,7 @@ public class FeedbackDto {
         FeedbackDto feedbackDto = new FeedbackDto();
         feedbackDto.setId(feedback.getId());
         feedbackDto.setCreatedById(feedback.getCreatedBy().getId());
-        feedbackDto.setCreatedBy(feedback.getCreatedBy().getEmail());
+        feedbackDto.setCreatedBy(feedback.getCreatedBy().getFullName());
         feedbackDto.setAvatarUrl(feedback.getCreatedBy().getAvatarUrl());
         feedbackDto.setTutorId(feedback.getTutor().getId());
         feedbackDto.setRating(feedback.getRating());
