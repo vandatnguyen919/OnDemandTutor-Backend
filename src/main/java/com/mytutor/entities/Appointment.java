@@ -26,6 +26,9 @@ public class Appointment {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "rescheduled_at")
+    private LocalDateTime rescheduledAt;
+
     @Column(name = "description")
     private String description;
 

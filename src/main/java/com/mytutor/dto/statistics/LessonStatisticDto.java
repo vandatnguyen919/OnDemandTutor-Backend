@@ -1,12 +1,15 @@
-package com.mytutor.dto;
+package com.mytutor.dto.statistics;
 
+import com.mytutor.dto.SubjectDto;
 import com.mytutor.entities.Subject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -22,11 +25,13 @@ public class LessonStatisticDto {
     int totalLessons;
     int totalLearntTutor; // for student
     int totalTaughtStudent; // for tutor
-    List<Subject> totalSubjects = new ArrayList<>();
+    double totalIncome;
+    List<SubjectDto> totalSubjects = new ArrayList<>();
 
     // monthly
     int thisMonthLessons;
     int thisMonthTutor; // for student
     int thisMonthStudent; // for tutor
-    List<Subject> thisMonthSubjects = new ArrayList<>();
+    double totalMonthlyIncome;
+    List<SubjectDto> thisMonthSubjects = new ArrayList<>();
 }

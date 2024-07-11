@@ -4,6 +4,7 @@
  */
 package com.mytutor.services;
 
+import com.mytutor.constants.AccountStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.tutor.*;
 
@@ -27,6 +28,8 @@ public interface TutorService {
                                                              String keyword);
 
     ResponseEntity<TutorInfoDto> getTutorById(Integer id);
+
+    ResponseEntity<?> getAllBookedTutorsByStudentId(Integer studentId);
 
     ResponseEntity<List<EducationDto>> getListOfEducationsByTutorId(Integer tutorId, String isVerified);
 

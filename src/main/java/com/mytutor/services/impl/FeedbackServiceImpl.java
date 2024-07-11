@@ -4,16 +4,21 @@
  */
 package com.mytutor.services.impl;
 
+import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.FeedbackType;
-import com.mytutor.dto.FeedbackDto;
+import com.mytutor.dto.feedback.FeedbackDto;
 import com.mytutor.dto.PaginationDto;
+import com.mytutor.dto.feedback.RequestFeedbackDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Feedback;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.FeedbackNotFoundException;
 import com.mytutor.repositories.AccountRepository;
+import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.FeedbackRepository;
 import com.mytutor.services.FeedbackService;
+
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +27,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 /**
@@ -36,6 +43,9 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     @Override
     public ResponseEntity<?> getAllReviews(int pageNo, int pageSize) {
@@ -93,22 +103,43 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public ResponseEntity<?> createReview(int tutorId, FeedbackDto feedbackDto) {
+    public ResponseEntity<?> getReviewsByTutorIdStudentId(int tutorId, int studentId) {
+        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
+        Account student = accountRepository.findById(studentId).orElseThrow(() -> new AccountNotFoundException("Student not found"));
+
+        List<Feedback> feedbacks = feedbackRepository.findByTutorAndCreatedBy(tutor, student);
+
+        if (feedbacks.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        Object response = feedbacks.size() == 1 ? FeedbackDto.mapToDto(feedbacks.get(0)) : feedbacks.stream().map(FeedbackDto::mapToDto).toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Override
+    public ResponseEntity<?> createReview(Principal principal, int tutorId, RequestFeedbackDto requestFeedbackDto) {
+        if (principal == null) {
+            throw new BadCredentialsException("Token cannot be found or trusted");
+        }
 
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
+        Account student = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Student not found"));
 
-        Account creator = accountRepository.findById(feedbackDto.getCreatedById()).orElseThrow(() -> new AccountNotFoundException("Creator not found"));
+        if (!appointmentRepository.existsByTutorIdAndStudentIdAndStatus(tutor.getId(), student.getId(), AppointmentStatus.PAID)) {
+            throw new BadCredentialsException("You have not registered this tutor yet");
+        }
 
         // Map FeedbackDto to Feedback entity
         Feedback feedback = new Feedback();
-        feedback.setRating(feedbackDto.getRating());
-        feedback.setContent(feedbackDto.getContent());
+        feedback.setRating(requestFeedbackDto.getRating());
+        feedback.setContent(requestFeedbackDto.getContent());
         feedback.setCreatedAt(new Date()); // Set the current date as created date
         feedback.setModifiedAt(new Date()); // Set the current date as modified date
         feedback.setIsBanned(false); // Default to not banned
 //        feedback.setType(feedbackDto.getType());
         feedback.setType(FeedbackType.REVIEW); // Default to review
-        feedback.setCreatedBy(creator);
+        feedback.setCreatedBy(student);
         feedback.setTutor(tutor);
 
         // Save the feedback entity
@@ -122,7 +153,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public ResponseEntity<?> updateReviewById(int tutorId, int reviewId, FeedbackDto feedbackDto) {
+    public ResponseEntity<?> updateReviewById(int tutorId, int reviewId, RequestFeedbackDto requestFeedbackDto) {
 
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
 
@@ -133,14 +164,14 @@ public class FeedbackServiceImpl implements FeedbackService {
         }
 
         // Update the fields of the feedback
-        if (feedbackDto.getRating() != null) {
-            feedback.setRating(feedbackDto.getRating());
+        if (requestFeedbackDto.getRating() != null) {
+            feedback.setRating(requestFeedbackDto.getRating());
         }
-        if (feedbackDto.getContent() != null) {
-            feedback.setContent(feedbackDto.getContent());
+        if (requestFeedbackDto.getContent() != null) {
+            feedback.setContent(requestFeedbackDto.getContent());
         }
-        if (feedbackDto.getIsBanned() != null) {
-            feedback.setIsBanned(feedbackDto.getIsBanned());
+        if (requestFeedbackDto.getIsBanned() != null) {
+            feedback.setIsBanned(requestFeedbackDto.getIsBanned());
         }
         feedback.setModifiedAt(new Date()); // Set the current date as modified date
 
@@ -157,16 +188,12 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public ResponseEntity<?> deleteReviewById(int tutorId, int reviewId) {
         Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Tutor not found"));
-
         Feedback feedback = feedbackRepository.findById(reviewId).orElseThrow(() -> new FeedbackNotFoundException("Feedback not found"));
-
         if (tutor.getId() != feedback.getTutor().getId()) {
             throw new FeedbackNotFoundException("Feedback not belongs to this tutor");
         }
-
         // Delete the feedback
         feedbackRepository.delete(feedback);
-
         return ResponseEntity.status(HttpStatus.OK).body("deleted successfully");
     }
 

@@ -1,6 +1,5 @@
 package com.mytutor.services.impl;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mytutor.config.VNPayConfig;
@@ -22,6 +21,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +34,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -59,7 +61,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT cannot be found or trusted");
+            throw new BadCredentialsException("Token cannot be found or trusted");
         }
         Account payer = accountRepository.findByEmail(principal.getName()).orElseThrow(() -> new AccountNotFoundException("Account not found"));
 
@@ -76,6 +78,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public ResponseEntity<?> checkVNPayPayment(Principal principal, HttpServletRequest req, String vnp_TxnRef, String vnp_TransDate) throws IOException {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token cannot be found or trusted");
+        }
+
         String vnp_RequestId = VNPayConfig.getRandomNumber(8);
         String vnp_Version = "2.1.0";
         String vnp_Command = "querydr";
@@ -83,9 +89,10 @@ public class PaymentServiceImpl implements PaymentService {
         String vnp_OrderInfo = "Kiem tra ket qua GD OrderId:" + vnp_TxnRef;
         //String vnp_TransactionNo = req.getParameter("transactionNo");
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnp_CreateDate = formatter.format(cld.getTime());
+        ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+        ZonedDateTime now = ZonedDateTime.now(zoneId);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String vnp_CreateDate = now.format(formatter);
 
         String vnp_IpAddr = VNPayConfig.getIpAddress(req);
 
@@ -207,13 +214,16 @@ public class PaymentServiceImpl implements PaymentService {
         vnp_Params.put("vnp_ReturnUrl", VNPayConfig.vnp_ReturnUrl);
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
-        String vnp_CreateDate = formatter.format(cld.getTime());
+        ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+        ZonedDateTime now = ZonedDateTime.now(zoneId);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String vnp_CreateDate = now.format(formatter);
+
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        cld.add(Calendar.MINUTE, 15);
-        String vnp_ExpireDate = formatter.format(cld.getTime());
+        ZonedDateTime expireDate = now.plusMinutes(15);
+
+        String vnp_ExpireDate = expireDate.format(formatter);
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
