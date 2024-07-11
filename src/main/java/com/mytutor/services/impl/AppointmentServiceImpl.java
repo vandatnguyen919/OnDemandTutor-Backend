@@ -32,6 +32,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -73,22 +74,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     private JavaMailSender mailSender;
 
     @Override
-    public ResponseEntity<ResponseAppointmentDto> getAppointmentById(Integer appointmentId) {
+    public ResponseAppointmentDto getAppointmentById(Integer appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
         ResponseAppointmentDto dto = ResponseAppointmentDto.mapToDto(appointment);
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return dto;
     }
 
     @Override
-    public ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointmentsByAccountId(Integer accountId,
+    public PaginationDto<ResponseAppointmentDto> getAppointmentsByAccountId(Integer accountId,
                                                                                             AppointmentStatus status,
                                                                                             Integer pageNo,
                                                                                             Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Appointment> appointments;
         appointments = appointmentRepository.findAppointmentByAccountId(accountId, status, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(getPaginationDto(appointments));
+        return getPaginationDto(appointments);
     }
 
     @Override
@@ -277,7 +278,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new AccountNotFoundException("Only student can book lessons!");
         }
 
-        Appointment appointment = createAppointmentInstance(studentId, inputAppointmentDto);
+        Appointment appointment = createAppointmentInstance(student, inputAppointmentDto);
 
         // save entities
         timeslotRepository.saveAll(appointment.getTimeslots());
@@ -288,17 +289,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
-    private Appointment createAppointmentInstance(Integer studentId,
+    private Appointment createAppointmentInstance(Account student,
                                                   InputAppointmentDto inputAppointmentDto) {
         Account tutor = accountRepository.findById(inputAppointmentDto.getTutorId())
                 .orElseThrow(() -> new AccountNotFoundException("Tutor not found!"));
 
-        if (Objects.equals(studentId, inputAppointmentDto.getTutorId())) {
+        if (Objects.equals(student.getId(), inputAppointmentDto.getTutorId())) {
             throw new AppointmentNotFoundException("Cannot book yourself!");
         }
+
         // create appointment instance
         Appointment appointment = new Appointment();
-        appointment.setStudent(accountRepository.findById(studentId).get());
+        appointment.setStudent(student);
         appointment.setTutor(tutor);
         appointment.setDescription(inputAppointmentDto.getDescription());
         if (inputAppointmentDto.getSubjectName() == null || inputAppointmentDto.getSubjectName().isBlank()) {
@@ -313,6 +315,21 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setCreatedAt(LocalDateTime.now());
         appointment.setStatus(AppointmentStatus.PENDING_PAYMENT);
 
+        // check timeslots of tutor is occupied
+        List<Timeslot> timeslotsAfterCheckTutorOverlap = getAndCheckTimeslotsOfTutorAreOccupied(inputAppointmentDto, appointment);
+        List<Timeslot> timeslotsAfterCheckStudentOverlap = getAndCheckStudentHasOverlappedSlots(student, timeslotsAfterCheckTutorOverlap);
+
+        appointment.setTimeslots(timeslotsAfterCheckStudentOverlap);
+
+        // calculate and set tuition = total hours * teach price per hour
+        appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
+                * calculateTotalHoursBySlots(appointment.getTimeslots()));
+
+        return appointment;
+    }
+
+    private List<Timeslot> getAndCheckTimeslotsOfTutorAreOccupied(InputAppointmentDto inputAppointmentDto, Appointment appointment) {
+        List<Timeslot> validTimeslots = new ArrayList<>();
         for (Integer i : inputAppointmentDto.getTimeslotIds()) {
             WeeklySchedule w = weeklyScheduleRepository.findById(i)
                     .orElseThrow(() -> new TimeslotValidationException("Schedule not found!"));
@@ -327,17 +344,51 @@ public class AppointmentServiceImpl implements AppointmentService {
                 Timeslot t = new Timeslot();
                 t.setWeeklySchedule(w);
                 t.setScheduleDate(bookDate);
-//                t.setOccupied(true);
-                appointment.getTimeslots().add(t);
                 t.setAppointment(appointment);
+                validTimeslots.add(t);
             }
         }
+        return validTimeslots;
+    }
 
-        // calculate and set tuition = total hours * teach price per hour
-        appointment.setTuition(tutor.getTutorDetail().getTeachingPricePerHour()
-                * calculateTotalHoursBySlots(appointment.getTimeslots()));
+    private List<Timeslot> getAndCheckStudentHasOverlappedSlots(Account student, List<Timeslot> timeslots) {
+        // trong cac appointment da book, cai nao co 1 slot bat ki overlap voi 1 cai slot bat ki trong timeslots dang book
+        // => throw exception
+        List<Appointment> appointments = appointmentRepository.findByStudentOrTutor(student, student);
 
-        return appointment;
+        for (Appointment a : appointments) {
+            for (Timeslot existedSlot : a.getTimeslots()) {
+                for (Timeslot newSlot : timeslots) {
+                    if (isConflicted(existedSlot, newSlot)) {
+                        throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
+                                "Please check your schedule in Schedule Session carefully before booking!");
+                    } else {
+                        System.out.println("Existed slot: " + existedSlot.getScheduleDate() + " - " + existedSlot.getWeeklySchedule().getStartTime() + " - " +existedSlot.getWeeklySchedule().getEndTime() );
+                        System.out.println("New slot: " + newSlot.getScheduleDate() + " - " + newSlot.getWeeklySchedule().getStartTime() + " - " +newSlot.getWeeklySchedule().getEndTime() );
+                    }
+                }
+            }
+        }
+        return timeslots;
+    }
+
+    private boolean isConflicted(Timeslot existedSlot, Timeslot newSlot) {
+        Time oldStartTime = existedSlot.getWeeklySchedule().getStartTime();
+        Time oldEndTime = existedSlot.getWeeklySchedule().getEndTime();
+        Time newStartTime = newSlot.getWeeklySchedule().getStartTime();
+        Time newEndTime = newSlot.getWeeklySchedule().getEndTime();
+
+        // Check if the dates are different
+        if (!existedSlot.getScheduleDate().equals(newSlot.getScheduleDate())) {
+            return false;
+        }
+
+        // Check for time overlap
+        if (newStartTime.before(oldEndTime) && newEndTime.after(oldStartTime)) {
+            return true;
+        }
+
+        return false;
     }
 
     private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
