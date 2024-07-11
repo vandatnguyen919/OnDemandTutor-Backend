@@ -7,7 +7,7 @@ mytutor:
     # 2 weeks in second
     token-validity-in-second: 1209600
   url:
-    client: https://my-tutor-site.vercel.app
+    client: https://mytutor-site.vercel.app
 
 vnp:
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
