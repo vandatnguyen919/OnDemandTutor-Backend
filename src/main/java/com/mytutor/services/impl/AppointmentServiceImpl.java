@@ -354,41 +354,17 @@ public class AppointmentServiceImpl implements AppointmentService {
     private List<Timeslot> getAndCheckStudentHasOverlappedSlots(Account student, List<Timeslot> timeslots) {
         // trong cac appointment da book, cai nao co 1 slot bat ki overlap voi 1 cai slot bat ki trong timeslots dang book
         // => throw exception
-        List<Appointment> appointments = appointmentRepository.findByStudentOrTutor(student, student);
-
-        for (Appointment a : appointments) {
-            for (Timeslot existedSlot : a.getTimeslots()) {
-                for (Timeslot newSlot : timeslots) {
-                    if (isConflicted(existedSlot, newSlot)) {
-                        throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
+        for (Timeslot newSlot : timeslots) {
+            if (timeslotRepository.findOverlapExistedSlot(
+                                    newSlot.getScheduleDate(),
+                                    newSlot.getWeeklySchedule().getStartTime(),
+                                    newSlot.getWeeklySchedule().getEndTime(),
+                                    student) != null) { // goi repo check
+                throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
                                 "Please check your schedule in Schedule Session carefully before booking!");
-                    } else {
-                        System.out.println("Existed slot: " + existedSlot.getScheduleDate() + " - " + existedSlot.getWeeklySchedule().getStartTime() + " - " +existedSlot.getWeeklySchedule().getEndTime() );
-                        System.out.println("New slot: " + newSlot.getScheduleDate() + " - " + newSlot.getWeeklySchedule().getStartTime() + " - " +newSlot.getWeeklySchedule().getEndTime() );
-                    }
-                }
             }
         }
         return timeslots;
-    }
-
-    private boolean isConflicted(Timeslot existedSlot, Timeslot newSlot) {
-        Time oldStartTime = existedSlot.getWeeklySchedule().getStartTime();
-        Time oldEndTime = existedSlot.getWeeklySchedule().getEndTime();
-        Time newStartTime = newSlot.getWeeklySchedule().getStartTime();
-        Time newEndTime = newSlot.getWeeklySchedule().getEndTime();
-
-        // Check if the dates are different
-        if (!existedSlot.getScheduleDate().equals(newSlot.getScheduleDate())) {
-            return false;
-        }
-
-        // Check for time overlap
-        if (newStartTime.before(oldEndTime) && newEndTime.after(oldStartTime)) {
-            return true;
-        }
-
-        return false;
     }
 
     private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
@@ -532,7 +508,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo(receivers);
+            helper.setTo("hoavo.dev.demo@gmail.com");
+            helper.setBcc(receivers);
             helper.setSubject(subject);
             helper.setText(content, true);
         } catch (MessagingException e) {
