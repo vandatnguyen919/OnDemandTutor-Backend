@@ -29,6 +29,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -236,6 +237,7 @@ public class SalaryServiceImpl implements SalaryService {
         WithdrawRequest newWithdrawRequest = withdrawRequest.mapToEntity(tutor);
 
         // set amount using getMonthlySalaryOfATutor in this service
+        newWithdrawRequest.setCreatedAt(LocalDateTime.now());
         newWithdrawRequest.setAmount(getMonthlySalaryOfATutor(tutor.getId(), withdrawRequest.getMonth(), withdrawRequest.getYear()));
         withdrawRequestRepository.save(newWithdrawRequest);
 
