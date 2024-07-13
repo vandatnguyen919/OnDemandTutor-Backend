@@ -67,7 +67,7 @@ public class SalaryController {
         return ResponseEntity.status(HttpStatus.OK).body("Salary Announcement Emails sent");
     }
 
-    @PostMapping("/send-withdraw-email/{withdrawRequestId}")
+    @PostMapping("/send-withdraw-email")
     public ResponseEntity<String> sendWithdrawAnnouncementEmail(
             @RequestBody UpdateWithdrawRequestDto updateWithdrawRequestDto
     ) {
