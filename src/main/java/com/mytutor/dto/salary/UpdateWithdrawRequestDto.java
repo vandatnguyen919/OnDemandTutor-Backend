@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class UpdateWithdrawRequestDto {
     Integer withdrawRequestId;
     String updatedStatus;
+    String rejectReason;
 }
