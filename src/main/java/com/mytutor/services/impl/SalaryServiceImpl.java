@@ -53,6 +53,7 @@ public class SalaryServiceImpl implements SalaryService {
 
     @Value("${mytutor.url.client}")
     private String clientUrl;
+
     @Autowired
     private WithdrawRequestRepository withdrawRequestRepository;
 
@@ -253,7 +254,6 @@ public class SalaryServiceImpl implements SalaryService {
 
         // convert to pagination dto and return
         return getPaginationDto(listOfWithdrawRequest);
-
     }
 
     private PaginationDto<ResponseWithdrawRequestDto> getPaginationDto(Page<WithdrawRequest> withdrawRequests) {

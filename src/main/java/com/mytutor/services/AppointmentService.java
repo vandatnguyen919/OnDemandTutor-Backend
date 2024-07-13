@@ -6,7 +6,8 @@ import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
-import com.mytutor.dto.statistics.LessonStatisticDto;
+import com.mytutor.dto.statistics.StudentLessonStatisticDto;
+import com.mytutor.dto.statistics.TutorLessonStatisticDto;
 import com.mytutor.entities.Appointment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -30,9 +31,9 @@ public interface AppointmentService {
 
     ResponseEntity<PaginationDto<ResponseAppointmentDto>> getAppointments(AppointmentStatus status, Integer pageNo, Integer pageSize);
 
-    ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId);
+    ResponseEntity<StudentLessonStatisticDto> getStudentStatistics(Integer studentId);
   
-    ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer accountId);
+    TutorLessonStatisticDto getTutorStatistics(Integer accountId, Integer month, Integer year);
   
     ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, RequestReScheduleDto dto);
   
