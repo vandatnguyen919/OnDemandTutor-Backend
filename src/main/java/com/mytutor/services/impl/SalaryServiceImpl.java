@@ -19,6 +19,7 @@ import com.mytutor.repositories.WithdrawRequestRepository;
 import com.mytutor.services.SalaryService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.With;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +55,9 @@ public class SalaryServiceImpl implements SalaryService {
 
     @Value("${mytutor.url.client}")
     private String clientUrl;
+
+    @Value("${spring.mail.username}")
+    private String myTutorSenderEmail;
 
     @Autowired
     private WithdrawRequestRepository withdrawRequestRepository;
@@ -93,31 +98,12 @@ public class SalaryServiceImpl implements SalaryService {
         }
         // send email
         List<Account> activeTutors = accountRepository.findByRoleAndStatus(Role.TUTOR, AccountStatus.ACTIVE);
-        sendSalaryAnnouncementEmail(activeTutors, month, year);
+        String subject = getSalaryAnnouncementEmailContent(month, year)[0];
+        String content = getSalaryAnnouncementEmailContent(month, year)[1];
+        sendEmail(activeTutors, subject, content);
     }
 
-    private void sendSalaryAnnouncementEmail(List<Account> activeTutors, Integer month, Integer year) {
-        String subject = getEmailContent(month, year)[0];
-        String content = getEmailContent(month, year)[1];
-        String[] emailsOfActiveTutors = new String[activeTutors.size()];
-        for (int i = 0; i < activeTutors.size(); i++) {
-            emailsOfActiveTutors[i] = activeTutors.get(i).getEmail();
-        }
-
-        MimeMessage message = mailSender.createMimeMessage();
-        try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo("datnguyen.dev.demo@gmail.com");
-            helper.setBcc(emailsOfActiveTutors);
-            helper.setSubject(subject);
-            helper.setText(content, true);
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
-        }
-        mailSender.send(message);
-    }
-
-    private String[] getEmailContent(Integer month, Integer year) {
+    private String[] getSalaryAnnouncementEmailContent(Integer month, Integer year) {
         String subject = "[MyTutor] Salary Announcement for month " + month + " year " + year;
         String content = "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -145,6 +131,84 @@ public class SalaryServiceImpl implements SalaryService {
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>\n";
+        String[] subjectAndContent = new String[2];
+        subjectAndContent[0] = subject;
+        subjectAndContent[1] = content;
+        return subjectAndContent;
+    }
+
+    @Override
+    public void sendWithdrawRequestEmail(UpdateWithdrawRequestDto requestToUpdateDto) {
+        WithdrawRequest withdrawRequest = withdrawRequestRepository.findById(requestToUpdateDto.getWithdrawRequestId())
+                .orElseThrow(() -> new WithdrawRequestNotFoundException("Withdraw Not Found!"));
+        Account tutor = withdrawRequest.getTutor();
+        List<Account> tutorCastedTolist = new ArrayList<>();
+        tutorCastedTolist.add(tutor);
+        String subject = getWithdrawRequestEmailContent(withdrawRequest, requestToUpdateDto)[0];
+        String content = getWithdrawRequestEmailContent(withdrawRequest, requestToUpdateDto)[1];
+        sendEmail(tutorCastedTolist, subject, content);
+    }
+
+    private String[] getWithdrawRequestEmailContent(WithdrawRequest withdrawRequest, UpdateWithdrawRequestDto requestToUpdateDto) {
+        String subject = "[MyTutor] Withdraw Request Announcement";
+        String content;
+
+
+        if ("REJECTED".equalsIgnoreCase(requestToUpdateDto.getUpdatedStatus())) {
+            content = "<!DOCTYPE html>\n" +
+                    "<html lang=\"en\">\n" +
+                    "<head>\n" +
+                    "    <meta charset=\"UTF-8\">\n" +
+                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                    "    <title>Withdraw Request Announcement</title>\n" +
+                    getStyle() +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "    <div class=\"container\">\n" +
+                    "        <div class=\"header\">\n" +
+                    "            <h1>Withdraw Request Update</h1>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"content\">\n" +
+                    "            <p>Dear Tutor,</p>\n" +
+                    "            <p>We regret to inform you that your withdraw request of month " + withdrawRequest.getMonth() + "/" + withdrawRequest.getYear() + " has been <strong>rejected</strong>.</p>\n" +
+                    "            <p><strong>Reason for rejection:</strong> " + requestToUpdateDto.getRejectReason() + "</p>\n" +
+                    "            <p>If you have any questions, please contact our support team.</p>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"footer\">\n" +
+                    "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
+                    "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
+                    "        </div>\n" +
+                    "    </div>\n" +
+                    "</body>\n" +
+                    "</html>\n";
+        } else {
+            content = "<!DOCTYPE html>\n" +
+                    "<html lang=\"en\">\n" +
+                    "<head>\n" +
+                    "    <meta charset=\"UTF-8\">\n" +
+                    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                    getStyle() +
+                    "</head>\n" +
+                    "<body>\n" +
+                    "    <div class=\"container\">\n" +
+                    "        <div class=\"header\">\n" +
+                    "            <h1>Withdraw Request Update</h1>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"content\">\n" +
+                    "            <p>Dear Tutor,</p>\n" +
+                    "            <p>We are pleased to inform you that your withdraw request of month " + withdrawRequest.getMonth() + "/" + withdrawRequest.getYear() + " has been <strong>approved</strong> and processed.</p>\n" +
+                    "            <p>Please check your transaction history for more details.</p>\n" +
+                    "            <p>If you have any questions, please contact our support team.</p>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"footer\">\n" +
+                    "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
+                    "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
+                    "        </div>\n" +
+                    "    </div>\n" +
+                    "</body>\n" +
+                    "</html>\n";
+        }
+
         String[] subjectAndContent = new String[2];
         subjectAndContent[0] = subject;
         subjectAndContent[1] = content;
@@ -218,6 +282,25 @@ public class SalaryServiceImpl implements SalaryService {
                 "            text-align: center;\n" +
                 "        }\n" +
                 "    </style>\n";
+    }
+
+    private void sendEmail(List<Account> tutors, String subject, String content) {
+        String[] emailsOfTutors = new String[tutors.size()];
+        for (int i = 0; i < tutors.size(); i++) {
+            emailsOfTutors[i] = tutors.get(i).getEmail();
+        }
+
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo(myTutorSenderEmail);
+            helper.setBcc(emailsOfTutors);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+        mailSender.send(message);
     }
 
     @Override
