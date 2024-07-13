@@ -16,6 +16,9 @@ import java.util.*;
 @Component
 public class VNPayConfig {
 
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
+
     @Value("${vnp.payUrl}")
     private String vnpPayUrl;
 
@@ -44,7 +47,7 @@ public class VNPayConfig {
     @PostConstruct
     private void init() {
         VNPayConfig.vnp_PayUrl = this.vnpPayUrl;
-        VNPayConfig.vnp_ReturnUrl = this.vnpReturnUrl;
+        VNPayConfig.vnp_ReturnUrl = clientUrl + this.vnpReturnUrl;
         VNPayConfig.vnp_TmnCode = this.vnpTmnCode;
         VNPayConfig.secretKey = this.secretKey2;
         VNPayConfig.vnp_Version = this.vnpVersion;

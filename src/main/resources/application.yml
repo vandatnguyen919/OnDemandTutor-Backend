@@ -7,11 +7,11 @@ mytutor:
     # 2 weeks in second
     token-validity-in-second: 1209600
   url:
-    client: https://mytutor-site.vercel.app
+    client: http://localhost:5173
 
 vnp:
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: https://on-demand-tutor.vercel.app/confirm-payment
+  returnUrl: /confirm-payment
   tmnCode: 0ZLJX97B
   secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
   version: 2.1.0
@@ -40,9 +40,9 @@ spring:
     name: MyTutor
   
   datasource:
-    url: jdbc:mysql://root:hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt@monorail.proxy.rlwy.net:16440/railway?serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/mytutor
     username: root
-    password: hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt
+    password: 12345
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   jpa:
