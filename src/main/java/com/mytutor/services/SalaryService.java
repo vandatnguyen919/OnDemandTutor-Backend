@@ -4,11 +4,9 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.salary.RequestWithdrawRequestDto;
 import com.mytutor.dto.salary.ResponseWithdrawRequestDto;
 import com.mytutor.dto.salary.UpdateWithdrawRequestDto;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.List;
 
 @Service
 public interface SalaryService {
@@ -23,4 +21,6 @@ public interface SalaryService {
     PaginationDto<ResponseWithdrawRequestDto> getListOfWithdrawRequest(Integer pageNo, Integer pageSize);
 
     ResponseWithdrawRequestDto updateWithdrawRequest(UpdateWithdrawRequestDto requestToUpdateDto);
+
+    void sendWithdrawRequestEmail(UpdateWithdrawRequestDto requestToUpdateDto);
 }

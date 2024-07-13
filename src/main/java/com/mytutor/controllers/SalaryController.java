@@ -6,6 +6,7 @@ import com.mytutor.dto.salary.ResponseWithdrawRequestDto;
 import com.mytutor.dto.salary.UpdateWithdrawRequestDto;
 import com.mytutor.entities.WithdrawRequest;
 import com.mytutor.services.SalaryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class SalaryController {
     @Autowired
     private SalaryService salaryService;
 
-    @GetMapping("/{tutorId}/salary")
+    @GetMapping("/{tutorId}")
     public ResponseEntity<Double> getTutorSalaryStatistic
             (@PathVariable Integer tutorId,
              @RequestParam Integer month,
@@ -36,7 +37,7 @@ public class SalaryController {
     public ResponseEntity<ResponseWithdrawRequestDto> sendWithdrawRequest(
             Principal principal,
             @PathVariable Integer tutorId,
-            @RequestBody RequestWithdrawRequestDto withdrawRequest
+            @Valid @RequestBody RequestWithdrawRequestDto withdrawRequest
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(salaryService.createWithdrawRequest(principal, tutorId, withdrawRequest));
@@ -57,12 +58,20 @@ public class SalaryController {
         return ResponseEntity.status(HttpStatus.OK).body(salaryService.updateWithdrawRequest(updateWithdrawRequestDto));
     }
 
-    @PostMapping("/send-emails")
+    @PostMapping("/send-salary-emails")
     public ResponseEntity<String> sendSalaryAnnouncementEmails(
             @RequestParam int month,
             @RequestParam int year
     ) {
         salaryService.sendSalaryAnnouncementEmail(month, year);
-        return ResponseEntity.status(HttpStatus.OK).body("Email sent");
+        return ResponseEntity.status(HttpStatus.OK).body("Salary Announcement Emails sent");
+    }
+
+    @PostMapping("/send-withdraw-email/{withdrawRequestId}")
+    public ResponseEntity<String> sendWithdrawAnnouncementEmail(
+            @RequestBody UpdateWithdrawRequestDto updateWithdrawRequestDto
+    ) {
+        salaryService.sendWithdrawRequestEmail(updateWithdrawRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body("Withdraw Request Announcement Email sent");
     }
 }
