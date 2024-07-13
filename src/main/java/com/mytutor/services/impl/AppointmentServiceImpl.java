@@ -2,49 +2,40 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
-import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.statistics.LessonStatisticDto;
-import com.mytutor.entities.Account;
-import com.mytutor.entities.Appointment;
-import com.mytutor.entities.Subject;
-import com.mytutor.entities.Timeslot;
-import com.mytutor.entities.WeeklySchedule;
+import com.mytutor.entities.*;
 import com.mytutor.exceptions.*;
-import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.AppointmentRepository;
-import com.mytutor.repositories.SubjectRepository;
-import com.mytutor.repositories.TimeslotRepository;
-import com.mytutor.repositories.WeeklyScheduleRepository;
+import com.mytutor.repositories.*;
 import com.mytutor.services.AppointmentService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.modelmapper.ModelMapper;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -510,7 +501,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         mailSender.send(message);
     }
-    private String getStyle() {
+
+    @Contract(pure = true)
+    private @NotNull String getStyle() {
         return "<style>\n" +
                 "        body {\n" +
                 "            font-family: Arial, sans-serif;\n" +
@@ -758,5 +751,4 @@ public class AppointmentServiceImpl implements AppointmentService {
             rollbackAppointment(appointment);
         }
     }
-
 }

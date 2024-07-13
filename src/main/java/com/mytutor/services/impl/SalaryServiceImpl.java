@@ -26,10 +26,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,6 +53,7 @@ public class SalaryServiceImpl implements SalaryService {
 
     @Value("${mytutor.url.client}")
     private String clientUrl;
+
     @Autowired
     private WithdrawRequestRepository withdrawRequestRepository;
 
@@ -62,6 +63,16 @@ public class SalaryServiceImpl implements SalaryService {
         LocalDateTime endDate = startDate.plusMonths(1);
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(tutorId, startDate, endDate);
         return getTotalIncome(tutorId, appointments);
+    }
+
+    // This function is automatically called at 00:00 of 5th of every month
+    @Scheduled(cron = "0 0 0 5 * ?", zone = "Asia/Ho_Chi_Minh") // This cron expression runs at midnight on the 5th of every month
+    public void scheduleSalaryAnnouncement() {
+        LocalDate today = LocalDate.now();
+        int month = today.minusMonths(1).getMonthValue();
+        int year = today.minusMonths(1).getYear();
+
+        sendSalaryAnnouncementEmail(month, year);
     }
 
     @Override
@@ -75,7 +86,9 @@ public class SalaryServiceImpl implements SalaryService {
 //        if (today.getDayOfMonth() != 5) {
 //            throw new InvalidStatusException("Today is not the date for Salary Announcement");
 //        }
-        if (!(month <= today.getMonthValue() - 1 && year == today.getYear()) && !(today.getMonthValue() == 1 && year <= today.getYear() - 1)) {
+        int maxPaymentMonth = today.minusMonths(1).getMonthValue(); // payment request must be from the previous month
+        int maxPaymentYear = today.minusMonths(1).getMonthValue();
+        if (!(month <= maxPaymentMonth && year <= maxPaymentYear)) {
             throw new InvalidStatusException("This month and year is not allowed to pay salary for this Salary Announcement");
         }
         // send email
@@ -94,7 +107,7 @@ public class SalaryServiceImpl implements SalaryService {
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo("hoavo.dev.demo@gmail.com");
+            helper.setTo("datnguyen.dev.demo@gmail.com");
             helper.setBcc(emailsOfActiveTutors);
             helper.setSubject(subject);
             helper.setText(content, true);
@@ -206,7 +219,6 @@ public class SalaryServiceImpl implements SalaryService {
                 "        }\n" +
                 "    </style>\n";
     }
-
 
     @Override
     public ResponseWithdrawRequestDto createWithdrawRequest(Principal principal, Integer tutorId, RequestWithdrawRequestDto withdrawRequest) {
