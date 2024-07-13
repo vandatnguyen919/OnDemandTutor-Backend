@@ -7,6 +7,7 @@ import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class AppointmentController {
     @GetMapping("/{appointmentId}")
     public ResponseEntity<ResponseAppointmentDto> getAppointmentById(
             @PathVariable Integer appointmentId) {
-        return appointmentService.getAppointmentById(appointmentId);
+        return ResponseEntity.status(HttpStatus.OK).body(appointmentService.getAppointmentById(appointmentId));
     }
 
     // lay ra tat ca appointment theo trang thai
@@ -43,7 +44,7 @@ public class AppointmentController {
             @RequestParam(value = "status", required = false) AppointmentStatus status,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) int pageSize) {
-        return appointmentService.getAppointmentsByAccountId(accountId, status, pageNo, pageSize);
+        return ResponseEntity.status(HttpStatus.OK).body(appointmentService.getAppointmentsByAccountId(accountId, status, pageNo, pageSize));
     }
 
     // student tao mot appointment moi

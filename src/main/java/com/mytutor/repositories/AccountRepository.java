@@ -31,6 +31,8 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     Optional<Account> findByIdAndRole(Integer id, Role role);
 
+    List<Account> findByRoleAndStatus(Role role, AccountStatus status);
+
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
@@ -42,6 +44,7 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     @Query("SELECT a FROM Account a WHERE a.role = :role AND a.status = :status")
     Page<Account> findByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
 
+
     @Query("SELECT COUNT(a) " +
             "FROM Account a " +
             "WHERE a.role = :role")
@@ -51,4 +54,13 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
             "FROM Account a " +
             "GROUP BY a.role")
     List<RoleCount> countAccountsByRole();
+
+    @Query("SELECT a FROM Account a WHERE " +
+            " a.role = :role AND a.status = :status " +
+            " AND (" +
+                " a.id IN (SELECT e.account.id FROM Education e WHERE e.isVerified = false) " +
+                " OR a.id IN (SELECT c.account.id FROM Certificate c WHERE c.isVerified = false)" +
+            " )"
+    )
+    Page<Account> findTutorByUnverifiedDocuments(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
 }

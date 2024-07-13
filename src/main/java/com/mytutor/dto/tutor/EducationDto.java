@@ -4,9 +4,6 @@
  */
 package com.mytutor.dto.tutor;
 
-import com.mytutor.constants.VerifyStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 /**

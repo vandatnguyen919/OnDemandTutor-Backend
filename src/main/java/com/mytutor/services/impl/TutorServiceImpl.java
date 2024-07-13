@@ -15,10 +15,7 @@ import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.entities.*;
-import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.exceptions.CertificateNotFoundException;
-import com.mytutor.exceptions.EducationNotFoundException;
-import com.mytutor.exceptions.SubjectNotFoundException;
+import com.mytutor.exceptions.*;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
 
@@ -95,6 +92,8 @@ public class TutorServiceImpl implements TutorService {
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                     tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(a));
                     tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId(), true).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
@@ -117,6 +116,11 @@ public class TutorServiceImpl implements TutorService {
     public ResponseEntity<TutorInfoDto> getTutorById(Integer tutorId) {
         Account tutor = accountRepository.findByIdAndRole(tutorId, Role.TUTOR)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        if (tutor.getSubjects().isEmpty()) {
+            System.out.println("Empty!");
+        }
+        Set<Subject> subjects = subjectRepository.findByTutorId(tutorId);
+        tutor.setSubjects(subjects);
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
@@ -298,7 +302,7 @@ public class TutorServiceImpl implements TutorService {
 
         // neu accountid da nam trong danh sach thi return luon
         if (account.getTutorDetail() != null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
+            throw new InvalidStatusException("Tutor description existed!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 
@@ -382,6 +386,8 @@ public class TutorServiceImpl implements TutorService {
     @Override
     public ResponseEntity<?> getTutorDescriptionById(Integer accountId) {
         Account tutor = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found"));
+        Set<Subject> subjects = subjectRepository.findByTutorId(accountId);
+        tutor.setSubjects(subjects);
         TutorDescriptionDto tutorDescriptionDto = modelMapper.map(tutor.getTutorDetail(), TutorDescriptionDto.class);
         Set<String> subjectNames = new HashSet<>();
         for (Subject s : tutor.getSubjects()) {

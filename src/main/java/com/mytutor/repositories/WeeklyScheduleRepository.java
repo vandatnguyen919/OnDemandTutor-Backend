@@ -17,9 +17,7 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
     @Query("SELECT w FROM WeeklySchedule w " +
             "WHERE w.account.id = :tutorId " +
             "AND w.dayOfWeek = :dayOfWeek AND w.isUsing = true " +
-            "AND ((w.startTime >= :startTime AND w.startTime < :endTime) " +
-            "OR (w.endTime > :startTime AND w.endTime <= :endTime) " +
-            "OR (w.startTime <= :startTime AND w.endTime >= :endTime))")
+            "AND (w.startTime < :endTime AND w.endTime > :startTime) ")
     List<WeeklySchedule> findOverlapUsingSchedule(@Param("tutorId") Integer tutorId,
                                                   @Param("dayOfWeek") Integer dayOfWeek,
                                                   @Param("startTime") Time startTime,

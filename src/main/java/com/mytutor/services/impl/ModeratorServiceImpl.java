@@ -19,6 +19,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -68,6 +69,9 @@ public class ModeratorServiceImpl implements ModeratorService {
     @Autowired
     private SubjectRepository subjectRepository;
 
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
+
     @Override
     public ResponseEntity<?> checkEducationsAndCertificatesByTutor(int tutorId, RequestCheckDocumentDto dto) {
         // Handle educations
@@ -83,6 +87,7 @@ public class ModeratorServiceImpl implements ModeratorService {
 
         return ResponseEntity.ok().body("Checked documents! Please send email to tutor!");
     }
+
 
     @Transactional
     @Override
@@ -118,9 +123,12 @@ public class ModeratorServiceImpl implements ModeratorService {
         // Handle subjects
         Set<Subject> approvedSubjects = new HashSet<>();
         for (String subjectName : dto.getApprovedSubjects()) {
-            approvedSubjects.add(subjectRepository.findBySubjectName(subjectName)
-                    .orElseThrow(() -> new SubjectNotFoundException("Subject not found!")));
+            Subject subject = subjectRepository.findBySubjectName(subjectName)
+                    .orElseThrow(() -> new SubjectNotFoundException("Subject not found!"));
+            approvedSubjects.add(subject);
         }
+
+        tutor.getSubjects().clear();
         tutor.setSubjects(approvedSubjects);
 
         // Handle educations
@@ -315,7 +323,7 @@ public class ModeratorServiceImpl implements ModeratorService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
@@ -350,6 +358,8 @@ public class ModeratorServiceImpl implements ModeratorService {
         List<TutorInfoDto> content = listOfTutors.stream()
                 .map(a -> {
                     TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
                     tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
                             .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
                     return tutorInfoDto;
@@ -387,6 +397,34 @@ public class ModeratorServiceImpl implements ModeratorService {
         questionResponseDto.setTotalPages(questionListPage.getTotalPages());
         questionResponseDto.setLast(questionListPage.isLast());
         return ResponseEntity.ok(questionResponseDto);
+    }
+
+
+    @Override
+    public PaginationDto<TutorInfoDto> getTutorListHasNotVerifiedDocuments(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Account> tutorListPage = accountRepository.findTutorByUnverifiedDocuments(Role.TUTOR, AccountStatus.ACTIVE, pageable);
+        List<Account> listOfTutors = tutorListPage.getContent();
+
+        List<TutorInfoDto> content = listOfTutors.stream()
+                .map(a -> {
+                    TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(a, a.getTutorDetail());
+                    tutorInfoDto.setSubjects(subjectRepository.findByTutorId(a.getId()).stream()
+                            .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
+                    tutorInfoDto.setEducations(educationRepository.findByAccountId(a.getId()).stream()
+                            .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+                    return tutorInfoDto;
+                })
+                .collect(Collectors.toList());
+
+        PaginationDto<TutorInfoDto> tutorResponseDto = new PaginationDto<>();
+        tutorResponseDto.setContent(content);
+        tutorResponseDto.setPageNo(tutorListPage.getNumber());
+        tutorResponseDto.setPageSize(tutorListPage.getSize());
+        tutorResponseDto.setTotalElements(tutorListPage.getTotalElements());
+        tutorResponseDto.setTotalPages(tutorListPage.getTotalPages());
+        tutorResponseDto.setLast(tutorListPage.isLast());
+        return tutorResponseDto;
     }
 
 }
