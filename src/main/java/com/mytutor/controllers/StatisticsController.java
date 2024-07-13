@@ -1,10 +1,7 @@
 package com.mytutor.controllers;
 
 import com.mytutor.constants.Role;
-import com.mytutor.dto.statistics.DateTuitionSum;
-import com.mytutor.dto.statistics.LessonStatisticDto;
-import com.mytutor.dto.statistics.SubjectTuitionSum;
-import com.mytutor.dto.statistics.SubjectTutorCount;
+import com.mytutor.dto.statistics.*;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import org.springframework.web.bind.annotation.*;
 
 /**
  *
@@ -38,13 +34,16 @@ public class StatisticsController {
 
     // lay ra so lieu ve appointment cua mot student
     @GetMapping("/{studentId}/learn-statistics")
-    public ResponseEntity<LessonStatisticDto> getStudentLearntStatistic(@PathVariable Integer studentId) {
+    public ResponseEntity<StudentLessonStatisticDto> getStudentLearntStatistic(@PathVariable Integer studentId) {
         return appointmentService.getStudentStatistics(studentId);
     }
 
     @GetMapping("/{tutorId}/teach-statistics")
-    public ResponseEntity<LessonStatisticDto> getTutorTaughtStatistic(@PathVariable Integer tutorId) {
-        return appointmentService.getTutorStatistics(tutorId);
+    public ResponseEntity<TutorLessonStatisticDto> getTutorTaughtStatistic(
+            @PathVariable Integer tutorId,
+            @RequestParam(required = false, defaultValue = "") Integer month,
+            @RequestParam(required = false, defaultValue = "") Integer year) {
+        return ResponseEntity.status(HttpStatus.OK).body(appointmentService.getTutorStatistics(tutorId, month, year));
     }
 
     @Operation(summary = "Get total tuition sum by subject or date",

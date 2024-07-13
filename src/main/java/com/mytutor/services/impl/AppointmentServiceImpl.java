@@ -8,7 +8,8 @@ import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
-import com.mytutor.dto.statistics.LessonStatisticDto;
+import com.mytutor.dto.statistics.StudentLessonStatisticDto;
+import com.mytutor.dto.statistics.TutorLessonStatisticDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import com.mytutor.entities.Subject;
@@ -23,7 +24,6 @@ import com.mytutor.repositories.WeeklyScheduleRepository;
 import com.mytutor.services.AppointmentService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -33,7 +33,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -105,10 +104,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
+    public ResponseEntity<StudentLessonStatisticDto> getStudentStatistics(Integer studentId) {
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByStudent(
                 studentId, null, null);
-        LessonStatisticDto dto = new LessonStatisticDto();
+        StudentLessonStatisticDto dto = new StudentLessonStatisticDto();
         dto.setAccountId(studentId);
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
@@ -147,14 +146,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-
-        LessonStatisticDto dto = new LessonStatisticDto();
+    public TutorLessonStatisticDto getTutorStatistics(Integer tutorId, Integer month, Integer year) {
+        TutorLessonStatisticDto dto = new TutorLessonStatisticDto();
         dto.setAccountId(tutorId);
+        List<Appointment> appointments;
+        if (month == null && year == null) {
+            appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(tutorId, null, null);
+        }
+        // if month and year is specified
+        else {
+            LocalDateTime startDate = LocalDate.of(year, month, 1).atStartOfDay();
+            LocalDateTime endDate = LocalDate.of(year, month + 1, 1).atStartOfDay();
 
-        // total
-        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
-                tutorId, null, null);
+            appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
+                    tutorId, startDate, endDate
+            );
+        }
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
             Set<Subject> subjects = getSubjectsFromAppointments(appointments);
@@ -167,27 +174,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             dto.setTotalLessons(getTotalLessons(appointments));
             dto.setTotalIncome(getTotalIncome(tutorId, appointments));
         }
-
-        // current month
-        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
-        LocalDateTime endDate = startDate.plusMonths(1);
-
-        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
-                tutorId, startDate, endDate
-        );
-        List<SubjectDto> thisMonthSubjectDtos = new ArrayList<>();
-        if (!thisMonthAppointments.isEmpty()) {
-            Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-            Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
-            for (Subject s : thisMonthSubjects) {
-                thisMonthSubjectDtos.add(SubjectDto.mapToDto(s));
-            }
-            dto.setThisMonthSubjects(thisMonthSubjectDtos);
-            dto.setThisMonthStudent(thisMonthStudents.size());
-            dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
-            dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return dto;
     }
 
     private Set<Subject> getSubjectsFromAppointments(List<Appointment> appointments) {

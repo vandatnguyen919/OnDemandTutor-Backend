@@ -32,7 +32,7 @@ public class SalaryController {
         return ResponseEntity.status(HttpStatus.OK).body(salaryService.getMonthlySalaryOfATutor(tutorId,month,year));
     }
 
-    @PostMapping("/{tutorId}/salary")
+    @PostMapping("/{tutorId}")
     public ResponseEntity<ResponseWithdrawRequestDto> sendWithdrawRequest(
             Principal principal,
             @PathVariable Integer tutorId,
