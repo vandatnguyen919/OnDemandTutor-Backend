@@ -100,13 +100,4 @@ public class StatisticsController {
         ProfitResponse profitResponse = new ProfitResponse(formatter.format(new Date()), statisticsService.getProfit());
         return ResponseEntity.status(HttpStatus.OK).body(profitResponse);
     }
-
-
-    @GetMapping("/{tutorId}/salary")
-    public ResponseEntity<Double> getTutorSalaryStatistic
-            (@PathVariable Integer tutorId,
-             @RequestParam Integer month,
-             @RequestParam Integer year) {
-        return ResponseEntity.status(HttpStatus.OK).body(appointmentService.getTutorSalary(tutorId,month,year));
-    }
 }

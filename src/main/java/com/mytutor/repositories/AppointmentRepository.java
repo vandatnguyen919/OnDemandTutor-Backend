@@ -22,8 +22,6 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
-    List<Appointment> findByStudentOrTutor(Account student, Account tutor);
-
     @Query("SELECT a FROM Appointment a " +
             " WHERE (a.tutor.id = :accountId OR a.student.id = :accountId)" +
             " AND (:status is null OR a.status = :status)")
@@ -60,6 +58,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findAppointmentsInTimeRangeByTutor(@Param("id") Integer id,
                                                            @Param("startDate") LocalDateTime startDate,
                                                            @Param("endDate") LocalDateTime endDate);
+
+
 
     @Query("SELECT new com.mytutor.dto.statistics.SubjectTuitionSum(s.subjectName, COALESCE(SUM(a.tuition), 0)) " +
             "FROM Subject s " +

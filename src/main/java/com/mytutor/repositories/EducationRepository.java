@@ -4,8 +4,6 @@
  */
 package com.mytutor.repositories;
 
-import com.mytutor.constants.VerifyStatus;
-import com.mytutor.entities.Certificate;
 import com.mytutor.entities.Education;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;

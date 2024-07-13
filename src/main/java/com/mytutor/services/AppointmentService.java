@@ -40,6 +40,4 @@ public interface AppointmentService {
 
     void sendCreateBookingEmail(int appointmentId);
 
-    double getTutorSalary(Integer accountId, Integer month, Integer year);
-
 }

@@ -4,7 +4,6 @@
  */
 package com.mytutor.entities;
 
-import com.mytutor.constants.VerifyStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

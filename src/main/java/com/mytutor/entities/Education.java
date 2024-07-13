@@ -5,7 +5,6 @@
 package com.mytutor.entities;
 
 import com.mytutor.constants.DegreeType;
-import com.mytutor.constants.VerifyStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
