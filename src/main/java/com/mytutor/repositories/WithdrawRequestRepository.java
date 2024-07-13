@@ -14,8 +14,4 @@ public interface WithdrawRequestRepository extends JpaRepository<WithdrawRequest
 
     // find by tutor, month, year, status
     WithdrawRequest findByTutorAndMonthAndYearAndStatus(Account tutor, int month, int year, WithdrawRequestStatus status);
-
-    // get paginated list of withdraw request
-    @NotNull
-    Page<WithdrawRequest> findAll(@NotNull Pageable pageable);
 }
