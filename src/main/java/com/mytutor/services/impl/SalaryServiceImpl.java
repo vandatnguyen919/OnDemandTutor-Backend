@@ -265,7 +265,6 @@ public class SalaryServiceImpl implements SalaryService {
 
         // convert to pagination dto and return
         return getPaginationDto(listOfWithdrawRequest);
-
     }
 
     private PaginationDto<ResponseWithdrawRequestDto> getPaginationDto(Page<WithdrawRequest> withdrawRequests) {
