@@ -4,21 +4,14 @@
  */
 package com.mytutor.repositories;
 
-import com.mytutor.constants.VerifyStatus;
 import com.mytutor.entities.Certificate;
 import java.util.List;
 import java.util.Optional;
-
-import com.mytutor.entities.Education;
-
-import com.mytutor.entities.Education;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**

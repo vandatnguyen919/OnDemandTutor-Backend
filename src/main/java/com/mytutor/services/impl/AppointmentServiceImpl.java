@@ -25,6 +25,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -59,9 +60,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     private TimeslotRepository timeslotRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     private AccountRepository accountRepository;
 
     @Autowired
@@ -72,6 +70,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
 
     @Override
     public ResponseAppointmentDto getAppointmentById(Integer appointmentId) {
@@ -496,14 +497,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         sendEmail(receivers, mailSubject, content);
     }
 
-    @Override
-    public double getTutorSalary(Integer tutorId, Integer month, Integer year) {
-        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
-        LocalDateTime endDate = startDate.plusMonths(1);
-        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(tutorId, startDate, endDate);
-        return getTotalIncome(tutorId, appointments);
-    }
-
     private void sendEmail(String[] receivers, String subject, String content) {
         MimeMessage message = mailSender.createMimeMessage();
         try {
@@ -650,7 +643,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
@@ -694,7 +687,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
@@ -749,8 +742,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
-    @Override
-    @Transactional
     public void rollbackAppointment(Appointment appointment) {
         appointmentRepository.delete(appointment);
     }
