@@ -6,6 +6,7 @@ import com.mytutor.dto.salary.ResponseWithdrawRequestDto;
 import com.mytutor.dto.salary.UpdateWithdrawRequestDto;
 import com.mytutor.entities.WithdrawRequest;
 import com.mytutor.services.SalaryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class SalaryController {
     public ResponseEntity<ResponseWithdrawRequestDto> sendWithdrawRequest(
             Principal principal,
             @PathVariable Integer tutorId,
-            @RequestBody RequestWithdrawRequestDto withdrawRequest
+            @Valid @RequestBody RequestWithdrawRequestDto withdrawRequest
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(salaryService.createWithdrawRequest(principal, tutorId, withdrawRequest));
