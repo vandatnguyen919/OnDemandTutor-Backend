@@ -11,5 +11,6 @@ package com.mytutor.constants;
 public enum QuestionStatus {
     UNSOLVED,
     SOLVED,
-    PROCESSING
+    PROCESSING,
+    REJECTED
 }

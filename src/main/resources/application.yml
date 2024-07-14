@@ -6,7 +6,35 @@ mytutor:
     base64-secret: aeGhbpAvxQxtq6sXeXxkKNJzDiGB8aFg1Q63rETWHX19P2iHbSUp9CvJamrNYzi+j8nvpOgn55Bn/QyCvHfDzQ==
     # 2 weeks in second
     token-validity-in-second: 1209600
+  url:
+    client: http://localhost:5173
 
+vnp:
+  payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  returnUrl: /confirm-payment
+  tmnCode: 0ZLJX97B
+  secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
+  version: 2.1.0
+  apiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+
+momo:
+  partnerCode: MOMOBKUN20180529
+  accessKey: klm05TvNBzhg7h7j
+  secretKey: at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+  requestType: payWithATM
+  apiUrl: https://test-payment.momo.vn/v2/gateway/api/create
+  queryApiUrl:  https://test-payment.momo.vn/v2/gateway/api/query
+  returnUrl: /confirm-payment
+  ipnUrl: /confirm-payment
+
+paypal:
+  clientId: Aa08pRYw7_O0kHLWeZn9LvmG6OrUdz-p--17dWVCr_OcOFZtM2Esc_GSWk4EAamVYAMllVWO2We9ik3-
+  clientSecret: EAeXefNPP9qGyv-A4tZANADbO9RKp358A317v-Fz268tbNIRdg69PqizwUK6y8FWms1eGJD45NBULzuW
+
+#currency:
+#  api:
+#    url: https://api.currencyapi.com/v3/latest
+#    key: cur_live_3ZmQ7jyGfj1E5XUFvXavAwZ3sD2lVrO0rZ9clHox
 
 spring:
   security:
@@ -33,7 +61,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/mytutor
     username: root
-    password: "12345"
+    password: 12345
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   jpa:
@@ -44,15 +72,14 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: datnguyen.dev.demo@gmail.com
-    password: "hvcj bovp bova upce"
+#    username: datnguyen.dev.demo@gmail.com
+#    password: "hvcj bovp bova upce"
+    # test email moderator
+    username: hoavo.dev.demo@gmail.com
+    password: "tcsq bpbl oypv xhpt"
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-
-
-
-

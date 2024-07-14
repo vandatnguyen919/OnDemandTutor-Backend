@@ -1,6 +1,11 @@
 package com.mytutor.repositories;
 
+import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.entities.Account;
 import com.mytutor.entities.Timeslot;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,7 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Time;
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalTime;
 
 /**
  *
@@ -17,34 +22,75 @@ import java.util.List;
 @Repository
 public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
 
-    @Query("SELECT t FROM Timeslot t " +
-            "WHERE t.account.id = :tutorId " +
-            "AND t.scheduleDate >= :currentDate AND t.scheduleDate < :endDate " +
-            "AND t.isOccupied = false " +
-            "ORDER BY t.scheduleDate, t.startTime ASC")
-    List<Timeslot> findByTutorIdOrderedByScheduleDate(@Param("tutorId") Integer tutorId,
-                                                      @Param("currentDate") LocalDate currentDate,
-                                                      @Param("endDate")LocalDate endDate);
+    @Query(
+            "SELECT t from Timeslot t " +
+                    "WHERE (t.appointment.student = :account OR t.appointment.tutor = :account)" +
+                    " AND t.scheduleDate = :newScheduleDate " +
+                    " AND (:newStartTime < t.weeklySchedule.endTime " +
+                    " AND :newEndTime > t.weeklySchedule.startTime )"
+    )
+    Timeslot findOverlapExistedSlot(@Param("newScheduleDate") LocalDate newScheduleDate,
+                                    @Param("newStartTime") Time newStartTime,
+                                    @Param("newEndTime") Time newEndTime,
+                                    @Param("account") Account account);
 
-    @Query("SELECT t FROM Timeslot t " +
-            "WHERE t.account.id = :tutorId " +
-            "AND t.scheduleDate = :date " +
-            "AND ((t.startTime >= :startTime AND t.startTime < :endTime) " +
-            "OR (t.endTime > :startTime AND t.endTime <= :endTime) " +
-            "OR (t.startTime <= :startTime AND t.endTime >= :endTime))")
-    List<Timeslot> findOverlapTimeslot(@Param("tutorId") Integer tutorId,
-                                 @Param("date") LocalDate date,
-                                 @Param("startTime") Time startTime,
-                                 @Param("endTime") Time endTime);
-    
-    @Query("SELECT t FROM Timeslot t " +
-            "WHERE t.account.id = :tutorId " +
-            "AND t.scheduleDate BETWEEN :startDate AND :endDate " +
-            " AND t.isOccupied = false" +
-            " AND t.dayOfWeek = :dayOfWeek " +
-            " ORDER BY t.scheduleDate, t.startTime ASC")
-    List<Timeslot> findByTutorIdAndDayOfWeekAndDateRange(@Param("tutorId") Integer tutorId,
-                                                         @Param("startDate") LocalDate startDate,
-                                                         @Param("endDate") LocalDate endDate,
-                                                         @Param("dayOfWeek") Integer dayOfWeek);
+    @Query(
+            "SELECT t FROM Timeslot t WHERE t.weeklySchedule.id = :weeklyScheduleId " +
+                    "AND t.scheduleDate = :scheduleDate"
+    )
+    Timeslot findByDateAndWeeklySchedule(@Param("weeklyScheduleId") Integer weeklyScheduleId,
+                                         @Param("scheduleDate") LocalDate scheduleDate);
+
+    @Query(
+            "SELECT t FROM Timeslot t " +
+                    "WHERE (t.appointment.student.id = :accountId) " +
+                    "AND t.appointment.status = :status " +
+                    "AND (t.scheduleDate > :currentDate " +
+                    "     OR (t.scheduleDate = :currentDate AND t.weeklySchedule.startTime > :currentTime)) " +
+                    "ORDER BY t.scheduleDate ASC, t.weeklySchedule.startTime ASC"
+    )
+    Page<Timeslot> findUpcomingTimeslotByStudent(@Param("accountId") Integer accountId,
+                                               @Param("status") AppointmentStatus status,
+                                               @Param("currentDate") LocalDate currentDate,
+                                               @Param("currentTime") LocalTime currentTime,
+                                               Pageable pageable);
+    @Query(
+            "SELECT t FROM Timeslot t " +
+                    " WHERE (t.appointment.student.id = :accountId) " +
+                    " AND (t.scheduleDate < :currentDate " +
+                    " OR (t.weeklySchedule.startTime <= :currentTime AND t.scheduleDate = :currentDate))" +
+                    " ORDER BY t.scheduleDate DESC, t.weeklySchedule.startTime DESC"
+    )
+    Page<Timeslot> findPastTimeslotByStudent(@Param("accountId") Integer accountId,
+                                             @Param("currentDate") LocalDate currentDate,
+                                             @Param("currentTime") LocalTime currentTime,
+                                             Pageable pageable);
+
+    @Query(
+            "SELECT t FROM Timeslot t " +
+                    "WHERE (t.appointment.tutor.id = :accountId) " +
+                    "AND t.appointment.status = :status " +
+                    "AND (t.scheduleDate > :currentDate " +
+                    "     OR (t.scheduleDate = :currentDate AND t.weeklySchedule.startTime > :currentTime)) " +
+                    "ORDER BY t.scheduleDate ASC, t.weeklySchedule.startTime ASC"
+    )
+    Page<Timeslot> findUpcomingTimeslotByTutor(@Param("accountId") Integer accountId,
+                                               @Param("status") AppointmentStatus status,
+                                               @Param("currentDate") LocalDate currentDate,
+                                               @Param("currentTime") LocalTime currentTime,
+                                               Pageable pageable);
+    @Query(
+            "SELECT t FROM Timeslot t " +
+                    " WHERE (t.appointment.tutor.id = :accountId) " +
+                    " AND (t.scheduleDate < :currentDate " +
+                    " OR (t.weeklySchedule.startTime <= :currentTime AND t.scheduleDate = :currentDate))" +
+                    " ORDER BY t.scheduleDate DESC, t.weeklySchedule.startTime DESC"
+    )
+    Page<Timeslot> findPastTimeslotByTutor(@Param("accountId") Integer accountId,
+                                           @Param("currentDate") LocalDate currentDate,
+                                           @Param("currentTime") LocalTime currentTime,
+                                           Pageable pageable);
+
+
+
 }

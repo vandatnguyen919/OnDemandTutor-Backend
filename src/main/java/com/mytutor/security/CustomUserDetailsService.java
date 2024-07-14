@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -35,11 +36,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+        if (account.getPassword() == null) {
+            throw new UsernameNotFoundException("This account is using OAuth2.0 login");
+        }
         if (account.getStatus() == AccountStatus.ACTIVE
                 || account.getStatus() == AccountStatus.PROCESSING) {
             return new User(account.getEmail(), account.getPassword(), mapRolesToAuthorities(account.getRole()));
         }
-        throw new UsernameNotFoundException("This acount can not be trusted");
+        throw new UsernameNotFoundException("This account can not be trusted");
     }
 
     private Collection<GrantedAuthority> mapRolesToAuthorities(Role role) {

@@ -4,14 +4,7 @@
  */
 package com.mytutor.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -32,7 +25,7 @@ public class TutorDetail {
     @Column(name = "teaching_price_per_hour")
     private Double teachingPricePerHour;
 
-    @Column(name = "background_description")
+    @Column(name = "background_description", length = 1000)
     private String backgroundDescription;
 
     @Column(name = "meeting_link")
@@ -44,8 +37,13 @@ public class TutorDetail {
     @Column(name = "percentage")
     private Integer percentage = 15;
 
-    @OneToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    @Column(name = "transaction_account")
+    private String transactionAccount;
+
+    @Column(name = "transaction_provider")
+    private String transactionProvider;
+
+    @Column(name = "account_owner")
+    private String accountOwner;
 
 }

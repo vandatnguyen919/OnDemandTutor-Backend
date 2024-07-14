@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import lombok.Data;
@@ -29,6 +30,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(length = 1000)
     private String fullName;
 
     @Column(unique = true)
@@ -58,7 +60,7 @@ public class Account {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "tutor_subject",
             joinColumns = @JoinColumn(name = "tutor_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "subject_id", referencedColumnName = "id"))
@@ -73,4 +75,17 @@ public class Account {
 
     @OneToMany(mappedBy = "tutor")
     private Set<Feedback> feedbacks;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equals(id, account.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

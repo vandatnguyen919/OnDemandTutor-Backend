@@ -4,9 +4,10 @@
  */
 package com.mytutor.controllers;
 
-import com.mytutor.dto.ResponseAccountDetailsDto;
+import com.mytutor.constants.Role;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.services.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,14 +34,29 @@ public class AccountController {
     @PutMapping("/{accountId}/update-details")
     public ResponseEntity<?> updateAccountDetails(
             @PathVariable Integer accountId,
-            @RequestBody UpdateAccountDetailsDto updateAccountDetails,
-            Principal principal) {
-        return accountService.updateAccountDetails(principal, accountId, updateAccountDetails);
+            @Valid @RequestBody UpdateAccountDetailsDto updateAccountDetails) {
+        return accountService.updateAccountDetails(accountId, updateAccountDetails);
     }
 
     @GetMapping("/{accountId}")
     public ResponseEntity<?> findAccountById(@PathVariable Integer accountId) {
         return accountService.readAccountById(accountId);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> findAccountsByRole(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "role", required = false) Role role
+    ) {
+        return accountService.getAccountsByRole(pageNo, pageSize, role);
+    }
+
+    @DeleteMapping("/{accountId}")
+    public ResponseEntity<?> banAccountById(
+            @PathVariable Integer accountId
+    ) {
+        return accountService.banAccountById(accountId);
     }
 
 }

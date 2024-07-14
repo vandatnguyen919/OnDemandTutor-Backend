@@ -1,5 +1,6 @@
 package com.mytutor.controllers;
 
+import com.mytutor.constants.PaymentProvider;
 import com.mytutor.services.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +21,14 @@ public class PaymentController {
     public ResponseEntity<?> createPayment(
             Principal principal,
             HttpServletRequest req,
-            @RequestParam Integer appointmentId
+            @RequestParam Integer appointmentId,
+            @RequestParam(required = false, defaultValue = "VNPAY") PaymentProvider provider
     ) {
-        return paymentService.createPayment(principal, req, appointmentId);
+        return paymentService.createPayment(principal, req, appointmentId, provider);
     }
 
     @GetMapping("/check-payment/vnpay")
-    public ResponseEntity<?> checkPayment(
+    public ResponseEntity<?> checkVNPayPayment(
             Principal principal,
             HttpServletRequest req,
             @RequestParam(name = "vnp_TxnRef") String vnp_TxnRef,
@@ -35,8 +37,18 @@ public class PaymentController {
         return paymentService.checkVNPayPayment(principal, req, vnp_TxnRef, vnp_TransDate);
     }
 
-//    @GetMapping("/refund-payment")
-//    public ResponseEntity<?> refundPayment() {
-//        return null;
-//    }
+    @GetMapping("/check-payment/momo")
+    public ResponseEntity<?> checkMomoPayment(
+            Principal principal,
+            @RequestParam String orderId
+    ) {
+        return paymentService.checkMomoPayment(principal, orderId);
+    }
+
+    @PostMapping(value = "/check-payment/paypal")
+    public ResponseEntity<?> completePayment(
+            Principal principal,
+            @RequestParam("token") String token) {
+        return paymentService.checkPaypalPayment(principal, token);
+    }
 }
