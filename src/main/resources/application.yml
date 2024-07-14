@@ -27,6 +27,9 @@ momo:
   returnUrl: /confirm-payment
   ipnUrl: /confirm-payment
 
+vietcombank:
+  exrateApiUrl: https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10
+
 spring:
   security:
     oauth2:
