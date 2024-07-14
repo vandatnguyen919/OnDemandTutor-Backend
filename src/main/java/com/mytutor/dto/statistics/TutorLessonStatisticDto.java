@@ -1,5 +1,6 @@
 package com.mytutor.dto.statistics;
 
+import com.mytutor.constants.WithdrawRequestStatus;
 import com.mytutor.dto.SubjectDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,4 +20,5 @@ public class TutorLessonStatisticDto {
     int totalTaughtStudent;
     double totalIncome;
     List<SubjectDto> totalSubjects = new ArrayList<>();
+    WithdrawRequestStatus withdrawRequestStatus;
 }

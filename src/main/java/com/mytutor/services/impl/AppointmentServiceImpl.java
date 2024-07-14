@@ -2,6 +2,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.constants.WithdrawRequestStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
@@ -62,6 +63,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private WithdrawRequestRepository withdrawRequestRepository;
 
     @Value("${mytutor.url.client}")
     private String clientUrl;
@@ -140,6 +144,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public TutorLessonStatisticDto getTutorStatistics(Integer tutorId, Integer month, Integer year) {
+        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
         TutorLessonStatisticDto dto = new TutorLessonStatisticDto();
         dto.setAccountId(tutorId);
         List<Appointment> appointments;
@@ -154,6 +159,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                     tutorId, startDate, endDate
             );
+            dto.setWithdrawRequestStatus(getWithdrawRequestStatus(tutor, month, year));
         }
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
@@ -166,8 +172,14 @@ public class AppointmentServiceImpl implements AppointmentService {
             dto.setTotalTaughtStudent(students.size());
             dto.setTotalLessons(getTotalLessons(appointments));
             dto.setTotalIncome(getTotalIncome(tutorId, appointments));
+
         }
         return dto;
+    }
+
+    private WithdrawRequestStatus getWithdrawRequestStatus(Account tutor, Integer month, Integer year) {
+        WithdrawRequest withdrawRequest = withdrawRequestRepository.findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(tutor, month, year);
+        return withdrawRequest.getStatus();
     }
 
     private Set<Subject> getSubjectsFromAppointments(List<Appointment> appointments) {
