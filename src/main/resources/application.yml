@@ -17,6 +17,16 @@ vnp:
   version: 2.1.0
   apiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
+momo:
+  partnerCode: MOMOBKUN20180529
+  accessKey: klm05TvNBzhg7h7j
+  secretKey: at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+  requestType: payWithATM
+  apiUrl: https://test-payment.momo.vn/v2/gateway/api/create
+  queryApiUrl:  https://test-payment.momo.vn/v2/gateway/api/query
+  returnUrl: /confirm-payment
+  ipnUrl: /confirm-payment
+
 spring:
   security:
     oauth2:
