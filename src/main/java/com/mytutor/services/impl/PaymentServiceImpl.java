@@ -18,9 +18,9 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.PaymentRepository;
 import com.mytutor.services.AppointmentService;
+import com.mytutor.services.ExrateService;
 import com.mytutor.services.PaymentService;
 import com.mytutor.utils.EncryptionUtils;
-import com.paypal.api.payments.Order;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
@@ -66,6 +66,9 @@ public class PaymentServiceImpl implements PaymentService {
     private AppointmentService appointmentService;
 
     @Autowired
+    private ExrateService exrateService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -90,14 +93,13 @@ public class PaymentServiceImpl implements PaymentService {
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
         else if (provider == PaymentProvider.PAYPAL) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(appointment.getTuition() * getExchangeRate()));
+            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(appointment.getTuition() * 0.000039));
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     private Double getExchangeRate() {
-        // call api
-        return null;
+        return 1.0 / 25400;
     }
 
     @Override

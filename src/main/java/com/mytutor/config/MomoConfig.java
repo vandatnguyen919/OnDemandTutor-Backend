@@ -10,6 +10,9 @@ public class MomoConfig {
     @Value("${mytutor.url.client}")
     private String clientUrl;
 
+    @Value("${mytutor.url.confirm}")
+    private String redirectUrl;
+
     @Value("${momo.partnerCode}")
     private String partnerCode;
 
@@ -18,12 +21,6 @@ public class MomoConfig {
 
     @Value("${momo.secretKey}")
     private String momoSecretKey;
-
-    @Value("${momo.returnUrl}")
-    private String redirectUrl;
-
-    @Value("${momo.ipnUrl}")
-    private String ipnUrl;
 
     @Value("${momo.requestType}")
     private String requestType;
@@ -49,7 +46,7 @@ public class MomoConfig {
         MomoConfig.momo_AccessKey = this.accessKey;
         MomoConfig.momo_SecretKey = this.momoSecretKey;
         MomoConfig.momo_RedirectUrl = clientUrl + this.redirectUrl;
-        MomoConfig.momo_IpnUrl = clientUrl + this.ipnUrl;
+        MomoConfig.momo_IpnUrl = clientUrl + this.redirectUrl;
         MomoConfig.momo_RequestType = this.requestType;
         MomoConfig.momo_ApiUrl = this.momoApiUrl;
         MomoConfig.momo_QueryApiUrl = this.momoQueryApiUrl;
