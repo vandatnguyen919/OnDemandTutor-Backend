@@ -1,5 +1,6 @@
 package com.mytutor.services;
 
+import com.mytutor.constants.PaymentProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 
@@ -10,7 +11,8 @@ public interface PaymentService {
 
     ResponseEntity<?> createPayment(Principal principal,
                                     HttpServletRequest req,
-                                    Integer appointmentId);
+                                    Integer appointmentId,
+                                    PaymentProvider provider);
 
     ResponseEntity<?> checkVNPayPayment(
             Principal principal,
@@ -18,4 +20,6 @@ public interface PaymentService {
             String vnp_TxnRef,
             String vnp_TransDate
     ) throws IOException;
+
+    ResponseEntity<?> checkMomoPayment(Principal principal, String orderId);
 }
