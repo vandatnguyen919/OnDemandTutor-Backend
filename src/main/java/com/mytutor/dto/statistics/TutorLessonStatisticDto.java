@@ -20,5 +20,5 @@ public class TutorLessonStatisticDto {
     int totalTaughtStudent;
     double totalIncome;
     List<SubjectDto> totalSubjects = new ArrayList<>();
-    WithdrawRequestStatus withdrawRequestStatus;
+    String withdrawRequestStatus;
 }

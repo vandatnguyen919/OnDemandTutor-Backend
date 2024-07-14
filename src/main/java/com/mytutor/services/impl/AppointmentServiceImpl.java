@@ -159,7 +159,13 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                     tutorId, startDate, endDate
             );
-            dto.setWithdrawRequestStatus(getWithdrawRequestStatus(tutor, month, year));
+            WithdrawRequest withdrawRequest = withdrawRequestRepository.findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(tutor, month, year);
+            if (withdrawRequest == null) {
+                dto.setWithdrawRequestStatus("notRequested");
+            }
+            else {
+            dto.setWithdrawRequestStatus(withdrawRequest.getStatus().toString());
+            }
         }
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
@@ -175,11 +181,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         }
         return dto;
-    }
-
-    private WithdrawRequestStatus getWithdrawRequestStatus(Account tutor, Integer month, Integer year) {
-        WithdrawRequest withdrawRequest = withdrawRequestRepository.findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(tutor, month, year);
-        return withdrawRequest.getStatus();
     }
 
     private Set<Subject> getSubjectsFromAppointments(List<Appointment> appointments) {
