@@ -6,6 +6,7 @@ import com.mytutor.config.MomoConfig;
 import com.mytutor.config.VNPayConfig;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.PaymentProvider;
+import com.mytutor.dto.payment.CompletedPaypalOrderDto;
 import com.mytutor.dto.payment.ResponsePaymentDto;
 import com.mytutor.dto.payment.ResponseTransactionDto;
 import com.mytutor.entities.Account;
@@ -19,7 +20,12 @@ import com.mytutor.repositories.PaymentRepository;
 import com.mytutor.services.AppointmentService;
 import com.mytutor.services.PaymentService;
 import com.mytutor.utils.EncryptionUtils;
+import com.paypal.api.payments.Order;
+import com.paypal.core.PayPalHttpClient;
+import com.paypal.http.HttpResponse;
+import com.paypal.orders.*;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -43,6 +49,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
@@ -60,6 +67,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private PayPalHttpClient payPalHttpClient;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId, PaymentProvider provider) {
@@ -79,6 +89,9 @@ public class PaymentServiceImpl implements PaymentService {
             return createPaymentWithVNPay(amount, req);
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
+        else if (provider == PaymentProvider.PAYPAL) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(appointment.getTuition() * 0.000039));
+        }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -393,5 +406,64 @@ public class PaymentServiceImpl implements PaymentService {
 
     public String generateRawHashDataForQuery(String accessKey, String orderId, String partnerCode, String requestId) {
         return "accessKey=" + accessKey + "&orderId=" + orderId + "&partnerCode=" + partnerCode + "&requestId=" + requestId;
+    }
+
+    public ResponsePaymentDto createPaymentWithPaypal(double fee) {
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.checkoutPaymentIntent("CAPTURE");
+        AmountWithBreakdown amountBreakdown = new AmountWithBreakdown().currencyCode("USD").value(String.valueOf(fee));
+        PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().amountWithBreakdown(amountBreakdown);
+        orderRequest.purchaseUnits(List.of(purchaseUnitRequest));
+        ApplicationContext applicationContext = new ApplicationContext()
+                .returnUrl("https://localhost:5173/") // link phía FE cho màn hình thanh toán ok
+                .cancelUrl("https://localhost:5173/");
+        orderRequest.applicationContext(applicationContext);
+        OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest().requestBody(orderRequest);
+
+        try {
+            HttpResponse<com.paypal.orders.Order> orderHttpResponse = payPalHttpClient.execute(ordersCreateRequest);
+            com.paypal.orders.Order order = orderHttpResponse.result();
+
+            String redirectUrl = order.links().stream()
+                    .filter(link -> "approve".equals(link.rel()))
+                    .findFirst()
+                    .orElseThrow(NoSuchElementException::new)
+                    .href();
+
+            return new ResponsePaymentDto(PaymentProvider.PAYPAL, redirectUrl);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return new ResponsePaymentDto(PaymentProvider.PAYPAL, "");
+        }
+    }
+
+
+    public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
+        OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
+        try {
+            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
+            if (httpResponse.result().status() != null) {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("success", token));
+            }
+            // get current payment
+            Account payer = accountRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+            List<Appointment> appointments = appointmentRepository
+                    .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+            if (appointments == null || appointments.isEmpty()) {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("No pending payment"));
+            }
+            Appointment currentAppointment = appointments.get(0);
+
+            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+            ZonedDateTime now = ZonedDateTime.now(zoneId);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String transactionDate = now.format(formatter);
+
+            return processToDatabase(currentAppointment, token, transactionDate, PaymentProvider.PAYPAL);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("error"));
     }
 }
