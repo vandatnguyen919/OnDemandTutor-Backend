@@ -90,9 +90,14 @@ public class PaymentServiceImpl implements PaymentService {
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
         else if (provider == PaymentProvider.PAYPAL) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(appointment.getTuition() * 0.000039));
+            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(appointment.getTuition() * getExchangeRate()));
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    private Double getExchangeRate() {
+        // call api
+        return null;
     }
 
     @Override
