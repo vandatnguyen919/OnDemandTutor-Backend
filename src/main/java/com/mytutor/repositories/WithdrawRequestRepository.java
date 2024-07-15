@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -14,4 +15,6 @@ public interface WithdrawRequestRepository extends JpaRepository<WithdrawRequest
 
     // find by tutor, month, year, status
     WithdrawRequest findByTutorAndMonthAndYearAndStatus(Account tutor, int month, int year, WithdrawRequestStatus status);
+
+    WithdrawRequest findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(Account tutor, int month, int year);
 }
