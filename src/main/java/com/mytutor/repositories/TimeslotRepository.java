@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  *
@@ -29,10 +30,10 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
                     " AND (:newStartTime < t.weeklySchedule.endTime " +
                     " AND :newEndTime > t.weeklySchedule.startTime )"
     )
-    Timeslot findOverlapExistedSlot(@Param("newScheduleDate") LocalDate newScheduleDate,
-                                    @Param("newStartTime") Time newStartTime,
-                                    @Param("newEndTime") Time newEndTime,
-                                    @Param("account") Account account);
+    List<Timeslot> findOverlapExistedSlot(@Param("newScheduleDate") LocalDate newScheduleDate,
+                                          @Param("newStartTime") Time newStartTime,
+                                          @Param("newEndTime") Time newEndTime,
+                                          @Param("account") Account account);
 
     @Query(
             "SELECT t FROM Timeslot t WHERE t.weeklySchedule.id = :weeklyScheduleId " +

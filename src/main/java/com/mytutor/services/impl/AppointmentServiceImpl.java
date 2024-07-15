@@ -336,11 +336,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         // trong cac appointment da book, cai nao co 1 slot bat ki overlap voi 1 cai slot bat ki trong timeslots dang book
         // => throw exception
         for (Timeslot newSlot : timeslots) {
-            if (timeslotRepository.findOverlapExistedSlot(
+            if (!timeslotRepository.findOverlapExistedSlot(
                                     newSlot.getScheduleDate(),
                                     newSlot.getWeeklySchedule().getStartTime(),
                                     newSlot.getWeeklySchedule().getEndTime(),
-                                    student) != null) { // goi repo check
+                                    student).isEmpty()
+            ) { // goi repo check
                 throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
                                 "Please check your schedule in Schedule Session carefully before booking!");
             }
