@@ -21,7 +21,6 @@ import com.mytutor.services.AppointmentService;
 import com.mytutor.services.ExrateService;
 import com.mytutor.services.PaymentService;
 import com.mytutor.utils.EncryptionUtils;
-import com.paypal.api.payments.Order;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
@@ -69,6 +68,9 @@ public class PaymentServiceImpl implements PaymentService {
     private AppointmentService appointmentService;
 
     @Autowired
+    private ExrateService exrateService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -77,11 +79,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${mytutor.url.client}")
     private String clientUrl;
 
-    @Value("${momo.returnUrl}")
-    private String redirectUrl;
-
-    @Autowired
-    private ExrateService exrateService;
+    @Value("${mytutor.url.confirm}")
+    private String confirmUrl;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId, PaymentProvider provider) {
@@ -441,8 +440,8 @@ public class PaymentServiceImpl implements PaymentService {
         PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().amountWithBreakdown(amountBreakdown);
         orderRequest.purchaseUnits(List.of(purchaseUnitRequest));
         ApplicationContext applicationContext = new ApplicationContext()
-                .returnUrl(clientUrl + redirectUrl) // link phía FE cho màn hình thanh toán ok
-                .cancelUrl(clientUrl + redirectUrl);
+                .returnUrl(clientUrl + confirmUrl) // link phía FE cho màn hình thanh toán ok
+                .cancelUrl(clientUrl + confirmUrl);
         orderRequest.applicationContext(applicationContext);
         OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest().requestBody(orderRequest);
 
