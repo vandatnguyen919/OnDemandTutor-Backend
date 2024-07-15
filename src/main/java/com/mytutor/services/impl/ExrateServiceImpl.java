@@ -35,7 +35,6 @@ public class ExrateServiceImpl implements ExrateService {
                 .findFirst()
                 .orElse(null);
     }
-
 //    public static void main(String[] args) {
 //        ExrateServiceImpl e = new ExrateServiceImpl();
 //        Map<String, Object> exrateMap = e.getExrateByCurrencyCode("USD");

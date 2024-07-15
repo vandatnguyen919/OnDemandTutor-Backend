@@ -21,6 +21,7 @@ import com.mytutor.services.AppointmentService;
 import com.mytutor.services.ExrateService;
 import com.mytutor.services.PaymentService;
 import com.mytutor.utils.EncryptionUtils;
+import com.paypal.api.payments.Order;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
@@ -66,9 +67,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private AppointmentService appointmentService;
-
-    @Autowired
-    private ExrateService exrateService;
 
     @Autowired
     private ModelMapper modelMapper;
