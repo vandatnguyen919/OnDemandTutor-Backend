@@ -482,7 +482,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo("hoavo.dev.demo@gmail.com");
+            helper.setTo("mytutor.main.official@gmail.com");
             helper.setBcc(receivers);
             helper.setSubject(subject);
             helper.setText(content, true);
