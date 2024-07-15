@@ -74,6 +74,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PayPalHttpClient payPalHttpClient;
 
+    @Autowired
+    private ExrateService exrateService;
+
     @Value("${mytutor.url.client}")
     private String clientUrl;
 
