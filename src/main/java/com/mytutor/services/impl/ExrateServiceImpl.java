@@ -13,9 +13,10 @@ import java.util.Map;
 
 @Service
 public class ExrateServiceImpl implements ExrateService {
+
+//    @Value("${vietcombank.exrateApiUrl}")
+//    private String url;
     private String url = "https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10";
-//     @Value("${vietcombank.exrateApiUrl}")
-//     private String url;
 
     @Override
     public Map getExrates() {

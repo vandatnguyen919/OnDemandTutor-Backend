@@ -77,11 +77,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${mytutor.url.client}")
     private String clientUrl;
 
-    @Value("${momo.returnUrl}")
-    private String redirectUrl;
-
-    @Autowired
-    private ExrateService exrateService;
+    @Value("${mytutor.url.confirm}")
+    private String confirmUrl;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId, PaymentProvider provider) {
@@ -441,8 +438,8 @@ public class PaymentServiceImpl implements PaymentService {
         PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().amountWithBreakdown(amountBreakdown);
         orderRequest.purchaseUnits(List.of(purchaseUnitRequest));
         ApplicationContext applicationContext = new ApplicationContext()
-                .returnUrl(clientUrl + redirectUrl) // link phía FE cho màn hình thanh toán ok
-                .cancelUrl(clientUrl + redirectUrl);
+                .returnUrl(clientUrl + confirmUrl) // link phía FE cho màn hình thanh toán ok
+                .cancelUrl(clientUrl + confirmUrl);
         orderRequest.applicationContext(applicationContext);
         OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest().requestBody(orderRequest);
 
