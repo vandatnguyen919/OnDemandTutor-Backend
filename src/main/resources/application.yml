@@ -27,6 +27,9 @@ momo:
   returnUrl: /confirm-payment
   ipnUrl: /confirm-payment
 
+vietcombank:
+  exrateApiUrl: https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10
+
 paypal:
   clientId: Aa08pRYw7_O0kHLWeZn9LvmG6OrUdz-p--17dWVCr_OcOFZtM2Esc_GSWk4EAamVYAMllVWO2We9ik3-
   clientSecret: EAeXefNPP9qGyv-A4tZANADbO9RKp358A317v-Fz268tbNIRdg69PqizwUK6y8FWms1eGJD45NBULzuW
@@ -35,6 +38,8 @@ paypal:
 #  api:
 #    url: https://api.currencyapi.com/v3/latest
 #    key: cur_live_3ZmQ7jyGfj1E5XUFvXavAwZ3sD2lVrO0rZ9clHox
+
+
 
 spring:
   security:
