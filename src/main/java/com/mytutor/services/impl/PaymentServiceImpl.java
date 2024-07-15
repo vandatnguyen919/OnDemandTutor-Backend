@@ -365,6 +365,7 @@ public class PaymentServiceImpl implements PaymentService {
         ResponsePaymentDto responsePaymentDto = new ResponsePaymentDto();
         responsePaymentDto.setProvider(PaymentProvider.VNPAY);
         responsePaymentDto.setPaymentUrl(paymentUrl);
+        System.out.println(paymentUrl);
 
         return ResponseEntity.status(HttpStatus.OK).body(responsePaymentDto);
     }
