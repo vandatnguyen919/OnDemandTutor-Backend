@@ -8,10 +8,10 @@ mytutor:
     token-validity-in-second: 1209600
   url:
     client: http://localhost:5173
+    confirm: /confirm-payment
 
 vnp:
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: /confirm-payment
   tmnCode: 0ZLJX97B
   secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
   version: 2.1.0
@@ -24,8 +24,9 @@ momo:
   requestType: payWithATM
   apiUrl: https://test-payment.momo.vn/v2/gateway/api/create
   queryApiUrl:  https://test-payment.momo.vn/v2/gateway/api/query
-  returnUrl: /confirm-payment
-  ipnUrl: /confirm-payment
+
+vietcombank:
+  exrateApiUrl: https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10
 
 vietcombank:
   exrateApiUrl: https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10
