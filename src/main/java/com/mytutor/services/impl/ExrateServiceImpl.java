@@ -13,9 +13,9 @@ import java.util.Map;
 
 @Service
 public class ExrateServiceImpl implements ExrateService {
-
-    @Value("${vietcombank.exrateApiUrl}")
-    private String url;
+    private String url = "https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10";
+//     @Value("${vietcombank.exrateApiUrl}")
+//     private String url;
 
     @Override
     public Map getExrates() {
@@ -34,4 +34,11 @@ public class ExrateServiceImpl implements ExrateService {
                 .findFirst()
                 .orElse(null);
     }
+//    public static void main(String[] args) {
+//        ExrateServiceImpl e = new ExrateServiceImpl();
+//        Map<String, Object> exrateMap = e.getExrateByCurrencyCode("USD");
+//        System.out.println(e.getExrateByCurrencyCode("USD"));
+//        String transferValue = (String) exrateMap.get("Transfer");
+//        System.out.println(transferValue);
+//    }
 }

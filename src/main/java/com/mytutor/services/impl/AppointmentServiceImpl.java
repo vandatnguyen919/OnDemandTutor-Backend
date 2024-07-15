@@ -731,9 +731,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     @Scheduled(fixedRate = 60000) // Run to check every minute - 15p ch thanh toan => rollback
     public void checkPendingAppointments() {
-        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(15);
+        LocalDateTime fifteenMinutesAgo = LocalDateTime.now().minusMinutes(15);
         List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
-                AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
+                AppointmentStatus.PENDING_PAYMENT, fifteenMinutesAgo
         );
 
         for (Appointment appointment : pendingAppointments) {

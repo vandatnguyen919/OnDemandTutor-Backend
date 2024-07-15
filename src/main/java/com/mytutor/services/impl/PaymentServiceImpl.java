@@ -21,6 +21,7 @@ import com.mytutor.services.AppointmentService;
 import com.mytutor.services.ExrateService;
 import com.mytutor.services.PaymentService;
 import com.mytutor.utils.EncryptionUtils;
+import com.paypal.api.payments.Order;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
@@ -28,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -66,13 +69,19 @@ public class PaymentServiceImpl implements PaymentService {
     private AppointmentService appointmentService;
 
     @Autowired
-    private ExrateService exrateService;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
     private PayPalHttpClient payPalHttpClient;
+
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
+
+    @Value("${momo.returnUrl}")
+    private String redirectUrl;
+
+    @Autowired
+    private ExrateService exrateService;
 
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId, PaymentProvider provider) {
@@ -93,13 +102,23 @@ public class PaymentServiceImpl implements PaymentService {
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
         else if (provider == PaymentProvider.PAYPAL) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(appointment.getTuition() * 0.000039));
+            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(getTuitionInDollar(appointment)));
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private Double getExchangeRate() {
-        return 1.0 / 25400;
+    private double getTuitionInDollar(Appointment appointment) {
+        String exrateString = (String)exrateService.getExrateByCurrencyCode("USD").get("Transfer");
+        String cleanedString = exrateString.replaceAll(",", "");
+        Double exrate = Double.parseDouble(cleanedString);
+        Double tuitionInDollar = appointment.getTuition() / exrate;
+        // Create a DecimalFormat object with two decimal places
+        DecimalFormat df = new DecimalFormat("#.##");
+        // Format the result to two decimal places
+        String formattedResult = df.format(tuitionInDollar);
+        // Convert the formatted string back to a double (if needed)
+        double roundedResult = Double.parseDouble(formattedResult);
+        return roundedResult;
     }
 
     @Override
@@ -422,8 +441,8 @@ public class PaymentServiceImpl implements PaymentService {
         PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().amountWithBreakdown(amountBreakdown);
         orderRequest.purchaseUnits(List.of(purchaseUnitRequest));
         ApplicationContext applicationContext = new ApplicationContext()
-                .returnUrl("https://localhost:5173/") // link phía FE cho màn hình thanh toán ok
-                .cancelUrl("https://localhost:5173/");
+                .returnUrl(clientUrl + redirectUrl) // link phía FE cho màn hình thanh toán ok
+                .cancelUrl(clientUrl + redirectUrl);
         orderRequest.applicationContext(applicationContext);
         OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest().requestBody(orderRequest);
 
