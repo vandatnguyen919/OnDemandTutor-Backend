@@ -106,9 +106,7 @@ public class PaymentServiceImpl implements PaymentService {
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
         else if (provider == PaymentProvider.PAYPAL) {
-
             double totalTuition = getTuitionInDollarPlusPayPalFee(appointment);
-
             return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(totalTuition));
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
