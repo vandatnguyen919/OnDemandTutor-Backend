@@ -39,6 +39,6 @@ public class WithdrawRequest {
     private int year;
 
     @Enumerated(EnumType.STRING)
-    private WithdrawRequestStatus status;
+    private WithdrawRequestStatus status = WithdrawRequestStatus.PROCESSING;
 
 }
