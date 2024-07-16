@@ -261,7 +261,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         // forbid a student make a booking when haven't finished payment for another
         if (!appointmentRepository.findAppointmentsWithPendingPayment(studentId,
                 AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
-            throw new PaymentFailedException("You have a pending payment booking. Please go to your Profile and scroll to the Payment History section to cancel it before making a new booking. It will be automatically cancelled after 30 minutes if no action is taken.");
+            throw new PaymentFailedException("""
+                    You have a pending payment booking!
+                    Please go to your <b>Profile</b> and scroll to the <b>Payment History</b> section to cancel.
+                    It will be automatically cancelled after 30 minutes if no action is taken.""");
         }
 
         Account student = accountRepository.findById(studentId)
