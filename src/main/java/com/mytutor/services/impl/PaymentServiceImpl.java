@@ -478,7 +478,6 @@ public class PaymentServiceImpl implements PaymentService {
     public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
         OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
         try {
-
             // get current payment
             Account payer = accountRepository.findByEmail(principal.getName())
                     .orElseThrow(() -> new AccountNotFoundException("Account not found"));
