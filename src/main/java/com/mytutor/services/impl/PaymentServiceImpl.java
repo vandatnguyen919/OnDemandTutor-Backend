@@ -21,7 +21,6 @@ import com.mytutor.services.AppointmentService;
 import com.mytutor.services.ExrateService;
 import com.mytutor.services.PaymentService;
 import com.mytutor.utils.EncryptionUtils;
-import com.paypal.api.payments.Order;
 import com.paypal.core.PayPalHttpClient;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.*;
@@ -45,7 +44,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -83,6 +81,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${mytutor.url.confirm}")
     private String confirmUrl;
 
+    @Value("${paypal.feePercentage}")
+    private double feePercentage;
+
+    @Value("${paypal.fixedFee}")
+    private double fixedFee;
+
     @Override
     public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId, PaymentProvider provider) {
         if (principal == null) {
@@ -102,23 +106,25 @@ public class PaymentServiceImpl implements PaymentService {
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
         else if (provider == PaymentProvider.PAYPAL) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(getTuitionInDollar(appointment)));
+
+            double totalTuition = getTuitionInDollarPlusPayPalFee(appointment);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(totalTuition));
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private double getTuitionInDollar(Appointment appointment) {
+    private double getTuitionInDollarPlusPayPalFee(Appointment appointment) {
         String exrateString = (String)exrateService.getExrateByCurrencyCode("USD").get("Transfer");
         String cleanedString = exrateString.replaceAll(",", "");
         Double exrate = Double.parseDouble(cleanedString);
-        Double tuitionInDollar = appointment.getTuition() / exrate;
-        // Create a DecimalFormat object with two decimal places
-        DecimalFormat df = new DecimalFormat("#.##");
-        // Format the result to two decimal places
-        String formattedResult = df.format(tuitionInDollar);
-        // Convert the formatted string back to a double (if needed)
-        double roundedResult = Double.parseDouble(formattedResult);
-        return roundedResult;
+        double tuitionInDollar = appointment.getTuition() / exrate;
+
+        // double feePercentage = 0.044; // 4.4%
+        // double fixedFee = 0.30; // Fixed fee in USD for international transactions
+        double totalFee =  (tuitionInDollar * feePercentage) + fixedFee;
+        double totalAmount = tuitionInDollar + totalFee;
+        return Math.round(totalAmount * 100) / 100.0;
     }
 
     @Override
@@ -370,7 +376,7 @@ public class PaymentServiceImpl implements PaymentService {
         return ResponseEntity.status(HttpStatus.OK).body(responsePaymentDto);
     }
 
-    public ResponseEntity<?> createPaymentWithMoMo(long amount) {
+    private ResponseEntity<?> createPaymentWithMoMo(long amount) {
         // MoMo parameters
         String orderInfo = "MyTutor - Pay with MoMo";
         String extraData = "";
