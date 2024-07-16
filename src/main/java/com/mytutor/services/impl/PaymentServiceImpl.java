@@ -252,21 +252,25 @@ public class PaymentServiceImpl implements PaymentService {
         ResponseEntity<Map> response = restTemplate.postForEntity(MomoConfig.momo_QueryApiUrl, requestEntity, Map.class);
 
         try {
-            Map body = response.getBody();
-            int resultCode = (Integer) response.getBody().get("resultCode");
-            String message = (String) response.getBody().get("message");
-            if (resultCode != 0)
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-
             // get current payment
             Account payer = accountRepository.findByEmail(principal.getName())
                     .orElseThrow(() -> new AccountNotFoundException("Account not found"));
             List<Appointment> appointments = appointmentRepository
                     .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+
             if (appointments == null || appointments.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("There is no pending payment");
             }
             Appointment currentAppointment = appointments.get(0);
+
+            Map body = response.getBody();
+            int resultCode = (Integer) body.get("resultCode");
+            String message = (String) body.get("message");
+
+            if (resultCode != 0) {
+                appointmentService.rollbackAppointment(currentAppointment);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
 
             ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
             ZonedDateTime now = ZonedDateTime.now(zoneId);
@@ -474,19 +478,24 @@ public class PaymentServiceImpl implements PaymentService {
     public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
         OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
         try {
-            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
-            if (httpResponse.result().status() != null) {
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("success", token));
-            }
+
             // get current payment
             Account payer = accountRepository.findByEmail(principal.getName())
                     .orElseThrow(() -> new AccountNotFoundException("Account not found"));
             List<Appointment> appointments = appointmentRepository
                     .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+
             if (appointments == null || appointments.isEmpty()) {
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("No pending payment"));
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("There is no pending payment"));
             }
             Appointment currentAppointment = appointments.get(0);
+
+            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
+
+            if (httpResponse.result().status() != null) {
+                appointmentService.rollbackAppointment(currentAppointment);
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("success", token));
+            }
 
             ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
             ZonedDateTime now = ZonedDateTime.now(zoneId);
