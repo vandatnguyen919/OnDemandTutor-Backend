@@ -30,7 +30,7 @@ public class FeedbackDto {
     private String createdBy;
     private String avatarUrl;
     private int tutorId;
-    private Integer rating;
+    private Float rating;
     private String content;
     private String createdAt;
     private String modifiedAt;
