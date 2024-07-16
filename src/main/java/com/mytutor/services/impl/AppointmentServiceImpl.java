@@ -2,48 +2,42 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.constants.WithdrawRequestStatus;
+import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
-import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
-import com.mytutor.dto.statistics.LessonStatisticDto;
-import com.mytutor.entities.Account;
-import com.mytutor.entities.Appointment;
-import com.mytutor.entities.Subject;
-import com.mytutor.entities.Timeslot;
-import com.mytutor.entities.WeeklySchedule;
+import com.mytutor.dto.statistics.StudentLessonStatisticDto;
+import com.mytutor.dto.statistics.TutorLessonStatisticDto;
+import com.mytutor.entities.*;
 import com.mytutor.exceptions.*;
-import com.mytutor.repositories.AccountRepository;
-import com.mytutor.repositories.AppointmentRepository;
-import com.mytutor.repositories.SubjectRepository;
-import com.mytutor.repositories.TimeslotRepository;
-import com.mytutor.repositories.WeeklyScheduleRepository;
+import com.mytutor.repositories.*;
 import com.mytutor.services.AppointmentService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.modelmapper.ModelMapper;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Time;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -59,9 +53,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     private TimeslotRepository timeslotRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     private AccountRepository accountRepository;
 
     @Autowired
@@ -72,6 +63,12 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private WithdrawRequestRepository withdrawRequestRepository;
+
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
 
     @Override
     public ResponseAppointmentDto getAppointmentById(Integer appointmentId) {
@@ -104,10 +101,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<LessonStatisticDto> getStudentStatistics(Integer studentId) {
+    public ResponseEntity<StudentLessonStatisticDto> getStudentStatistics(Integer studentId) {
         List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByStudent(
                 studentId, null, null);
-        LessonStatisticDto dto = new LessonStatisticDto();
+        StudentLessonStatisticDto dto = new StudentLessonStatisticDto();
         dto.setAccountId(studentId);
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
@@ -146,14 +143,30 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public ResponseEntity<LessonStatisticDto> getTutorStatistics(Integer tutorId) {
-
-        LessonStatisticDto dto = new LessonStatisticDto();
+    public TutorLessonStatisticDto getTutorStatistics(Integer tutorId, Integer month, Integer year) {
+        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
+        TutorLessonStatisticDto dto = new TutorLessonStatisticDto();
         dto.setAccountId(tutorId);
+        List<Appointment> appointments;
+        if (month == null && year == null) {
+            appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(tutorId, null, null);
+        }
+        // if month and year is specified
+        else {
+            LocalDateTime startDate = LocalDate.of(year, month, 1).atStartOfDay();
+            LocalDateTime endDate = LocalDate.of(year, month + 1, 1).atStartOfDay();
 
-        // total
-        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
-                tutorId, null, null);
+            appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
+                    tutorId, startDate, endDate
+            );
+            WithdrawRequest withdrawRequest = withdrawRequestRepository.findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(tutor, month, year);
+            if (withdrawRequest == null) {
+                dto.setWithdrawRequestStatus("notRequested");
+            }
+            else {
+            dto.setWithdrawRequestStatus(withdrawRequest.getStatus().toString());
+            }
+        }
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
             Set<Subject> subjects = getSubjectsFromAppointments(appointments);
@@ -165,28 +178,9 @@ public class AppointmentServiceImpl implements AppointmentService {
             dto.setTotalTaughtStudent(students.size());
             dto.setTotalLessons(getTotalLessons(appointments));
             dto.setTotalIncome(getTotalIncome(tutorId, appointments));
-        }
 
-        // current month
-        LocalDateTime startDate = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
-        LocalDateTime endDate = startDate.plusMonths(1);
-
-        List<Appointment> thisMonthAppointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
-                tutorId, startDate, endDate
-        );
-        List<SubjectDto> thisMonthSubjectDtos = new ArrayList<>();
-        if (!thisMonthAppointments.isEmpty()) {
-            Set<Subject> thisMonthSubjects = getSubjectsFromAppointments(thisMonthAppointments);
-            Set<Account> thisMonthStudents = getStudentsFromAppointments(thisMonthAppointments);
-            for (Subject s : thisMonthSubjects) {
-                thisMonthSubjectDtos.add(SubjectDto.mapToDto(s));
-            }
-            dto.setThisMonthSubjects(thisMonthSubjectDtos);
-            dto.setThisMonthStudent(thisMonthStudents.size());
-            dto.setThisMonthLessons(getTotalLessons(thisMonthAppointments));
-            dto.setTotalMonthlyIncome(getTotalIncome(tutorId, thisMonthAppointments));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return dto;
     }
 
     private Set<Subject> getSubjectsFromAppointments(List<Appointment> appointments) {
@@ -354,41 +348,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     private List<Timeslot> getAndCheckStudentHasOverlappedSlots(Account student, List<Timeslot> timeslots) {
         // trong cac appointment da book, cai nao co 1 slot bat ki overlap voi 1 cai slot bat ki trong timeslots dang book
         // => throw exception
-        List<Appointment> appointments = appointmentRepository.findByStudentOrTutor(student, student);
-
-        for (Appointment a : appointments) {
-            for (Timeslot existedSlot : a.getTimeslots()) {
-                for (Timeslot newSlot : timeslots) {
-                    if (isConflicted(existedSlot, newSlot)) {
-                        throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
+        for (Timeslot newSlot : timeslots) {
+            if (!timeslotRepository.findOverlapExistedSlot(
+                                    newSlot.getScheduleDate(),
+                                    newSlot.getWeeklySchedule().getStartTime(),
+                                    newSlot.getWeeklySchedule().getEndTime(),
+                                    student).isEmpty()
+            ) { // goi repo check
+                throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
                                 "Please check your schedule in Schedule Session carefully before booking!");
-                    } else {
-                        System.out.println("Existed slot: " + existedSlot.getScheduleDate() + " - " + existedSlot.getWeeklySchedule().getStartTime() + " - " +existedSlot.getWeeklySchedule().getEndTime() );
-                        System.out.println("New slot: " + newSlot.getScheduleDate() + " - " + newSlot.getWeeklySchedule().getStartTime() + " - " +newSlot.getWeeklySchedule().getEndTime() );
-                    }
-                }
             }
         }
         return timeslots;
-    }
-
-    private boolean isConflicted(Timeslot existedSlot, Timeslot newSlot) {
-        Time oldStartTime = existedSlot.getWeeklySchedule().getStartTime();
-        Time oldEndTime = existedSlot.getWeeklySchedule().getEndTime();
-        Time newStartTime = newSlot.getWeeklySchedule().getStartTime();
-        Time newEndTime = newSlot.getWeeklySchedule().getEndTime();
-
-        // Check if the dates are different
-        if (!existedSlot.getScheduleDate().equals(newSlot.getScheduleDate())) {
-            return false;
-        }
-
-        // Check for time overlap
-        if (newStartTime.before(oldEndTime) && newEndTime.after(oldStartTime)) {
-            return true;
-        }
-
-        return false;
     }
 
     private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
@@ -520,19 +491,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         sendEmail(receivers, mailSubject, content);
     }
 
-    @Override
-    public double getTutorSalary(Integer tutorId, Integer month, Integer year) {
-        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
-        LocalDateTime endDate = startDate.plusMonths(1);
-        List<Appointment> appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(tutorId, startDate, endDate);
-        return getTotalIncome(tutorId, appointments);
-    }
-
     private void sendEmail(String[] receivers, String subject, String content) {
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo(receivers);
+            helper.setTo("mytutor.main.official@gmail.com");
+            helper.setBcc(receivers);
             helper.setSubject(subject);
             helper.setText(content, true);
         } catch (MessagingException e) {
@@ -540,7 +504,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         mailSender.send(message);
     }
-    private String getStyle() {
+
+    @Contract(pure = true)
+    private @NotNull String getStyle() {
         return "<style>\n" +
                 "        body {\n" +
                 "            font-family: Arial, sans-serif;\n" +
@@ -673,7 +639,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
@@ -717,7 +683,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 "        </div>\n" +
                 "        <div class=\"footer\">\n" +
                 "            <p>© 2024 MyTutor. All rights reserved.</p>\n" +
-                "            <p><a href=\"http://localhost:5173\" class=\"button\">Visit Our Website</a></p>\n" +
+                "            <p><a href=\"" + clientUrl + "\" class=\"button\">Visit Our Website</a></p>\n" +
                 "        </div>\n" +
                 "    </div>\n" +
                 "</body>\n" +
@@ -772,8 +738,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     // viết hàm rollback (xóa appointment + timeslot isOccupied = false + appointmentId = null)
-    @Override
-    @Transactional
     public void rollbackAppointment(Appointment appointment) {
         appointmentRepository.delete(appointment);
     }
@@ -781,14 +745,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     @Scheduled(fixedRate = 60000) // Run to check every minute - 15p ch thanh toan => rollback
     public void checkPendingAppointments() {
-        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(15);
+        LocalDateTime fifteenMinutesAgo = LocalDateTime.now().minusMinutes(15);
         List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
-                AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
+                AppointmentStatus.PENDING_PAYMENT, fifteenMinutesAgo
         );
 
         for (Appointment appointment : pendingAppointments) {
             rollbackAppointment(appointment);
         }
     }
-
 }

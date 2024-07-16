@@ -19,11 +19,11 @@ public class VNPayConfig {
     @Value("${mytutor.url.client}")
     private String clientUrl;
 
+    @Value("${mytutor.url.confirm}")
+    private String redirectUrl;
+
     @Value("${vnp.payUrl}")
     private String vnpPayUrl;
-
-    @Value("${vnp.returnUrl}")
-    private String vnpReturnUrl;
 
     @Value("${vnp.tmnCode}")
     private String vnpTmnCode;
@@ -47,7 +47,7 @@ public class VNPayConfig {
     @PostConstruct
     private void init() {
         VNPayConfig.vnp_PayUrl = this.vnpPayUrl;
-        VNPayConfig.vnp_ReturnUrl = clientUrl + this.vnpReturnUrl;
+        VNPayConfig.vnp_ReturnUrl = clientUrl + this.redirectUrl;
         VNPayConfig.vnp_TmnCode = this.vnpTmnCode;
         VNPayConfig.secretKey = this.secretKey2;
         VNPayConfig.vnp_Version = this.vnpVersion;
@@ -55,29 +55,6 @@ public class VNPayConfig {
     }
 
     //Util for VNPAY
-    public static String hmacSHA512(final String key, final String data) {
-        try {
-
-            if (key == null || data == null) {
-                throw new NullPointerException();
-            }
-            final Mac hmac512 = Mac.getInstance("HmacSHA512");
-            byte[] hmacKeyBytes = key.getBytes();
-            final SecretKeySpec secretKey = new SecretKeySpec(hmacKeyBytes, "HmacSHA512");
-            hmac512.init(secretKey);
-            byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
-            byte[] result = hmac512.doFinal(dataBytes);
-            StringBuilder sb = new StringBuilder(2 * result.length);
-            for (byte b : result) {
-                sb.append(String.format("%02x", b & 0xff));
-            }
-            return sb.toString();
-
-        } catch (Exception ex) {
-            return "";
-        }
-    }
-
     public static String getIpAddress(HttpServletRequest request) {
         String ipAdress;
         try {

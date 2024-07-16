@@ -15,10 +15,7 @@ import com.mytutor.dto.tutor.EducationDto;
 import com.mytutor.dto.tutor.TutorDescriptionDto;
 import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.entities.*;
-import com.mytutor.exceptions.AccountNotFoundException;
-import com.mytutor.exceptions.CertificateNotFoundException;
-import com.mytutor.exceptions.EducationNotFoundException;
-import com.mytutor.exceptions.SubjectNotFoundException;
+import com.mytutor.exceptions.*;
 import com.mytutor.repositories.*;
 import com.mytutor.services.TutorService;
 
@@ -305,7 +302,7 @@ public class TutorServiceImpl implements TutorService {
 
         // neu accountid da nam trong danh sach thi return luon
         if (account.getTutorDetail() != null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tutor description exists already!");
+            throw new InvalidStatusException("Tutor description existed!");
         }
         TutorDetail tutorDetail = modelMapper.map(tutorDescriptionDto, TutorDetail.class);
 

@@ -43,7 +43,8 @@ public class GlobalExceptionHandler {
             SubjectNotFoundException.class,
             QuestionNotFoundException.class,
             FeedbackNotFoundException.class,
-            AppointmentNotFoundException.class
+            AppointmentNotFoundException.class,
+            WithdrawRequestNotFoundException.class
     })
     public ResponseEntity<ErrorObject> handleNotFoundException(Exception ex) {
         ErrorObject errorObject = new ErrorObject();
@@ -83,28 +84,6 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorObject, HttpStatus.CONFLICT);
     }
-//
-//    @ExceptionHandler(InvalidAppointmentStatusException.class)
-//    public ResponseEntity<ErrorObject> handleInvalidAppointmentStatusException(InvalidAppointmentStatusException ex) {
-//        ErrorObject errorObject = new ErrorObject();
-//
-//        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
-//        errorObject.setMessage(ex.getMessage());
-//        errorObject.setTimestamp(new Date());
-//
-//        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @ExceptionHandler(PaymentFailedException.class)
-//    public ResponseEntity<ErrorObject> handlePaymentException(PaymentFailedException ex) {
-//        ErrorObject errorObject = new ErrorObject();
-//
-//        errorObject.setStatusCode(HttpStatus.BAD_REQUEST.value());
-//        errorObject.setMessage(ex.getMessage());
-//        errorObject.setTimestamp(new Date());
-//
-//        return new ResponseEntity<>(errorObject, HttpStatus.BAD_REQUEST);
-//    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorObject> handleBindException(MethodArgumentNotValidException ex) {

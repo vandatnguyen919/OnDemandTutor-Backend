@@ -22,15 +22,15 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
-    List<Appointment> findByStudentOrTutor(Account student, Account tutor);
-
     @Query("SELECT a FROM Appointment a " +
             " WHERE (a.tutor.id = :accountId OR a.student.id = :accountId)" +
-            " AND (:status is null OR a.status = :status)")
+            " AND (:status is null OR a.status = :status)" +
+            " ORDER BY a.createdAt DESC ")
     Page<Appointment> findAppointmentByAccountId(Integer accountId, AppointmentStatus status, Pageable pageable);
 
     @Query("SELECT a FROM Appointment a "
-            + " WHERE :status is null OR a.status = :status")
+            + " WHERE :status is null OR a.status = :status" +
+            "  ORDER BY a.createdAt DESC ")
     Page<Appointment> findAppointments(AppointmentStatus status, Pageable pageable);
 
     @Query("SELECT DISTINCT a.tutor FROM Appointment a WHERE a.student.id = :studentId AND a.status = :status")
@@ -60,6 +60,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findAppointmentsInTimeRangeByTutor(@Param("id") Integer id,
                                                            @Param("startDate") LocalDateTime startDate,
                                                            @Param("endDate") LocalDateTime endDate);
+
+
 
     @Query("SELECT new com.mytutor.dto.statistics.SubjectTuitionSum(s.subjectName, COALESCE(SUM(a.tuition), 0)) " +
             "FROM Subject s " +
