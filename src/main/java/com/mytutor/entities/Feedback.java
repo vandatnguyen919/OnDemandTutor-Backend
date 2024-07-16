@@ -37,7 +37,7 @@ public class Feedback {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private Integer rating;
+    private Float rating;
 
     private String content;
 
