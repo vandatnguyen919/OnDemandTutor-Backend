@@ -2,6 +2,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.constants.WithdrawRequestStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
@@ -62,6 +63,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private WithdrawRequestRepository withdrawRequestRepository;
 
     @Value("${mytutor.url.client}")
     private String clientUrl;
@@ -140,6 +144,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public TutorLessonStatisticDto getTutorStatistics(Integer tutorId, Integer month, Integer year) {
+        Account tutor = accountRepository.findById(tutorId).orElseThrow(() -> new AccountNotFoundException("Account not found!"));
         TutorLessonStatisticDto dto = new TutorLessonStatisticDto();
         dto.setAccountId(tutorId);
         List<Appointment> appointments;
@@ -154,6 +159,13 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointments = appointmentRepository.findAppointmentsInTimeRangeByTutor(
                     tutorId, startDate, endDate
             );
+            WithdrawRequest withdrawRequest = withdrawRequestRepository.findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(tutor, month, year);
+            if (withdrawRequest == null) {
+                dto.setWithdrawRequestStatus("notRequested");
+            }
+            else {
+            dto.setWithdrawRequestStatus(withdrawRequest.getStatus().toString());
+            }
         }
         List<SubjectDto> subjectDtos = new ArrayList<>();
         if (!appointments.isEmpty()) {
@@ -166,6 +178,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             dto.setTotalTaughtStudent(students.size());
             dto.setTotalLessons(getTotalLessons(appointments));
             dto.setTotalIncome(getTotalIncome(tutorId, appointments));
+
         }
         return dto;
     }
@@ -336,11 +349,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         // trong cac appointment da book, cai nao co 1 slot bat ki overlap voi 1 cai slot bat ki trong timeslots dang book
         // => throw exception
         for (Timeslot newSlot : timeslots) {
-            if (timeslotRepository.findOverlapExistedSlot(
+            if (!timeslotRepository.findOverlapExistedSlot(
                                     newSlot.getScheduleDate(),
                                     newSlot.getWeeklySchedule().getStartTime(),
                                     newSlot.getWeeklySchedule().getEndTime(),
-                                    student) != null) { // goi repo check
+                                    student).isEmpty()
+            ) { // goi repo check
                 throw new ConflictTimeslotException("Cannot book because some of the slots here are conflict with your schedule. \n" +
                                 "Please check your schedule in Schedule Session carefully before booking!");
             }
@@ -481,7 +495,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         MimeMessage message = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo("hoavo.dev.demo@gmail.com");
+            helper.setTo("mytutor.main.official@gmail.com");
             helper.setBcc(receivers);
             helper.setSubject(subject);
             helper.setText(content, true);
@@ -731,9 +745,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     @Scheduled(fixedRate = 60000) // Run to check every minute - 15p ch thanh toan => rollback
     public void checkPendingAppointments() {
-        LocalDateTime thirtyMinutesAgo = LocalDateTime.now().minusMinutes(15);
+        LocalDateTime fifteenMinutesAgo = LocalDateTime.now().minusMinutes(15);
         List<Appointment> pendingAppointments = appointmentRepository.findByStatusAndCreatedAtBefore(
-                AppointmentStatus.PENDING_PAYMENT, thirtyMinutesAgo
+                AppointmentStatus.PENDING_PAYMENT, fifteenMinutesAgo
         );
 
         for (Appointment appointment : pendingAppointments) {

@@ -22,4 +22,7 @@ public interface PaymentService {
     ) throws IOException;
 
     ResponseEntity<?> checkMomoPayment(Principal principal, String orderId);
+
+    ResponseEntity<?> checkPaypalPayment(Principal principal, String token);
+
 }

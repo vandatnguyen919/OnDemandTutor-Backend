@@ -7,11 +7,11 @@ mytutor:
     # 2 weeks in second
     token-validity-in-second: 1209600
   url:
-    client: https://mytutor-site.vercel.app
+    client: https://mytutor.id.vn
+    confirm: /confirm-payment
 
 vnp:
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: /confirm-payment
   tmnCode: 0ZLJX97B
   secretKey: NCG0FJ0JCPETZJBL1BZDMNPUXIEGU6CY
   version: 2.1.0
@@ -24,8 +24,15 @@ momo:
   requestType: payWithATM
   apiUrl: https://test-payment.momo.vn/v2/gateway/api/create
   queryApiUrl:  https://test-payment.momo.vn/v2/gateway/api/query
-  returnUrl: /confirm-payment
-  ipnUrl: /confirm-payment
+
+vietcombank:
+  exrateApiUrl: https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=10
+
+paypal:
+  clientId: Aa08pRYw7_O0kHLWeZn9LvmG6OrUdz-p--17dWVCr_OcOFZtM2Esc_GSWk4EAamVYAMllVWO2We9ik3-
+  clientSecret: EAeXefNPP9qGyv-A4tZANADbO9RKp358A317v-Fz268tbNIRdg69PqizwUK6y8FWms1eGJD45NBULzuW
+  feePercentage: 0.044  # 4.4%
+  fixedFee: 0.3         # Fixed fee in USD for international transactions
 
 spring:
   security:
@@ -48,7 +55,7 @@ spring:
 
   application:
     name: MyTutor
-
+  
   datasource:
     url: jdbc:mysql://root:hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt@monorail.proxy.rlwy.net:16440/railway?serverTimezone=Asia/Ho_Chi_Minh
     username: root
@@ -63,11 +70,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-#    username: datnguyen.dev.demo@gmail.com
-#    password: "hvcj bovp bova upce"
-    # test email moderator
-    username: hoavo.dev.demo@gmail.com
-    password: "tcsq bpbl oypv xhpt"
+    username: mytutor.main.official@gmail.com
+    password: "eujh laqp dbcq ivbc"
     properties:
       mail:
         smtp:
