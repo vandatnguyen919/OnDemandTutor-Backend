@@ -55,7 +55,7 @@ spring:
 
   application:
     name: MyTutor
-  
+
   datasource:
     url: jdbc:mysql://root:hyiBSACMFZQgUvhgvkHdbVPBuIJvcUpt@monorail.proxy.rlwy.net:16440/railway?serverTimezone=Asia/Ho_Chi_Minh
     username: root
