@@ -1,7 +1,9 @@
 package com.mytutor.repositories;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.entities.Account;
 import com.mytutor.entities.Timeslot;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,8 +11,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  *
@@ -18,6 +22,18 @@ import java.time.LocalTime;
  */
 @Repository
 public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
+
+    @Query(
+            "SELECT t from Timeslot t " +
+                    "WHERE (t.appointment.student = :account OR t.appointment.tutor = :account)" +
+                    " AND t.scheduleDate = :newScheduleDate " +
+                    " AND (:newStartTime < t.weeklySchedule.endTime " +
+                    " AND :newEndTime > t.weeklySchedule.startTime )"
+    )
+    List<Timeslot> findOverlapExistedSlot(@Param("newScheduleDate") LocalDate newScheduleDate,
+                                          @Param("newStartTime") Time newStartTime,
+                                          @Param("newEndTime") Time newEndTime,
+                                          @Param("account") Account account);
 
     @Query(
             "SELECT t FROM Timeslot t WHERE t.weeklySchedule.id = :weeklyScheduleId " +

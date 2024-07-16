@@ -31,6 +31,8 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     Optional<Account> findByIdAndRole(Integer id, Role role);
 
+    List<Account> findByRoleAndStatus(Role role, AccountStatus status);
+
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
@@ -41,6 +43,7 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
     @Query("SELECT a FROM Account a WHERE a.role = :role AND a.status = :status")
     Page<Account> findByRoleAndStatus(@Param("role") Role role, @Param("status") AccountStatus status, Pageable pageable);
+
 
     @Query("SELECT COUNT(a) " +
             "FROM Account a " +

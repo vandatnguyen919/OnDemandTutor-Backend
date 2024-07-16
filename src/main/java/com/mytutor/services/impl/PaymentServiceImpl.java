@@ -2,8 +2,11 @@ package com.mytutor.services.impl;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mytutor.config.MomoConfig;
 import com.mytutor.config.VNPayConfig;
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.constants.PaymentProvider;
+import com.mytutor.dto.payment.CompletedPaypalOrderDto;
 import com.mytutor.dto.payment.ResponsePaymentDto;
 import com.mytutor.dto.payment.ResponseTransactionDto;
 import com.mytutor.entities.Account;
@@ -15,15 +18,22 @@ import com.mytutor.repositories.AccountRepository;
 import com.mytutor.repositories.AppointmentRepository;
 import com.mytutor.repositories.PaymentRepository;
 import com.mytutor.services.AppointmentService;
+import com.mytutor.services.ExrateService;
 import com.mytutor.services.PaymentService;
+import com.mytutor.utils.EncryptionUtils;
+import com.paypal.core.PayPalHttpClient;
+import com.paypal.http.HttpResponse;
+import com.paypal.orders.*;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -40,6 +50,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
@@ -58,8 +69,26 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private PayPalHttpClient payPalHttpClient;
+
+    @Autowired
+    private ExrateService exrateService;
+
+    @Value("${mytutor.url.client}")
+    private String clientUrl;
+
+    @Value("${mytutor.url.confirm}")
+    private String confirmUrl;
+
+    @Value("${paypal.feePercentage}")
+    private double feePercentage;
+
+    @Value("${paypal.fixedFee}")
+    private double fixedFee;
+
     @Override
-    public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId) {
+    public ResponseEntity<?> createPayment(Principal principal, HttpServletRequest req, Integer appointmentId, PaymentProvider provider) {
         if (principal == null) {
             throw new BadCredentialsException("Token cannot be found or trusted");
         }
@@ -72,7 +101,30 @@ public class PaymentServiceImpl implements PaymentService {
 
         long amount = appointment.getTuition().longValue();
 
-        return createPaymentWithVNPay(amount, req);
+        if (provider == PaymentProvider.VNPAY)
+            return createPaymentWithVNPay(amount, req);
+        else if (provider == PaymentProvider.MOMO)
+            return createPaymentWithMoMo(amount);
+        else if (provider == PaymentProvider.PAYPAL) {
+
+            double totalTuition = getTuitionInDollarPlusPayPalFee(appointment);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(totalTuition));
+        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    private double getTuitionInDollarPlusPayPalFee(Appointment appointment) {
+        String exrateString = (String)exrateService.getExrateByCurrencyCode("USD").get("Transfer");
+        String cleanedString = exrateString.replaceAll(",", "");
+        Double exrate = Double.parseDouble(cleanedString);
+        double tuitionInDollar = appointment.getTuition() / exrate;
+
+        // double feePercentage = 0.044; // 4.4%
+        // double fixedFee = 0.30; // Fixed fee in USD for international transactions
+        double totalFee =  (tuitionInDollar * feePercentage) + fixedFee;
+        double totalAmount = tuitionInDollar + totalFee;
+        return Math.round(totalAmount * 100) / 100.0;
     }
 
     @Override
@@ -109,13 +161,13 @@ public class PaymentServiceImpl implements PaymentService {
         vnp_Params.addProperty("vnp_CreateDate", vnp_CreateDate);
         vnp_Params.addProperty("vnp_IpAddr", vnp_IpAddr);
 
-        String hash_Data= String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode, vnp_TxnRef, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
-        String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.secretKey, hash_Data);
+        String hash_Data = String.join("|", vnp_RequestId, vnp_Version, vnp_Command, vnp_TmnCode, vnp_TxnRef, vnp_TransDate, vnp_CreateDate, vnp_IpAddr, vnp_OrderInfo);
+        String vnp_SecureHash = EncryptionUtils.hmacSHA512(VNPayConfig.secretKey, hash_Data);
 
         vnp_Params.addProperty("vnp_SecureHash", vnp_SecureHash);
 
         URL url = new URL(VNPayConfig.vnp_ApiUrl);
-        HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
@@ -166,10 +218,68 @@ public class PaymentServiceImpl implements PaymentService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed");
         }
 
-        return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate);
+        return processToDatabase(currentAppointment, vnp_TxnRef, vnp_TransDate, PaymentProvider.VNPAY);
     }
 
-    public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate) {
+    @Override
+    public ResponseEntity<?> checkMomoPayment(Principal principal, String orderId) {
+
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token cannot be found or trusted");
+        }
+
+        String rawData = generateRawHashDataForQuery(MomoConfig.momo_AccessKey, orderId, MomoConfig.momo_PartnerCode, orderId);
+
+        // Calculate the HMAC SHA-256 signature
+        String signature = EncryptionUtils.hmacSHA256(MomoConfig.momo_SecretKey, rawData);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("partnerCode", MomoConfig.momo_PartnerCode);
+        requestBody.put("requestId", orderId);
+        requestBody.put("orderId", orderId);
+        requestBody.put("lang", "en");
+        requestBody.put("signature", signature);
+
+        // Set headers for JSON content
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Create an HTTP entity for the request
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        // Use RestTemplate to send the POST request to MoMo
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> response = restTemplate.postForEntity(MomoConfig.momo_QueryApiUrl, requestEntity, Map.class);
+
+        try {
+            Map body = response.getBody();
+            int resultCode = (Integer) response.getBody().get("resultCode");
+            String message = (String) response.getBody().get("message");
+            if (resultCode != 0)
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+
+            // get current payment
+            Account payer = accountRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+            List<Appointment> appointments = appointmentRepository
+                    .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+            if (appointments == null || appointments.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("There is no pending payment");
+            }
+            Appointment currentAppointment = appointments.get(0);
+
+            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+            ZonedDateTime now = ZonedDateTime.now(zoneId);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String transactionDate = now.format(formatter);
+
+            return processToDatabase(currentAppointment, orderId, transactionDate, PaymentProvider.MOMO);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Something went wrong! Message: " + ex.getMessage());
+        }
+    }
+
+    public ResponseEntity<?> processToDatabase(Appointment appointment, String transactionId, String transactionDate, PaymentProvider provider) {
         appointment.setStatus(AppointmentStatus.PAID);
         Payment payment = new Payment();
         payment.setMoneyAmount(appointment.getTuition());
@@ -177,7 +287,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setTransactionId(transactionId);
         payment.setTransactionDate(transactionDate);
         payment.setAppointment(appointment);
-        payment.setProvider("VNPay");
+        payment.setProvider(provider.toString());
 
         appointment.getPayments().add(payment);
         paymentRepository.save(payment);
@@ -253,14 +363,140 @@ public class PaymentServiceImpl implements PaymentService {
         String queryUrl = query.toString();
 
         //create hash for checksum
-        String vnp_SecureHash = VNPayConfig.hmacSHA512(VNPayConfig.secretKey, hashData.toString());
+        String vnp_SecureHash = EncryptionUtils.hmacSHA512(VNPayConfig.secretKey, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
 
         String paymentUrl = VNPayConfig.vnp_PayUrl + "?" + queryUrl;
 
         ResponsePaymentDto responsePaymentDto = new ResponsePaymentDto();
+        responsePaymentDto.setProvider(PaymentProvider.VNPAY);
         responsePaymentDto.setPaymentUrl(paymentUrl);
+        System.out.println(paymentUrl);
 
         return ResponseEntity.status(HttpStatus.OK).body(responsePaymentDto);
+    }
+
+    private ResponseEntity<?> createPaymentWithMoMo(long amount) {
+        // MoMo parameters
+        String orderInfo = "MyTutor - Pay with MoMo";
+        String extraData = "";
+        String orderId = MomoConfig.momo_PartnerCode + System.currentTimeMillis();
+
+        // Create the raw data for the signature
+        String rawData = generateRawHashData(MomoConfig.momo_AccessKey, amount, extraData, MomoConfig.momo_IpnUrl, orderId, orderInfo, MomoConfig.momo_PartnerCode, MomoConfig.momo_RedirectUrl, orderId, MomoConfig.momo_RequestType);
+
+        // Calculate the HMAC SHA-256 signature
+        String signature = EncryptionUtils.hmacSHA256(MomoConfig.momo_SecretKey, rawData);
+
+        // Create the request body
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("partnerCode", MomoConfig.momo_PartnerCode);
+        requestBody.put("accessKey", MomoConfig.momo_AccessKey);
+        requestBody.put("requestId", orderId);
+        requestBody.put("amount", amount);
+        requestBody.put("orderId", orderId);
+        requestBody.put("orderInfo", orderInfo);
+        requestBody.put("orderExpireTime", 15);
+        requestBody.put("redirectUrl", MomoConfig.momo_RedirectUrl);
+        requestBody.put("ipnUrl", MomoConfig.momo_IpnUrl);
+        requestBody.put("extraData", extraData);
+        requestBody.put("requestType", MomoConfig.momo_RequestType);
+        requestBody.put("signature", signature);
+        requestBody.put("lang", "en");
+
+        // Set headers for JSON content
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Create an HTTP entity for the request
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        // Use RestTemplate to send the POST request to MoMo
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> response = restTemplate.postForEntity(MomoConfig.momo_ApiUrl, requestEntity, Map.class);
+
+        try {
+            String paymentUrl = (String) response.getBody().get("payUrl");
+
+            ResponsePaymentDto responsePaymentDto = new ResponsePaymentDto();
+            responsePaymentDto.setProvider(PaymentProvider.MOMO);
+            responsePaymentDto.setPaymentUrl(paymentUrl);
+
+            return ResponseEntity.status(HttpStatus.OK).body(responsePaymentDto);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Something went wrong! Message: " + ex.getMessage());
+        }
+    }
+
+    public String generateRawHashData(String accessKey, long amount, String extraData, String ipnUrl,
+                                         String orderId, String orderInfo, String partnerCode,
+                                         String redirectUrl, String requestId, String requestType) {
+        return "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData +
+                "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo +
+                "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl +
+                "&requestId=" + requestId + "&requestType=" + requestType;
+    }
+
+    public String generateRawHashDataForQuery(String accessKey, String orderId, String partnerCode, String requestId) {
+        return "accessKey=" + accessKey + "&orderId=" + orderId + "&partnerCode=" + partnerCode + "&requestId=" + requestId;
+    }
+
+    public ResponsePaymentDto createPaymentWithPaypal(double fee) {
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.checkoutPaymentIntent("CAPTURE");
+        AmountWithBreakdown amountBreakdown = new AmountWithBreakdown().currencyCode("USD").value(String.valueOf(fee));
+        PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().amountWithBreakdown(amountBreakdown);
+        orderRequest.purchaseUnits(List.of(purchaseUnitRequest));
+        ApplicationContext applicationContext = new ApplicationContext()
+                .returnUrl(clientUrl + confirmUrl) // link phía FE cho màn hình thanh toán ok
+                .cancelUrl(clientUrl + confirmUrl);
+        orderRequest.applicationContext(applicationContext);
+        OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest().requestBody(orderRequest);
+
+        try {
+            HttpResponse<com.paypal.orders.Order> orderHttpResponse = payPalHttpClient.execute(ordersCreateRequest);
+            com.paypal.orders.Order order = orderHttpResponse.result();
+
+            String redirectUrl = order.links().stream()
+                    .filter(link -> "approve".equals(link.rel()))
+                    .findFirst()
+                    .orElseThrow(NoSuchElementException::new)
+                    .href();
+
+            return new ResponsePaymentDto(PaymentProvider.PAYPAL, redirectUrl);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return new ResponsePaymentDto(PaymentProvider.PAYPAL, "");
+        }
+    }
+
+
+    public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
+        OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
+        try {
+            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
+            if (httpResponse.result().status() != null) {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("success", token));
+            }
+            // get current payment
+            Account payer = accountRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+            List<Appointment> appointments = appointmentRepository
+                    .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+            if (appointments == null || appointments.isEmpty()) {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("No pending payment"));
+            }
+            Appointment currentAppointment = appointments.get(0);
+
+            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+            ZonedDateTime now = ZonedDateTime.now(zoneId);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            String transactionDate = now.format(formatter);
+
+            return processToDatabase(currentAppointment, token, transactionDate, PaymentProvider.PAYPAL);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("error"));
     }
 }
