@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -29,6 +30,17 @@ public interface WeeklyScheduleRepository extends JpaRepository<WeeklySchedule, 
             " AND w.dayOfWeek = :dayOfWeek ")
     List<WeeklySchedule> findByTutorIdAnDayOfWeek(@Param("tutorId")Integer tutorId,
                                                   @Param("dayOfWeek")Integer dayOfWeek);
+
+    @Query("SELECT w FROM WeeklySchedule w " +
+            "WHERE w.account.id = :tutorId " +
+            "AND w.isUsing = true " +
+            "AND w.dayOfWeek = :dayOfWeek " +
+            "AND (w.startTime >= :currentTimePlus12Hours)")
+    List<WeeklySchedule> findByTutorIdAndDayOfWeekWithMinStartTime(
+            @Param("tutorId") Integer tutorId,
+            @Param("dayOfWeek") Integer dayOfWeek,
+            @Param("currentTimePlus12Hours") Time currentTimePlus12Hours);
+
 
     @Query("SELECT w FROM WeeklySchedule w " +
             " WHERE w.account.id = :tutorId " +

@@ -106,9 +106,7 @@ public class PaymentServiceImpl implements PaymentService {
         else if (provider == PaymentProvider.MOMO)
             return createPaymentWithMoMo(amount);
         else if (provider == PaymentProvider.PAYPAL) {
-
             double totalTuition = getTuitionInDollarPlusPayPalFee(appointment);
-
             return ResponseEntity.status(HttpStatus.CREATED).body(createPaymentWithPaypal(totalTuition));
         }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -478,7 +476,6 @@ public class PaymentServiceImpl implements PaymentService {
     public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
         OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
         try {
-
             // get current payment
             Account payer = accountRepository.findByEmail(principal.getName())
                     .orElseThrow(() -> new AccountNotFoundException("Account not found"));
