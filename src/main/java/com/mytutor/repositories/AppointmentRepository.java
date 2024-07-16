@@ -24,11 +24,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @Query("SELECT a FROM Appointment a " +
             " WHERE (a.tutor.id = :accountId OR a.student.id = :accountId)" +
-            " AND (:status is null OR a.status = :status)")
+            " AND (:status is null OR a.status = :status)" +
+            " ORDER BY a.createdAt DESC ")
     Page<Appointment> findAppointmentByAccountId(Integer accountId, AppointmentStatus status, Pageable pageable);
 
     @Query("SELECT a FROM Appointment a "
-            + " WHERE :status is null OR a.status = :status")
+            + " WHERE :status is null OR a.status = :status" +
+            "  ORDER BY a.createdAt DESC ")
     Page<Appointment> findAppointments(AppointmentStatus status, Pageable pageable);
 
     @Query("SELECT DISTINCT a.tutor FROM Appointment a WHERE a.student.id = :studentId AND a.status = :status")

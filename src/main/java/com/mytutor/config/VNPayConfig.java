@@ -19,11 +19,11 @@ public class VNPayConfig {
     @Value("${mytutor.url.client}")
     private String clientUrl;
 
+    @Value("${mytutor.url.confirm}")
+    private String redirectUrl;
+
     @Value("${vnp.payUrl}")
     private String vnpPayUrl;
-
-    @Value("${vnp.returnUrl}")
-    private String vnpReturnUrl;
 
     @Value("${vnp.tmnCode}")
     private String vnpTmnCode;
@@ -47,7 +47,7 @@ public class VNPayConfig {
     @PostConstruct
     private void init() {
         VNPayConfig.vnp_PayUrl = this.vnpPayUrl;
-        VNPayConfig.vnp_ReturnUrl = clientUrl + this.vnpReturnUrl;
+        VNPayConfig.vnp_ReturnUrl = clientUrl + this.redirectUrl;
         VNPayConfig.vnp_TmnCode = this.vnpTmnCode;
         VNPayConfig.secretKey = this.secretKey2;
         VNPayConfig.vnp_Version = this.vnpVersion;
