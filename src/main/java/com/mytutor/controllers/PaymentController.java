@@ -45,7 +45,7 @@ public class PaymentController {
         return paymentService.checkMomoPayment(principal, orderId);
     }
 
-    @PostMapping(value = "/check-payment/paypal")
+    @GetMapping("/check-payment/paypal")
     public ResponseEntity<?> completePayment(
             Principal principal,
             @RequestParam("token") String token) {

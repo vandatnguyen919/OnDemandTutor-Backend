@@ -22,10 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.sql.Time;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -219,18 +217,28 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
-    private ScheduleDto generateWeeklySchedule(Integer tutorId, LocalDate startDate,
-                                               double oldSlotLength, boolean forReschedule,
-                                               Integer weeklyScheduleId) {
+    private ScheduleDto generateWeeklySchedule(Integer tutorId, double oldSlotLength, boolean forReschedule) {
+        LocalDate startDate = LocalDate.now();
+        LocalDateTime currentTimePlus12Hours = LocalDateTime.now().plusHours(12);
+        if (currentTimePlus12Hours.isAfter(startDate.atTime(23, 59, 59))) {
+            startDate = LocalDate.now().plusDays(1);
+        }
         LocalDate endDate = startDate.plusDays(6);
-
         ScheduleDto scheduleDto = new ScheduleDto();
         List<ScheduleItemDto> items = scheduleDto.getSchedules();
 
-        int today = startDate.getDayOfWeek().getValue() - 1;
+        int today = startDate.getDayOfWeek().getValue() - 1;// get current day of week
+        List<WeeklySchedule> weeklySchedules;
         for (int i = 0; i < 7; i++) {
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
-            List<WeeklySchedule> weeklySchedules = weeklyScheduleRepository.findByTutorIdAnDayOfWeek(tutorId, d);
+            if (i == 0) {
+                weeklySchedules = weeklyScheduleRepository
+                        .findByTutorIdAndDayOfWeekWithMinStartTime(tutorId, d, Time.valueOf(currentTimePlus12Hours.toLocalTime())); // thêm điều kiện truước 12 tiếng ms book
+            }
+            else {
+                weeklySchedules = weeklyScheduleRepository
+                        .findByTutorIdAnDayOfWeek(tutorId, d); // thêm điều kiện truước 12 tiếng ms book
+            }
             LocalDate date = startDate.plusDays(i);
 
             if (forReschedule) {
@@ -261,23 +269,18 @@ public class ScheduleServiceImpl implements ScheduleService {
     // Tính timeslots dựa theo schedule và xuất ra
     @Override
     public ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId) {
-        LocalDate startDate = LocalDate.now();
         ScheduleDto scheduleDto = generateWeeklySchedule(
-                tutorId, startDate, 0,
-                false, null);
+                tutorId, 0, false);
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
     @Override
     public ResponseEntity<?> getScheduleForReschedule(Integer timeslotId, Integer tutorId) {
-        LocalDate startDate = LocalDate.now();
         Timeslot oldTimeslot = timeslotRepository.findById(timeslotId)
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
         double oldSlotLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
         ScheduleDto scheduleDto = generateWeeklySchedule(
-                tutorId, startDate, oldSlotLength,
-                true, timeslotId
-        );
+                tutorId, oldSlotLength, true);
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 

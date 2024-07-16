@@ -111,14 +111,9 @@ public class PaymentServiceImpl implements PaymentService {
         String exrateString = (String)exrateService.getExrateByCurrencyCode("USD").get("Transfer");
         String cleanedString = exrateString.replaceAll(",", "");
         Double exrate = Double.parseDouble(cleanedString);
-        Double tuitionInDollar = appointment.getTuition() / exrate;
-        // Create a DecimalFormat object with two decimal places
-        DecimalFormat df = new DecimalFormat("#.##");
-        // Format the result to two decimal places
-        String formattedResult = df.format(tuitionInDollar);
-        // Convert the formatted string back to a double (if needed)
-        double roundedResult = Double.parseDouble(formattedResult);
-        return roundedResult;
+        double tuitionInDollar = Math.round(appointment.getTuition() / exrate * 100.0) / 100.0;
+        System.out.println(tuitionInDollar);
+        return tuitionInDollar;
     }
 
     @Override

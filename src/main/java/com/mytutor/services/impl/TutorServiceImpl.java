@@ -120,9 +120,14 @@ public class TutorServiceImpl implements TutorService {
             System.out.println("Empty!");
         }
         Set<Subject> subjects = subjectRepository.findByTutorId(tutorId);
-        tutor.setSubjects(subjects);
+
+        List<Education> educations = educationRepository.findByAccountId(tutor.getId(), true);
 
         TutorInfoDto tutorInfoDto = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
+        tutorInfoDto.setEducations(educations.stream()
+                .map(e -> modelMapper.map(e, TutorInfoDto.TutorEducation.class)).toList());
+        tutorInfoDto.setSubjects(subjects.stream()
+                .map(s -> s.getSubjectName()).collect(Collectors.toSet()));
         tutorInfoDto.setAverageRating(feedbackRepository.getAverageRatingByAccount(tutor));
 
         return ResponseEntity.status(HttpStatus.OK).body(tutorInfoDto);
