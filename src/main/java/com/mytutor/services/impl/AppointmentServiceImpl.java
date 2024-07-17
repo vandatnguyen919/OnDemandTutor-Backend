@@ -365,10 +365,23 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
         LocalDate today = LocalDate.now();
-        int day = today.getDayOfWeek().getValue() + 1; // LocalDate: sunday = 0, my app: sunday = 8
-        int distance = dayOfWeek >= day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
+        LocalDateTime currentTimePlus12Hours = LocalDateTime.now().plusHours(12);
+
+        if (currentTimePlus12Hours.isAfter(today.atTime(23, 59, 59))) {
+            today = today.plusDays(1);
+        }
+
+        int currentDayValue = today.getDayOfWeek().getValue() + 1; // LocalDate: Monday = 2, Sunday = 8
+        int distance = dayOfWeek >= currentDayValue ? (dayOfWeek - currentDayValue) : (dayOfWeek + 7 - currentDayValue);
         return today.plusDays(distance);
     }
+
+//    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
+//        LocalDate today = LocalDate.now();
+//        int day = today.getDayOfWeek().getValue() + 1; // LocalDate: sunday = 0, my app: sunday = 8
+//        int distance = dayOfWeek >= day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
+//        return today.plusDays(distance);
+//    }
 
     private double calculateTotalHoursBySlots(List<Timeslot> timeslots) {
         double totalHours = 0;
@@ -506,7 +519,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         mailSender.send(message);
     }
 
-    @Contract(pure = true)
     private @NotNull String getStyle() {
         return "<style>\n" +
                 "        body {\n" +
