@@ -7,7 +7,7 @@ mytutor:
     # 2 weeks in second
     token-validity-in-second: 1209600
   url:
-    client: https://mytutor.id.vn
+    client: http://localhost:5173
     confirm: /confirm-payment
 
 vnp:
