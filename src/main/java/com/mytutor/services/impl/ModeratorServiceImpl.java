@@ -88,7 +88,6 @@ public class ModeratorServiceImpl implements ModeratorService {
         return ResponseEntity.ok().body("Checked documents! Please send email to tutor!");
     }
 
-
     @Transactional
     @Override
     public ResponseEntity<?> checkTutor(Integer tutorId, String status, RequestCheckTutorDto dto) {
@@ -331,7 +330,6 @@ public class ModeratorServiceImpl implements ModeratorService {
         String[] result = new String[] {subject, content};
         return result;
     }
-
 
     // status: ok: UNSOLVED, ko ok: REJECTED
     @Override

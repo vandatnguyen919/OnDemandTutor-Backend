@@ -474,7 +474,6 @@ public class PaymentServiceImpl implements PaymentService {
 
 
     public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
-        OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
         try {
             // get current payment
             Account payer = accountRepository.findByEmail(principal.getName())
@@ -483,26 +482,74 @@ public class PaymentServiceImpl implements PaymentService {
                     .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
 
             if (appointments == null || appointments.isEmpty()) {
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("There is no pending payment"));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("There is no pending payment"));
             }
             Appointment currentAppointment = appointments.get(0);
 
-            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
+            // Get the order details
+            OrdersGetRequest ordersGetRequest = new OrdersGetRequest(token);
+            HttpResponse<com.paypal.orders.Order> getOrderResponse = payPalHttpClient.execute(ordersGetRequest);
+            com.paypal.orders.Order order = getOrderResponse.result();
 
-            if (httpResponse.result().status() != null) {
-                appointmentService.rollbackAppointment(currentAppointment);
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("success", token));
+            if (order.status().equalsIgnoreCase("APPROVED")) {
+                // Capture the order
+                OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
+                HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
+                if (httpResponse.result().status().equalsIgnoreCase("COMPLETED")) {
+                    ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+                    ZonedDateTime now = ZonedDateTime.now(zoneId);
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                    String transactionDate = now.format(formatter);
+
+                    return processToDatabase(currentAppointment, token, transactionDate, PaymentProvider.PAYPAL);
+                } else if (httpResponse.result().status().equalsIgnoreCase("VOIDED")) {
+                    appointmentService.rollbackAppointment(currentAppointment);
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment was voided!");
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment was not successful!");
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("Order not approved by the user"));
             }
-
-            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
-            ZonedDateTime now = ZonedDateTime.now(zoneId);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-            String transactionDate = now.format(formatter);
-
-            return processToDatabase(currentAppointment, token, transactionDate, PaymentProvider.PAYPAL);
         } catch (IOException e) {
             log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("error"));
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("error"));
     }
+
+
+
+//    public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
+//        OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
+//        try {
+//            // get current payment
+//            Account payer = accountRepository.findByEmail(principal.getName())
+//                    .orElseThrow(() -> new AccountNotFoundException("Account not found"));
+//            List<Appointment> appointments = appointmentRepository
+//                    .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
+//
+//            if (appointments == null || appointments.isEmpty()) {
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("There is no pending payment"));
+//            }
+//            Appointment currentAppointment = appointments.get(0);
+//
+//            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
+//            System.out.println(httpResponse.result().status());
+//            if (httpResponse.result().status().equalsIgnoreCase("VOIDED")) {
+//                appointmentService.rollbackAppointment(currentAppointment);
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not success!");
+//            }
+//
+//            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+//            ZonedDateTime now = ZonedDateTime.now(zoneId);
+//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+//            String transactionDate = now.format(formatter);
+//
+//            return processToDatabase(currentAppointment, token, transactionDate, PaymentProvider.PAYPAL);
+//        } catch (IOException e) {
+//            log.error(e.getMessage());
+//        }
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("error"));
+//    }
+
 }

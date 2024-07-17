@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -53,7 +54,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
     Page<Timeslot> findUpcomingTimeslotByStudent(@Param("accountId") Integer accountId,
                                                @Param("status") AppointmentStatus status,
                                                @Param("currentDate") LocalDate currentDate,
-                                               @Param("currentTime") LocalTime currentTime,
+                                               @Param("currentTime") Time currentTime,
                                                Pageable pageable);
     @Query(
             "SELECT t FROM Timeslot t " +
@@ -64,7 +65,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
     )
     Page<Timeslot> findPastTimeslotByStudent(@Param("accountId") Integer accountId,
                                              @Param("currentDate") LocalDate currentDate,
-                                             @Param("currentTime") LocalTime currentTime,
+                                             @Param("currentTime") Time currentTime,
                                              Pageable pageable);
 
     @Query(
@@ -78,7 +79,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
     Page<Timeslot> findUpcomingTimeslotByTutor(@Param("accountId") Integer accountId,
                                                @Param("status") AppointmentStatus status,
                                                @Param("currentDate") LocalDate currentDate,
-                                               @Param("currentTime") LocalTime currentTime,
+                                               @Param("currentTime") Time currentTime,
                                                Pageable pageable);
     @Query(
             "SELECT t FROM Timeslot t " +
@@ -89,7 +90,7 @@ public interface TimeslotRepository extends JpaRepository<Timeslot, Integer> {
     )
     Page<Timeslot> findPastTimeslotByTutor(@Param("accountId") Integer accountId,
                                            @Param("currentDate") LocalDate currentDate,
-                                           @Param("currentTime") LocalTime currentTime,
+                                           @Param("currentTime") Time currentTime,
                                            Pageable pageable);
 
 
