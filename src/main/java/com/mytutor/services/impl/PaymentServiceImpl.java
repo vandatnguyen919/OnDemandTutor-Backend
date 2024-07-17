@@ -482,7 +482,7 @@ public class PaymentServiceImpl implements PaymentService {
             List<Appointment> appointments = appointmentRepository
                     .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
             if (appointments == null || appointments.isEmpty()) {
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("No pending payment"));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("No pending payment"));
             }
             Appointment currentAppointment = appointments.get(0);
 

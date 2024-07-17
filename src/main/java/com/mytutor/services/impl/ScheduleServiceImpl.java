@@ -217,6 +217,56 @@ public class ScheduleServiceImpl implements ScheduleService {
         return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
     }
 
+    // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
+    // Tính timeslots dựa theo schedule và xuất ra
+    @Override
+    public ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId) {
+        ScheduleDto scheduleDto = generateWeeklySchedule(
+                tutorId, 0, false);
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
+    }
+
+    @Override
+    public ResponseEntity<?> getScheduleForReschedule(Integer timeslotId, Integer tutorId) {
+        Timeslot oldTimeslot = timeslotRepository.findById(timeslotId)
+                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
+        double oldSlotLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
+        ScheduleDto scheduleDto = generateWeeklySchedule(
+                tutorId, oldSlotLength, true);
+        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
+    }
+
+    @Override
+    public PaginationDto<AppointmentSlotDto> getBookedSlotsByAccount(Integer accountId,
+                                                                     boolean isDone,
+                                                                     boolean isLearner,
+                                                                     Integer pageNo,
+                                                                     Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Timeslot> responseTimeslots;
+        LocalDate currentDate = LocalDate.now();
+        Time currentTime = Time.valueOf(LocalTime.now());
+
+        if (isLearner) {
+            if (isDone) {
+                responseTimeslots = timeslotRepository.findPastTimeslotByStudent(
+                        accountId, currentDate, currentTime, pageable);
+            } else {
+                responseTimeslots = timeslotRepository.findUpcomingTimeslotByStudent(
+                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
+            }
+        } else {
+            if (isDone) {
+                responseTimeslots = timeslotRepository.findPastTimeslotByTutor(
+                        accountId, currentDate, currentTime, pageable);
+            } else {
+                responseTimeslots = timeslotRepository.findUpcomingTimeslotByTutor(
+                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
+            }
+        }
+        return getPaginationDto(responseTimeslots);
+    }
+
     private ScheduleDto generateWeeklySchedule(Integer tutorId, double oldSlotLength, boolean forReschedule) {
         LocalDate startDate = LocalDate.now();
         LocalDateTime currentTimePlus12Hours = LocalDateTime.now().plusHours(12);
@@ -227,7 +277,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleDto scheduleDto = new ScheduleDto();
         List<ScheduleItemDto> items = scheduleDto.getSchedules();
 
-        int today = startDate.getDayOfWeek().getValue() - 1;// get current day of week
+        int today = startDate.getDayOfWeek().getValue() - 1;// get day of week of start day
         List<WeeklySchedule> weeklySchedules;
         for (int i = 0; i < 7; i++) {
             int d = (today + i) % 7 + 2; // Monday is 2 and Sunday is 8
@@ -263,57 +313,6 @@ public class ScheduleServiceImpl implements ScheduleService {
         scheduleDto.setEndDate(endDate);
 
         return scheduleDto;
-    }
-
-    // lay ra cac timeslot cua 7 ngay gan nhat theo schedule
-    // Tính timeslots dựa theo schedule và xuất ra
-    @Override
-    public ResponseEntity<?> getTutorWeeklySchedule(Integer tutorId) {
-        ScheduleDto scheduleDto = generateWeeklySchedule(
-                tutorId, 0, false);
-        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
-    }
-
-    @Override
-    public ResponseEntity<?> getScheduleForReschedule(Integer timeslotId, Integer tutorId) {
-        Timeslot oldTimeslot = timeslotRepository.findById(timeslotId)
-                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
-        double oldSlotLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
-        ScheduleDto scheduleDto = generateWeeklySchedule(
-                tutorId, oldSlotLength, true);
-        return ResponseEntity.status(HttpStatus.OK).body(scheduleDto);
-    }
-
-
-    @Override
-    public PaginationDto<AppointmentSlotDto> getBookedSlotsByAccount(Integer accountId,
-                                                                 boolean isDone,
-                                                                 boolean isLearner,
-                                                                 Integer pageNo,
-                                                                 Integer pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Timeslot> responseTimeslots;
-        LocalDate currentDate = LocalDate.now();
-        LocalTime currentTime = LocalTime.now();
-
-        if (isLearner) {
-            if (isDone) {
-                responseTimeslots = timeslotRepository.findPastTimeslotByStudent(
-                        accountId, currentDate, currentTime, pageable);
-            } else {
-                responseTimeslots = timeslotRepository.findUpcomingTimeslotByStudent(
-                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
-            }
-        } else {
-            if (isDone) {
-                responseTimeslots = timeslotRepository.findPastTimeslotByTutor(
-                        accountId, currentDate, currentTime, pageable);
-            } else {
-                responseTimeslots = timeslotRepository.findUpcomingTimeslotByTutor(
-                        accountId, AppointmentStatus.PAID, currentDate, currentTime, pageable);
-            }
-        }
-        return getPaginationDto(responseTimeslots);
     }
 
     private PaginationDto<AppointmentSlotDto> getPaginationDto(Page<Timeslot> timeslots) {
