@@ -3,6 +3,7 @@ package com.mytutor.services.impl;
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
 import com.mytutor.constants.WithdrawRequestStatus;
+import com.mytutor.dto.AppointmentReportDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
@@ -766,5 +767,33 @@ public class AppointmentServiceImpl implements AppointmentService {
         for (Appointment appointment : pendingAppointments) {
             rollbackAppointment(appointment);
         }
+    }
+
+    @Override
+    public List<AppointmentReportDto> getAllAppointmentReports() {
+
+        List<Appointment> appointments = appointmentRepository.findAll();
+
+        List<AppointmentReportDto> appointmentReportDtos = appointments.stream().map(a -> {
+            AppointmentReportDto appointmentReportDto = new AppointmentReportDto();
+            appointmentReportDto.setId(a.getId());
+            appointmentReportDto.setCreatedAt(a.getCreatedAt().toString());
+            appointmentReportDto.setStudentFullName(a.getStudent().getFullName());
+            appointmentReportDto.setTutorFullName(a.getTutor().getFullName());
+
+            double appointmentTuition = a.getTuition();
+            double tutorFeePercentage = a.getTutor().getTutorDetail().getPercentage();
+            double totalTutorIncome = appointmentTuition * (100 - tutorFeePercentage) / 100;
+            double totalProfit = appointmentTuition - totalTutorIncome;
+
+            appointmentReportDto.setAppointmentTuition(appointmentTuition);
+            appointmentReportDto.setTutorFeePercentage(tutorFeePercentage);
+            appointmentReportDto.setTutorIncome(totalTutorIncome);
+            appointmentReportDto.setTotalProfit(totalProfit);
+
+            return appointmentReportDto;
+        }).toList();
+
+        return appointmentReportDtos;
     }
 }

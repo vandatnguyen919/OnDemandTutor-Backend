@@ -93,4 +93,9 @@ public class AppointmentController {
         appointmentService.sendCreateBookingEmail(appointmentId);
         return ResponseEntity.ok().body("Email sent");
     }
+
+    @GetMapping("/reports")
+    public ResponseEntity<?> getAllAppointmentReports() {
+        return ResponseEntity.ok().body(appointmentService.getAllAppointmentReports());
+    }
 }

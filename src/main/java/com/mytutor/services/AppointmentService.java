@@ -1,6 +1,7 @@
 package com.mytutor.services;
 
 import com.mytutor.constants.AppointmentStatus;
+import com.mytutor.dto.AppointmentReportDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
 import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.PaginationDto;
@@ -11,6 +12,8 @@ import com.mytutor.dto.statistics.TutorLessonStatisticDto;
 import com.mytutor.entities.Appointment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author vothimaihoa
@@ -41,4 +44,5 @@ public interface AppointmentService {
 
     void sendCreateBookingEmail(int appointmentId);
 
+    List<AppointmentReportDto> getAllAppointmentReports();
 }
