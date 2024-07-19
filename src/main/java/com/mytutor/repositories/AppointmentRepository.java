@@ -87,4 +87,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "JOIN t.tutorDetail td " +
             "WHERE a.status = 'PAID' AND MONTH(a.createdAt) = MONTH(:date) AND YEAR(a.createdAt) = YEAR(:date)")
     Double getProfit(@Param("date") Date date);
+
+    List<Appointment> findByStatusOrderByCreatedAtDesc(AppointmentStatus status);
 }

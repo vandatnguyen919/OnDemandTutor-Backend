@@ -2,7 +2,6 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
-import com.mytutor.constants.WithdrawRequestStatus;
 import com.mytutor.dto.AppointmentReportDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
@@ -18,7 +17,6 @@ import com.mytutor.repositories.*;
 import com.mytutor.services.AppointmentService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -772,7 +770,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<AppointmentReportDto> getAllAppointmentReports() {
 
-        List<Appointment> appointments = appointmentRepository.findAll();
+        List<Appointment> appointments = appointmentRepository.findByStatusOrderByCreatedAtDesc(AppointmentStatus.PAID);
 
         List<AppointmentReportDto> appointmentReportDtos = appointments.stream().map(a -> {
             AppointmentReportDto appointmentReportDto = new AppointmentReportDto();
