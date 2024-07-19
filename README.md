@@ -134,8 +134,14 @@ The application will start on http://localhost:8080.
 
 API documentation is provided using OpenAPI. Once the application is running, you can access the API documentation at:
 ```
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/swagger-ui/index.html
 ```
+
+Or access our deployed API documentation:
+```
+https://my-tutor-render.onrender.com/swagger-ui/index.html
+```
+
 <a id="uc-diagram"></a>
 ## 4. Use Case Diagram
 <img src="./readme/images/UseCase.drawio.svg" />
