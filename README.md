@@ -1,7 +1,7 @@
 # MyTutor - Student Booking Tutor On Demand
 
 <div align="center">
-    <img src="./readme/images/mytutor-logo.png" alt="MyTutor" height='80px' />
+    <a href="https://mytutor.id.vn"><img src="./readme/images/mytutor-logo.png" alt="MyTutor" height='80px'/></a>
     <p><a href="https://mytutor.id.vn">MyTutor</a> is a web application that provides services for students and tutors.</p>
 </div>
 <div align='center'>
