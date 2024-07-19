@@ -73,7 +73,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = {
             ConflictTimeslotException.class,
-            PhoneNumberAlreadyUsedException.class
+            PhoneNumberAlreadyUsedException.class,
+            UsedEmailException.class
     })
     public ResponseEntity<ErrorObject> handleConflictException(Exception ex) {
         ErrorObject errorObject = new ErrorObject();
