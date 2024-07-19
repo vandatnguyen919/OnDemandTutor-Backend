@@ -106,7 +106,6 @@ public class AppointmentController {
 
     @GetMapping("/reports/tutors")
     public ResponseEntity<?> getTutorProfits() {
-//        return ResponseEntity.ok().body(appointmentService.getStudentProfits());
-        return null;
+        return ResponseEntity.ok().body(appointmentService.getTutorIncomes());
     }
 }

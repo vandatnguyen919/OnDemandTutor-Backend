@@ -4,6 +4,7 @@ import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.statistics.DateTuitionSum;
 import com.mytutor.dto.statistics.StudentProfitDto;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
+import com.mytutor.dto.statistics.TutorIncomeDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import org.springframework.data.domain.Page;
@@ -108,4 +109,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "JOIN Account acc ON acc.id = demo.studentId " +
             "GROUP BY demo.studentId, acc.fullName")
     List<StudentProfitDto> findStudentProfits();
+
+    @Query("SELECT new com.mytutor.dto.statistics.TutorIncomeDto(" +
+            "ap.tutor.id, ac.fullName, " +
+            "SUM(ap.tuition), td.percentage, " +
+            "SUM(ap.tuition) * (100 - td.percentage) / 100, " +
+            "SUM(ap.tuition) * td.percentage / 100, " +
+            "COUNT(ap.id)) " +
+            "FROM Appointment ap " +
+            "JOIN ap.tutor ac " +
+            "JOIN ac.tutorDetail td " +
+            "WHERE ap.status = 'PAID' " +
+            "GROUP BY ap.tutor.id, ac.fullName, td.percentage")
+    List<TutorIncomeDto> findTutorIncomes();
 }

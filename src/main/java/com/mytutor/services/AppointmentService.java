@@ -9,6 +9,7 @@ import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.statistics.StudentLessonStatisticDto;
 import com.mytutor.dto.statistics.StudentProfitDto;
+import com.mytutor.dto.statistics.TutorIncomeDto;
 import com.mytutor.dto.statistics.TutorLessonStatisticDto;
 import com.mytutor.entities.Appointment;
 import org.springframework.http.ResponseEntity;
@@ -48,4 +49,6 @@ public interface AppointmentService {
     List<AppointmentReportDto> getAllAppointmentReports();
 
     List<StudentProfitDto> getStudentProfits();
+
+    List<TutorIncomeDto> getTutorIncomes();
 }
