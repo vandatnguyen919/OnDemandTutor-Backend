@@ -100,12 +100,18 @@ public class AppointmentController {
     }
 
     @GetMapping("/reports/students")
-    public ResponseEntity<?> getStudentProfits() {
-        return ResponseEntity.ok().body(appointmentService.getStudentProfits());
+    public ResponseEntity<?> getStudentProfits(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year
+    ) {
+        return ResponseEntity.ok().body(appointmentService.getStudentProfits(month, year));
     }
 
     @GetMapping("/reports/tutors")
-    public ResponseEntity<?> getTutorProfits() {
-        return ResponseEntity.ok().body(appointmentService.getTutorIncomes());
+    public ResponseEntity<?> getTutorProfits(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year
+    ) {
+        return ResponseEntity.ok().body(appointmentService.getTutorIncomes(month, year));
     }
 }

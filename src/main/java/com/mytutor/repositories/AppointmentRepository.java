@@ -103,12 +103,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "    FROM Appointment ap " +
             "    JOIN ap.tutor acc " +
             "    JOIN acc.tutorDetail td " +
-            "    WHERE ap.status = 'PAID' " +
+            "    WHERE ap.status = :status " +
+            "    AND (:month IS NULL OR MONTH(ap.createdAt) = :month) " +
+            "    AND (:year IS NULL OR YEAR(ap.createdAt) = :year) " +
             "    GROUP BY ap.student.id, td.id, ap.id" +
             ") demo " +
             "JOIN Account acc ON acc.id = demo.studentId " +
             "GROUP BY demo.studentId, acc.fullName")
-    List<StudentProfitDto> findStudentProfits();
+    List<StudentProfitDto> findStudentProfits(@Param("status") AppointmentStatus status, @Param("month") Integer month, @Param("year") Integer year);
 
     @Query("SELECT new com.mytutor.dto.statistics.TutorIncomeDto(" +
             "ap.tutor.id, ac.fullName, " +
@@ -119,7 +121,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "FROM Appointment ap " +
             "JOIN ap.tutor ac " +
             "JOIN ac.tutorDetail td " +
-            "WHERE ap.status = 'PAID' " +
+            "WHERE ap.status = :status " +
+            "AND (:month IS NULL OR MONTH(ap.createdAt) = :month) " +
+            "AND (:year IS NULL OR YEAR(ap.createdAt) = :year) " +
             "GROUP BY ap.tutor.id, ac.fullName, td.percentage")
-    List<TutorIncomeDto> findTutorIncomes();
+    List<TutorIncomeDto> findTutorIncomes(@Param("status") AppointmentStatus status, @Param("month") Integer month, @Param("year") Integer year);
 }

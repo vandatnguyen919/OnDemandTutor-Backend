@@ -48,7 +48,7 @@ public interface AppointmentService {
 
     List<AppointmentReportDto> getAllAppointmentReports();
 
-    List<StudentProfitDto> getStudentProfits();
+    List<StudentProfitDto> getStudentProfits(Integer month, Integer year);
 
-    List<TutorIncomeDto> getTutorIncomes();
+    List<TutorIncomeDto> getTutorIncomes(Integer month, Integer year);
 }

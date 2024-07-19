@@ -798,12 +798,12 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<StudentProfitDto> getStudentProfits() {
-        return appointmentRepository.findStudentProfits();
+    public List<StudentProfitDto> getStudentProfits(Integer month, Integer year) {
+        return appointmentRepository.findStudentProfits(AppointmentStatus.PAID, month, year);
     }
 
     @Override
-    public List<TutorIncomeDto> getTutorIncomes() {
-        return appointmentRepository.findTutorIncomes();
+    public List<TutorIncomeDto> getTutorIncomes(Integer month, Integer year) {
+        return appointmentRepository.findTutorIncomes(AppointmentStatus.PAID, month, year);
     }
 }
