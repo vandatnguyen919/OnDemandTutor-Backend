@@ -10,6 +10,7 @@ import com.mytutor.dto.appointment.InputAppointmentDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.statistics.StudentLessonStatisticDto;
+import com.mytutor.dto.statistics.StudentProfitDto;
 import com.mytutor.dto.statistics.TutorLessonStatisticDto;
 import com.mytutor.entities.*;
 import com.mytutor.exceptions.*;
@@ -793,5 +794,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         }).toList();
 
         return appointmentReportDtos;
+    }
+
+    @Override
+    public List<StudentProfitDto> getStudentProfits() {
+        return appointmentRepository.findStudentProfits();
     }
 }

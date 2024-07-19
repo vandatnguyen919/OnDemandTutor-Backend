@@ -98,4 +98,15 @@ public class AppointmentController {
     public ResponseEntity<?> getAllAppointmentReports() {
         return ResponseEntity.ok().body(appointmentService.getAllAppointmentReports());
     }
+
+    @GetMapping("/reports/students")
+    public ResponseEntity<?> getStudentProfits() {
+        return ResponseEntity.ok().body(appointmentService.getStudentProfits());
+    }
+
+    @GetMapping("/reports/tutors")
+    public ResponseEntity<?> getTutorProfits() {
+//        return ResponseEntity.ok().body(appointmentService.getStudentProfits());
+        return null;
+    }
 }

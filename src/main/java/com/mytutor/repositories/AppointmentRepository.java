@@ -2,6 +2,7 @@ package com.mytutor.repositories;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.statistics.DateTuitionSum;
+import com.mytutor.dto.statistics.StudentProfitDto;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
@@ -89,4 +90,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     Double getProfit(@Param("date") Date date);
 
     List<Appointment> findByStatusOrderByCreatedAtDesc(AppointmentStatus status);
+
+    @Query("SELECT new com.mytutor.dto.statistics.StudentProfitDto(" +
+            "demo.studentId, acc.fullName, SUM(demo.tuition), SUM(demo.profit), COUNT(demo.appointmentId)) " +
+            "FROM (" +
+            "    SELECT " +
+            "        ap.student.id AS studentId, " +
+            "        ap.id AS appointmentId, " +
+            "        SUM(ap.tuition) AS tuition, " +
+            "        SUM(ap.tuition * td.percentage / 100) AS profit " +
+            "    FROM Appointment ap " +
+            "    JOIN ap.tutor acc " +
+            "    JOIN acc.tutorDetail td " +
+            "    WHERE ap.status = 'PAID' " +
+            "    GROUP BY ap.student.id, td.id, ap.id" +
+            ") demo " +
+            "JOIN Account acc ON acc.id = demo.studentId " +
+            "GROUP BY demo.studentId, acc.fullName")
+    List<StudentProfitDto> findStudentProfits();
 }

@@ -8,6 +8,7 @@ import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.appointment.RequestReScheduleDto;
 import com.mytutor.dto.appointment.ResponseAppointmentDto;
 import com.mytutor.dto.statistics.StudentLessonStatisticDto;
+import com.mytutor.dto.statistics.StudentProfitDto;
 import com.mytutor.dto.statistics.TutorLessonStatisticDto;
 import com.mytutor.entities.Appointment;
 import org.springframework.http.ResponseEntity;
@@ -45,4 +46,6 @@ public interface AppointmentService {
     void sendCreateBookingEmail(int appointmentId);
 
     List<AppointmentReportDto> getAllAppointmentReports();
+
+    List<StudentProfitDto> getStudentProfits();
 }
