@@ -517,39 +517,4 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-
-
-//    public ResponseEntity<?> checkPaypalPayment(Principal principal, String token) {
-//        OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(token);
-//        try {
-//            // get current payment
-//            Account payer = accountRepository.findByEmail(principal.getName())
-//                    .orElseThrow(() -> new AccountNotFoundException("Account not found"));
-//            List<Appointment> appointments = appointmentRepository
-//                    .findAppointmentsWithPendingPayment(payer.getId(), AppointmentStatus.PENDING_PAYMENT);
-//
-//            if (appointments == null || appointments.isEmpty()) {
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("There is no pending payment"));
-//            }
-//            Appointment currentAppointment = appointments.get(0);
-//
-//            HttpResponse<com.paypal.orders.Order> httpResponse = payPalHttpClient.execute(ordersCaptureRequest);
-//            System.out.println(httpResponse.result().status());
-//            if (httpResponse.result().status().equalsIgnoreCase("VOIDED")) {
-//                appointmentService.rollbackAppointment(currentAppointment);
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not success!");
-//            }
-//
-//            ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
-//            ZonedDateTime now = ZonedDateTime.now(zoneId);
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-//            String transactionDate = now.format(formatter);
-//
-//            return processToDatabase(currentAppointment, token, transactionDate, PaymentProvider.PAYPAL);
-//        } catch (IOException e) {
-//            log.error(e.getMessage());
-//        }
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("error"));
-//    }
-
 }

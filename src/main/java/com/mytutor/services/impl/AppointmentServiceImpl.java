@@ -376,13 +376,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         return today.plusDays(distance);
     }
 
-//    private LocalDate calculateDateFromDayOfWeek(int dayOfWeek) {
-//        LocalDate today = LocalDate.now();
-//        int day = today.getDayOfWeek().getValue() + 1; // LocalDate: sunday = 0, my app: sunday = 8
-//        int distance = dayOfWeek >= day ? (dayOfWeek - day) : (dayOfWeek + 7 - day);
-//        return today.plusDays(distance);
-//    }
-
     private double calculateTotalHoursBySlots(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
@@ -408,45 +401,15 @@ public class AppointmentServiceImpl implements AppointmentService {
     public ResponseEntity<ResponseAppointmentDto> updateAppointmentSchedule(int appointmentId, RequestReScheduleDto dto) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found!"));
-        LocalDate today = LocalDate.now();
-        LocalDateTime todayTime = LocalDateTime.now();
 
-        // if new weekly schedule has booked timeslot -> error
-        WeeklySchedule newWeeklySchedule = weeklyScheduleRepository.findById(dto.getNewWeeklyScheduleId())
-                .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
-        LocalDate newScheduleDate = calculateDateFromDayOfWeek(newWeeklySchedule.getDayOfWeek());
-        if (timeslotRepository.findByDateAndWeeklySchedule(dto.getNewWeeklyScheduleId(), newScheduleDate) != null) {
-            throw new ConflictTimeslotException("Timeslot has been occupied!");
-        }
-
-        // if appointment is not in PAID status -> error
-        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
-            throw new InvalidStatusException("Not allowed to reschedule an appointment not in PAID status");
-        }
-
-        // 1. if current time before old slot < 1 days -> error
-        // (only allows if current time >= 1 days with old slot)
         Timeslot oldTimeslot = timeslotRepository.findById(dto.getOldTimeslotId())
                 .orElseThrow(() -> new TimeslotValidationException("Timeslot not found!"));
-        LocalDate oldDate = oldTimeslot.getScheduleDate();
-        LocalTime oldTime = oldTimeslot.getWeeklySchedule().getStartTime().toLocalTime();
-        LocalDateTime oldDateTime = oldDate.atTime(oldTime); // datetime of booked slot
-        if (todayTime.isAfter(oldDateTime.minusHours(24))) {
-            throw new ConflictTimeslotException("Cannot reschedule because it is " +
-                    "less than 24 hours before booked slot");
-        }
 
-        // 2. new slot must be > date than current date
-        if (!newScheduleDate.isAfter(today)) {
-            throw new ConflictTimeslotException("New schedule must be after current day!");
-        }
+        WeeklySchedule newWeeklySchedule = weeklyScheduleRepository.findById(dto.getNewWeeklyScheduleId())
+                .orElseThrow(() -> new TimeslotValidationException("Schedule not found!"));
+        LocalDate newScheduleDate = calculateDateFromDayOfWeek(newWeeklySchedule.getDayOfWeek());
 
-        // 3. new slot must has length <= old slot
-        double oldLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
-        double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
-        if (newLength > oldLength) {
-            throw new ConflictTimeslotException("New slot cannot longer than old slot!");
-        }
+        handleInvalidCasesWhenRescheduling(appointment, newWeeklySchedule, newScheduleDate, oldTimeslot);
 
         // add new slot
         Timeslot newTimeslot = new Timeslot();
@@ -467,6 +430,54 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointmentRepository.save(appointment);
 
         return ResponseEntity.status(HttpStatus.OK).body(ResponseAppointmentDto.mapToDto(appointment));
+    }
+
+    private void handleInvalidCasesWhenRescheduling(Appointment appointment, WeeklySchedule newWeeklySchedule, LocalDate newScheduleDate, Timeslot oldTimeslot) {
+        // if new timeslot is booked
+        if (timeslotRepository.findByDateAndWeeklySchedule(newWeeklySchedule.getId(), newScheduleDate) != null) {
+            throw new ConflictTimeslotException("Timeslot has been occupied!");
+        }
+
+        // if appointment is not in PAID status -> error
+        if (!appointment.getStatus().equals(AppointmentStatus.PAID)) {
+            throw new InvalidStatusException("Not allowed to reschedule an appointment not in PAID status");
+        }
+
+        // if new slot is overlap with student's booked slot
+        if (!timeslotRepository.findOverlapExistedSlot(
+                newScheduleDate,
+                newWeeklySchedule.getStartTime(),
+                newWeeklySchedule.getEndTime(),
+                appointment.getStudent()).isEmpty()
+        ) { // goi repo check
+            throw new ConflictTimeslotException("Cannot reschedule to this slot because it is conflict with your schedule. \n" +
+                    "Please check your schedule in Schedule Session carefully before rescheduling!");
+        }
+
+        // if current time before old slot < 1 days -> error
+        // (only allows if current time >= 1 days with old slot)
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayTime = LocalDateTime.now();
+
+        LocalDate oldDate = oldTimeslot.getScheduleDate();
+        LocalTime oldTime = oldTimeslot.getWeeklySchedule().getStartTime().toLocalTime();
+        LocalDateTime oldDateTime = oldDate.atTime(oldTime); // datetime of booked slot
+        if (todayTime.isAfter(oldDateTime.minusHours(24))) {
+            throw new ConflictTimeslotException("Cannot reschedule because it is " +
+                    "less than 24 hours before booked slot");
+        }
+
+        // new slot must be > date than current date
+        if (!newScheduleDate.isAfter(today)) {
+            throw new ConflictTimeslotException("New schedule must be after current day!");
+        }
+
+        // new slot must has length <= old slot
+        double oldLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
+        double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
+        if (newLength > oldLength) {
+            throw new ConflictTimeslotException("New slot cannot longer than old slot!");
+        }
     }
 
     @Override
@@ -722,13 +733,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         if (status.equals((AppointmentStatus.DONE).toString())) {
-            // check dieu kien chua day xong ko cho DONE
             appointment.setStatus(AppointmentStatus.DONE);
         }
 
         else if (status.equalsIgnoreCase((AppointmentStatus.CANCELED).toString())) {
             appointment.setStatus(AppointmentStatus.CANCELED);
-            // goi service hoan tien cho student...
         } else {
             throw new InvalidStatusException("This status is invalid!");
         }
