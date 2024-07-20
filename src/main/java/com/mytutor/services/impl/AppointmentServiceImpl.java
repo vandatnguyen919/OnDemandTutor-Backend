@@ -2,7 +2,6 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.constants.Role;
-import com.mytutor.constants.WithdrawRequestStatus;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.SubjectDto;
 import com.mytutor.dto.appointment.AppointmentSlotDto;
@@ -17,7 +16,6 @@ import com.mytutor.repositories.*;
 import com.mytutor.services.AppointmentService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -379,21 +377,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     private double calculateTotalHoursBySlots(List<Timeslot> timeslots) {
         double totalHours = 0;
         for (Timeslot t : timeslots) {
-            LocalTime startLocalTime = t.getWeeklySchedule().getStartTime().toLocalTime();
-            LocalTime endLocalTime = t.getWeeklySchedule().getEndTime().toLocalTime();
-            Duration duration = Duration.between(startLocalTime, endLocalTime);
-            totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
+            totalHours += calculateHoursBySchedule(t.getWeeklySchedule());
         }
         return totalHours;
     }
 
-    private double calculateTotalHoursSchedules(WeeklySchedule weeklySchedule) {
-        double totalHours = 0;
+    private double calculateHoursBySchedule(WeeklySchedule weeklySchedule) {
         LocalTime startLocalTime = weeklySchedule.getStartTime().toLocalTime();
         LocalTime endLocalTime = weeklySchedule.getEndTime().toLocalTime();
         Duration duration = Duration.between(startLocalTime, endLocalTime);
-        totalHours += duration.toHours() + (duration.toMinutesPart() / 60.0);
-        return totalHours;
+        return duration.toHours() + (duration.toMinutesPart() / 60.0);
     }
 
     // everytime reschedule == only reschedule a slot of the appointment
@@ -473,8 +466,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
 
         // new slot must has length <= old slot
-        double oldLength = calculateTotalHoursSchedules(oldTimeslot.getWeeklySchedule());
-        double newLength = calculateTotalHoursSchedules(newWeeklySchedule);
+        double oldLength = calculateHoursBySchedule(oldTimeslot.getWeeklySchedule());
+        double newLength = calculateHoursBySchedule(newWeeklySchedule);
         if (newLength > oldLength) {
             throw new ConflictTimeslotException("New slot cannot longer than old slot!");
         }
