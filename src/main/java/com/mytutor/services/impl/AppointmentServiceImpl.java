@@ -261,7 +261,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 AppointmentStatus.PENDING_PAYMENT).isEmpty()) {
             throw new PaymentFailedException("You have a pending payment booking! " +
                     "\nPlease go to your Profile and scroll to the Payment History section to cancel." +
-                    "\nIt will be automatically cancelled after 30 minutes if no action is taken.");
+                    "\nIt will be automatically cancelled after 15 minutes if no action is taken.");
         }
 
         Account student = accountRepository.findById(studentId)

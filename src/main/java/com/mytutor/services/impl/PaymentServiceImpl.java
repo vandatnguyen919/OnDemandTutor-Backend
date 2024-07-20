@@ -509,7 +509,7 @@ public class PaymentServiceImpl implements PaymentService {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment was not successful!");
                 }
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CompletedPaypalOrderDto("Order not approved by the user"));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Order not approved by the user");
             }
         } catch (IOException e) {
             log.error(e.getMessage());
