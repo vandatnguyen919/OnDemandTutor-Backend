@@ -148,7 +148,7 @@ https://my-tutor-render.onrender.com/swagger-ui/index.html
 
 <a id="db-design"></a>
 ## 5. Database Design
-<img src="./readme/images/UseCase-ERD.jpg" />
+<img src="./readme/images/erd.jpg" />
 
 <a id="screen-flow"></a>
 ## 6. Screen Flow
