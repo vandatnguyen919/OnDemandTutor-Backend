@@ -5,7 +5,10 @@
 package com.mytutor.services;
 
 import com.mytutor.constants.Role;
+import com.mytutor.dto.EmailPasswordDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
+import com.mytutor.dto.auth.LoginDto;
 import com.mytutor.entities.Account;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.http.ResponseEntity;
@@ -31,4 +34,6 @@ public interface AccountService {
     boolean checkCurrentAccount(Principal principal, Integer accountId);
 
     ResponseEntity<?> readAccountById(Integer accountId);
+
+    ResponseAccountDetailsDto createAccount(EmailPasswordDto emailPasswordDto, Role role);
 }

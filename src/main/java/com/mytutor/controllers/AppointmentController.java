@@ -93,4 +93,25 @@ public class AppointmentController {
         appointmentService.sendCreateBookingEmail(appointmentId);
         return ResponseEntity.ok().body("Email sent");
     }
+
+    @GetMapping("/reports")
+    public ResponseEntity<?> getAllAppointmentReports() {
+        return ResponseEntity.ok().body(appointmentService.getAllAppointmentReports());
+    }
+
+    @GetMapping("/reports/students")
+    public ResponseEntity<?> getStudentProfits(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year
+    ) {
+        return ResponseEntity.ok().body(appointmentService.getStudentProfits(month, year));
+    }
+
+    @GetMapping("/reports/tutors")
+    public ResponseEntity<?> getTutorProfits(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year
+    ) {
+        return ResponseEntity.ok().body(appointmentService.getTutorIncomes(month, year));
+    }
 }

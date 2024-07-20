@@ -5,14 +5,14 @@
 package com.mytutor.controllers;
 
 import com.mytutor.constants.Role;
+import com.mytutor.dto.EmailPasswordDto;
+import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
 import com.mytutor.services.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.Principal;
 
 /**
  *
@@ -59,4 +59,15 @@ public class AccountController {
         return accountService.banAccountById(accountId);
     }
 
+    @PostMapping("/moderators")
+    public ResponseEntity<?> createModerator(@Valid @RequestBody EmailPasswordDto emailPasswordDto) {
+        ResponseAccountDetailsDto responseAccount = accountService.createAccount(emailPasswordDto, Role.MODERATOR);
+        return ResponseEntity.ok(responseAccount);
+    }
+
+    @PostMapping("/admins")
+    public ResponseEntity<?> createAdmin(@Valid @RequestBody EmailPasswordDto emailPasswordDto) {
+        ResponseAccountDetailsDto responseAccount = accountService.createAccount(emailPasswordDto, Role.ADMIN);
+        return ResponseEntity.ok(responseAccount);
+    }
 }

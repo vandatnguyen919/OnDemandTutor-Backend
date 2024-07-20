@@ -2,7 +2,9 @@ package com.mytutor.repositories;
 
 import com.mytutor.constants.AppointmentStatus;
 import com.mytutor.dto.statistics.DateTuitionSum;
+import com.mytutor.dto.statistics.StudentProfitDto;
 import com.mytutor.dto.statistics.SubjectTuitionSum;
+import com.mytutor.dto.statistics.TutorIncomeDto;
 import com.mytutor.entities.Account;
 import com.mytutor.entities.Appointment;
 import org.springframework.data.domain.Page;
@@ -87,4 +89,41 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "JOIN t.tutorDetail td " +
             "WHERE a.status = 'PAID' AND MONTH(a.createdAt) = MONTH(:date) AND YEAR(a.createdAt) = YEAR(:date)")
     Double getProfit(@Param("date") Date date);
+
+    List<Appointment> findByStatusOrderByCreatedAtDesc(AppointmentStatus status);
+
+    @Query("SELECT new com.mytutor.dto.statistics.StudentProfitDto(" +
+            "demo.studentId, acc.fullName, SUM(demo.tuition), SUM(demo.profit), COUNT(demo.appointmentId)) " +
+            "FROM (" +
+            "    SELECT " +
+            "        ap.student.id AS studentId, " +
+            "        ap.id AS appointmentId, " +
+            "        SUM(ap.tuition) AS tuition, " +
+            "        SUM(ap.tuition * td.percentage / 100) AS profit " +
+            "    FROM Appointment ap " +
+            "    JOIN ap.tutor acc " +
+            "    JOIN acc.tutorDetail td " +
+            "    WHERE ap.status = :status " +
+            "    AND (:month IS NULL OR MONTH(ap.createdAt) = :month) " +
+            "    AND (:year IS NULL OR YEAR(ap.createdAt) = :year) " +
+            "    GROUP BY ap.student.id, td.id, ap.id" +
+            ") demo " +
+            "JOIN Account acc ON acc.id = demo.studentId " +
+            "GROUP BY demo.studentId, acc.fullName")
+    List<StudentProfitDto> findStudentProfits(@Param("status") AppointmentStatus status, @Param("month") Integer month, @Param("year") Integer year);
+
+    @Query("SELECT new com.mytutor.dto.statistics.TutorIncomeDto(" +
+            "ap.tutor.id, ac.fullName, " +
+            "SUM(ap.tuition), td.percentage, " +
+            "SUM(ap.tuition) * (100 - td.percentage) / 100, " +
+            "SUM(ap.tuition) * td.percentage / 100, " +
+            "COUNT(ap.id)) " +
+            "FROM Appointment ap " +
+            "JOIN ap.tutor ac " +
+            "JOIN ac.tutorDetail td " +
+            "WHERE ap.status = :status " +
+            "AND (:month IS NULL OR MONTH(ap.createdAt) = :month) " +
+            "AND (:year IS NULL OR YEAR(ap.createdAt) = :year) " +
+            "GROUP BY ap.tutor.id, ac.fullName, td.percentage")
+    List<TutorIncomeDto> findTutorIncomes(@Param("status") AppointmentStatus status, @Param("month") Integer month, @Param("year") Integer year);
 }

@@ -6,6 +6,7 @@ package com.mytutor.services.impl;
 
 import com.mytutor.constants.AccountStatus;
 import com.mytutor.constants.Role;
+import com.mytutor.dto.EmailPasswordDto;
 import com.mytutor.dto.PaginationDto;
 import com.mytutor.dto.ResponseAccountDetailsDto;
 import com.mytutor.dto.UpdateAccountDetailsDto;
@@ -14,6 +15,7 @@ import com.mytutor.entities.Account;
 import com.mytutor.entities.Subject;
 import com.mytutor.exceptions.AccountNotFoundException;
 import com.mytutor.exceptions.PhoneNumberAlreadyUsedException;
+import com.mytutor.exceptions.UsedEmailException;
 import com.mytutor.repositories.AccountRepository;
 
 import com.mytutor.repositories.EducationRepository;
@@ -22,6 +24,7 @@ import com.mytutor.repositories.SubjectRepository;
 import com.mytutor.services.AccountService;
 
 import java.security.Principal;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,6 +59,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public AccountServiceImpl(ModelMapper modelMapper) {
@@ -202,5 +209,32 @@ public class AccountServiceImpl implements AccountService {
     public ResponseEntity<?> readAccountById(Integer id) {
         Account account = getAccountById(id);
         return ResponseEntity.status(HttpStatus.OK).body(ResponseAccountDetailsDto.mapToDto(account));
+    }
+
+    @Override
+    public ResponseAccountDetailsDto createAccount(EmailPasswordDto emailPasswordDto, Role role) {
+        if (accountRepository.existsByEmail(emailPasswordDto.getEmail())) {
+            throw new UsedEmailException("This email has been used");
+        }
+
+        Account account = new Account();
+        account.setFullName("MyTutor - " + role.toString());
+        account.setRole(role);
+        account.setEmail(emailPasswordDto.getEmail());
+        account.setPassword(passwordEncoder.encode(emailPasswordDto.getPassword()));
+        account.setStatus(AccountStatus.ACTIVE);
+        account.setCreatedAt(new Date());
+
+        Account newAccount = accountRepository.save(account);
+
+        ResponseAccountDetailsDto responseAccount = new ResponseAccountDetailsDto();
+        responseAccount.setId(newAccount.getId());
+        responseAccount.setEmail(newAccount.getEmail());
+        responseAccount.setFullName(newAccount.getFullName());
+        responseAccount.setStatus(String.valueOf(newAccount.getStatus()));
+        responseAccount.setRole(newAccount.getRole());
+        responseAccount.setCreateAt(newAccount.getCreatedAt().toString());
+
+        return responseAccount;
     }
 }
