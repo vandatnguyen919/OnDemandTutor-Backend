@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateWithdrawRequestDto {
-    Integer withdrawRequestId;
-    String updatedStatus;
-    String rejectReason;
+    private Integer withdrawRequestId;
+    private String updatedStatus;
+    private String rejectReason;
+    private String salaryPaidProvider;
+    private String salaryPaidTransactionId;
 }

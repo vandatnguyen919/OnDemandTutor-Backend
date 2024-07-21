@@ -387,6 +387,10 @@ public class SalaryServiceImpl implements SalaryService {
         }
 
         requestToUpdate.setStatus(WithdrawRequestStatus.valueOf(newStatus.toUpperCase()));
+        if (requestToUpdate.getStatus().equals(WithdrawRequestStatus.DONE)) {
+            requestToUpdate.setSalaryPaidProvider(requestToUpdateDto.getSalaryPaidProvider());
+            requestToUpdate.setSalaryPaidTransactionId(requestToUpdateDto.getSalaryPaidTransactionId());
+        }
         withdrawRequestRepository.save(requestToUpdate);
         return new ResponseWithdrawRequestDto(requestToUpdate, requestToUpdate.getTutor());
     }
