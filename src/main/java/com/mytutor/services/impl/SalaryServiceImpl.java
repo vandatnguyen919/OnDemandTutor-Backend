@@ -378,6 +378,10 @@ public class SalaryServiceImpl implements SalaryService {
         WithdrawRequest requestToUpdate = withdrawRequestRepository.findById(requestToUpdateDto.getWithdrawRequestId())
                 .orElseThrow(() -> new WithdrawRequestNotFoundException("Withdraw Request Not Found!"));
 
+        if (!requestToUpdate.getStatus().equals(WithdrawRequestStatus.PROCESSING)) {
+            throw new InvalidStatusException("This withdraw request has been resolved!");
+        }
+
         // change status
         String newStatus = requestToUpdateDto.getUpdatedStatus();
         if (!newStatus.equalsIgnoreCase("rejected") &&
@@ -387,6 +391,10 @@ public class SalaryServiceImpl implements SalaryService {
         }
 
         requestToUpdate.setStatus(WithdrawRequestStatus.valueOf(newStatus.toUpperCase()));
+        if (requestToUpdate.getStatus().equals(WithdrawRequestStatus.DONE)) {
+            requestToUpdate.setSalaryPaidProvider(requestToUpdateDto.getSalaryPaidProvider());
+            requestToUpdate.setSalaryPaidTransactionId(requestToUpdateDto.getSalaryPaidTransactionId());
+        }
         withdrawRequestRepository.save(requestToUpdate);
         return new ResponseWithdrawRequestDto(requestToUpdate, requestToUpdate.getTutor());
     }
