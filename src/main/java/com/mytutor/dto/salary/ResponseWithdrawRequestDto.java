@@ -35,6 +35,10 @@ public class ResponseWithdrawRequestDto {
 
         private WithdrawRequestStatus status;
 
+        private String paidSalaryProvider;
+
+        private String paidSalaryTransactionId;
+
         public ResponseWithdrawRequestDto(WithdrawRequest withdrawRequest, Account tutor) {
                 this.id = withdrawRequest.getId();
                 this.bankAccountNumber = withdrawRequest.getBankAccountNumber();
@@ -45,6 +49,8 @@ public class ResponseWithdrawRequestDto {
                 this.year = withdrawRequest.getYear();
                 this.status = withdrawRequest.getStatus();
                 this.tutor = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
+                this.paidSalaryProvider = withdrawRequest.getSalaryPaidProvider();
+                this.paidSalaryTransactionId = withdrawRequest.getSalaryPaidTransactionId();
         }
 
 }

@@ -41,4 +41,8 @@ public class WithdrawRequest {
     @Enumerated(EnumType.STRING)
     private WithdrawRequestStatus status = WithdrawRequestStatus.PROCESSING;
 
+    private String salaryPaidProvider;
+
+    private String salaryPaidTransactionId;
+
 }
