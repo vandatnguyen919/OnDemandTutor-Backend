@@ -17,4 +17,7 @@ public interface WithdrawRequestRepository extends JpaRepository<WithdrawRequest
     WithdrawRequest findByTutorAndMonthAndYearAndStatus(Account tutor, int month, int year, WithdrawRequestStatus status);
 
     WithdrawRequest findTopByTutorAndMonthAndYearOrderByCreatedAtDesc(Account tutor, int month, int year);
+
+    @Query("SELECT w from WithdrawRequest w order by w.status, w.createdAt")
+    Page<WithdrawRequest> findAndSortByStatusAndTime(Pageable pageable);
 }
