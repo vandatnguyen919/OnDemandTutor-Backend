@@ -19,7 +19,6 @@ import com.mytutor.repositories.WithdrawRequestRepository;
 import com.mytutor.services.SalaryService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.With;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -344,7 +343,7 @@ public class SalaryServiceImpl implements SalaryService {
     public PaginationDto<ResponseWithdrawRequestDto> getListOfWithdrawRequest(Integer pageNo, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         // get paginated withdraw requests from repository
-        Page<WithdrawRequest> listOfWithdrawRequest = withdrawRequestRepository.findAll(pageable);
+        Page<WithdrawRequest> listOfWithdrawRequest = withdrawRequestRepository.findAndSortByStatusAndTime(pageable);
 
         // convert to pagination dto and return
         return getPaginationDto(listOfWithdrawRequest);
