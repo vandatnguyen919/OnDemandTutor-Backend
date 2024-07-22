@@ -1,5 +1,6 @@
 package com.mytutor.dto.salary;
 
+import com.mytutor.constants.RegexConsts;
 import com.mytutor.constants.WithdrawRequestStatus;
 import com.mytutor.dto.tutor.TutorInfoDto;
 import com.mytutor.entities.Account;
@@ -39,6 +40,8 @@ public class ResponseWithdrawRequestDto {
 
         private String paidSalaryTransactionId;
 
+        private String createdAt;
+
         public ResponseWithdrawRequestDto(WithdrawRequest withdrawRequest, Account tutor) {
                 this.id = withdrawRequest.getId();
                 this.bankAccountNumber = withdrawRequest.getBankAccountNumber();
@@ -51,6 +54,7 @@ public class ResponseWithdrawRequestDto {
                 this.tutor = TutorInfoDto.mapToDto(tutor, tutor.getTutorDetail());
                 this.paidSalaryProvider = withdrawRequest.getSalaryPaidProvider();
                 this.paidSalaryTransactionId = withdrawRequest.getSalaryPaidTransactionId();
+                this.createdAt = withdrawRequest.getCreatedAt().toString();
         }
 
 }
